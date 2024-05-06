@@ -653,11 +653,11 @@ def _upload_file(src_file, dest_file):
     fetcher.archive(dest_file)
 
 
-pipelines = Enum('pipelines',
-                 [AnalyzePipeline.name, ArchivePipeline.name, MirrorPipeline.name,
+pipeline_names = [AnalyzePipeline.name, ArchivePipeline.name, MirrorPipeline.name,
                   SetupPipeline.name, PushToCachePipeline.name, ExecutePipeline.name,
                   PushDeploymentPipeline.name]
-                 )
+
+pipelines = Enum('pipelines', pipeline_names)
 
 _pipeline_map = {
     pipelines.analyze: AnalyzePipeline,

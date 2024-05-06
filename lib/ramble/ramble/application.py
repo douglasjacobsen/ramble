@@ -37,7 +37,6 @@ import ramble.keywords
 import ramble.repeats
 import ramble.repository
 import ramble.modifier
-import ramble.pipeline
 import ramble.util.executable
 import ramble.util.colors as rucolor
 import ramble.util.hashing
@@ -65,8 +64,6 @@ class ApplicationBase(object, metaclass=ApplicationMeta):
     _builtin_required_key = 'required'
     _inventory_file_name = 'ramble_inventory.json'
     _status_file_name = 'ramble_status.json'
-    _pipelines = ['analyze', 'archive', 'mirror', 'setup',
-                  'pushdeployment', 'pushtocache', 'execute']
     _language_classes = [ApplicationMeta, SharedMeta]
 
     #: Lists of strings which contains GitHub usernames of attributes.
@@ -162,11 +159,12 @@ class ApplicationBase(object, metaclass=ApplicationMeta):
         return True
 
     def build_phase_order(self):
+        from ramble.pipeline import pipeline_names
         if self._pipeline_graphs is not None:
             return
 
         self._pipeline_graphs = {}
-        for pipeline in self._pipelines:
+        for pipeline in pipeline_names:
             if pipeline not in self.phase_definitions:
                 self.phase_definitions[pipeline] = {}
 
@@ -336,12 +334,14 @@ class ApplicationBase(object, metaclass=ApplicationMeta):
             '.out'
 
     def get_pipeline_phases(self, pipeline, phase_filters=['*']):
+        from ramble.pipeline import pipeline_names
+
         self.build_modifier_instances()
         self.build_phase_order()
 
-        if pipeline not in self._pipelines:
+        if pipeline not in pipeline_names:
             logger.die(f'Requested pipeline {pipeline} is not valid.\n',
-                       f'\tAvailable pipelinese are {self._pipelines}')
+                       f'\tAvailable pipelinese are {pipeline_names}')
 
         phases = set()
         if pipeline in self._pipeline_graphs:

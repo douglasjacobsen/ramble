@@ -29,7 +29,6 @@ class ModifierBase(object, metaclass=ModifierMeta):
     _builtin_name = 'modifier_builtin::{obj_name}::{name}'
     _mod_prefix_builtin = r'modifier_builtin::'
     _language_classes = [ModifierMeta, SharedMeta]
-    _pipelines = ['analyze', 'archive', 'mirror', 'setup', 'pushtocache', 'execute']
 
     modifier_class = 'ModifierBase'
 

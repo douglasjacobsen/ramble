@@ -418,6 +418,7 @@ class SpackRunner(object):
         all_packages = self._run_command(self.spack,
                                          args,
                                          return_output=True).split('\n')
+        logger.debug(f' All packages output: {all_packages}')
         for pkg in all_packages:
             match = package_name_regex.match(pkg)
             if match:
