@@ -214,38 +214,38 @@ def add_input_file(app_inst, input_num=1, func_type=func_types.directive):
 @deprecation.fail_if_not_removed
 def add_compiler(app_inst, spec_num=1, func_type=func_types.directive):
     spec_name = 'Compiler%spec_num'
-    spec_spack_spec = f'compiler_base@{spec_num}.0 +var1 ~var2'
+    spec_pkg_spec = f'compiler_base@{spec_num}.0 +var1 ~var2'
     spec_compiler_spec = 'compiler1_base@{spec_num}'
 
     spec_defs = {}
     spec_defs[spec_name] = {
-        'spack_spec': spec_spack_spec,
+        'pkg_spec': spec_pkg_spec,
         'compiler_spec': spec_compiler_spec
     }
 
     if func_type == func_types.directive:
-        define_compiler(spec_name, spack_spec=spec_spack_spec,  # noqa: F405
+        define_compiler(spec_name, pkg_spec=spec_pkg_spec,  # noqa: F405
                         compiler_spec=spec_compiler_spec)(app_inst)
     elif func_type == func_types.method:
-        app_inst.define_compiler(spec_name, spack_spec=spec_spack_spec,  # noqa: F405
+        app_inst.define_compiler(spec_name, pkg_spec=spec_pkg_spec,  # noqa: F405
                                  compiler_spec=spec_compiler_spec)
     else:
         assert False
 
     spec_name = 'OtherCompiler%spec_num'
-    spec_spack_spec = f'compiler_base@{spec_num}.1 +var1 ~var2 target=x86_64'
+    spec_pkg_spec = f'compiler_base@{spec_num}.1 +var1 ~var2 target=x86_64'
     spec_compiler_spec = 'compiler2_base@{spec_num}'
 
     spec_defs[spec_name] = {
-        'spack_spec': spec_spack_spec,
+        'pkg_spec': spec_pkg_spec,
         'compiler_spec': spec_compiler_spec
     }
 
     if func_type == func_types.directive:
-        define_compiler(spec_name, spack_spec=spec_spack_spec,  # noqa: f405
+        define_compiler(spec_name, pkg_spec=spec_pkg_spec,  # noqa: f405
                         compiler_spec=spec_compiler_spec)(app_inst)
     elif func_type == func_types.method:
-        app_inst.define_compiler(spec_name, spack_spec=spec_spack_spec,  # noqa: F405
+        app_inst.define_compiler(spec_name, pkg_spec=spec_pkg_spec,  # noqa: F405
                                  compiler_spec=spec_compiler_spec)
     else:
         assert False
@@ -255,42 +255,42 @@ def add_compiler(app_inst, spec_num=1, func_type=func_types.directive):
 
 def add_software_spec(app_inst, spec_num=1, func_type=func_types.directive):
     spec_name = 'NoMPISpec%s' % spec_num
-    spec_spack_spec = f'NoMPISpec@{spec_num} +var1 ~var2 target=x86_64'
+    spec_pkg_spec = f'NoMPISpec@{spec_num} +var1 ~var2 target=x86_64'
     spec_compiler = 'spec_compiler1@1.1'
 
     spec_defs = {}
     spec_defs[spec_name] = {
-        'spack_spec': spec_spack_spec,
+        'pkg_spec': spec_pkg_spec,
         'compiler': spec_compiler
     }
 
     if func_type == func_types.directive:
         software_spec(spec_name,  # noqa: F405
-                      spack_spec=spec_spack_spec,
+                      pkg_spec=spec_pkg_spec,
                       compiler=spec_compiler)(app_inst)
     elif func_type == func_types.method:
         app_inst.software_spec(spec_name,  # noqa: F405
-                               spack_spec=spec_spack_spec,
+                               pkg_spec=spec_pkg_spec,
                                compiler=spec_compiler)
     else:
         assert False
 
     spec_name = 'MPISpec%s' % spec_num
-    spec_spack_spec = f'MPISpec@{spec_num} +var1 ~var2 target=x86_64'
+    spec_pkg_spec = f'MPISpec@{spec_num} +var1 ~var2 target=x86_64'
     spec_compiler = 'spec_compiler1@1.1'
 
     spec_defs[spec_name] = {
-        'spack_spec': spec_spack_spec,
+        'pkg_spec': spec_pkg_spec,
         'compiler': spec_compiler
     }
 
     if func_type == func_types.directive:
         software_spec(spec_name,  # noqa: F405
-                      spack_spec=spec_spack_spec,
+                      pkg_spec=spec_pkg_spec,
                       compiler=spec_compiler)(app_inst)
     elif func_type == func_types.method:
         app_inst.software_spec(spec_name,  # noqa: F405
-                               spack_spec=spec_spack_spec,
+                               pkg_spec=spec_pkg_spec,
                                compiler=spec_compiler)
     else:
         assert False

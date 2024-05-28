@@ -139,7 +139,7 @@ def test_merged_spack_section(mock_low_high_config):
 spack:
   packages:
     gcc:
-      spack_spec: gcc@4.8.5
+      pkg_spec: gcc@4.8.5
 ''')
 
     with open(os.path.join(high_path, 'spack.yaml'), 'w') as f:
@@ -147,17 +147,17 @@ spack:
 spack:
   packages:
     zlib:
-      spack_spec: zlib
+      pkg_spec: zlib
       compiler: gcc
 ''')
 
     assert config('get', 'spack').strip() == '''spack:
   packages:
     zlib:
-      spack_spec: zlib
+      pkg_spec: zlib
       compiler: gcc
     gcc:
-      spack_spec: gcc@4.8.5'''
+      pkg_spec: gcc@4.8.5'''
 
 
 def test_merged_success_criteria_section(mock_low_high_config):

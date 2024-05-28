@@ -198,7 +198,7 @@ ramble:
   spack:
     packages:
       zlib:
-        spack_spec: 'zlib'
+        pkg_spec: 'zlib'
     environments:
       zlib:
         packages:
@@ -251,7 +251,7 @@ ramble:
   spack:
     packages:
       zlib:
-        spack_spec: 'zlib'
+        pkg_spec: 'zlib'
     environments:
       zlib:
         packages:
@@ -468,12 +468,12 @@ ramble:
     ws1._re_read()
 
     assert search_files_for_string([config_path], 'packages: {}') is True
-    assert search_files_for_string([config_path], 'spack_spec: zlib') is False
+    assert search_files_for_string([config_path], 'pkg_spec: zlib') is False
 
     workspace('concretize', global_args=['-w', workspace_name])
 
     assert search_files_for_string([config_path], 'packages: {}') is False
-    assert search_files_for_string([config_path], 'spack_spec: zlib') is True
+    assert search_files_for_string([config_path], 'pkg_spec: zlib') is True
 
 
 def test_concretize_nothing():
@@ -486,12 +486,12 @@ def test_concretize_nothing():
         check_basic(ws)
 
         assert search_files_for_string([ws.config_file_path], 'packages: {}') is True
-        assert search_files_for_string([ws.config_file_path], 'spack_spec:') is False
+        assert search_files_for_string([ws.config_file_path], 'pkg_spec:') is False
 
         ws.concretize()
 
         assert search_files_for_string([ws.config_file_path], 'packages: {}') is True
-        assert search_files_for_string([ws.config_file_path], 'spack_spec:') is False
+        assert search_files_for_string([ws.config_file_path], 'pkg_spec:') is False
 
 
 def test_concretize_concrete_config():
@@ -525,7 +525,7 @@ ramble:
   spack:
     packages:
       zlib:
-        spack_spec: 'zlib'
+        pkg_spec: 'zlib'
     environments:
       zlib:
         packages:
@@ -579,7 +579,7 @@ ramble:
   spack:
     packages:
       zlib-test:
-        spack_spec: 'zlib-test'
+        pkg_spec: 'zlib-test'
     environments:
       zlib-test:
         packages:
@@ -1898,11 +1898,11 @@ ramble:
   spack:
     packages:
       zlib:
-        spack_spec: zlib
+        pkg_spec: zlib
       zlib-configs:
-        spack_spec: zlib-configs
+        pkg_spec: zlib-configs
       unused-pkg:
-        spack_spec: unused
+        pkg_spec: unused
     environments:
       zlib:
         packages:
@@ -1928,7 +1928,7 @@ applications:
 spack:
   packages:
     pkg_not_in_ws_config:
-      spack_spec: 'gcc@10.5.0'
+      pkg_spec: 'gcc@10.5.0'
       compiler_spec: gcc@10.5.0
 """
 
@@ -1949,11 +1949,11 @@ spack:
 
     ws1._re_read()
 
-    assert search_files_for_string([ws_config_path], 'spack_spec: zlib') is True
+    assert search_files_for_string([ws_config_path], 'pkg_spec: zlib') is True
     assert search_files_for_string([ws_config_path], 'unused-pkg') is True
     assert search_files_for_string([ws_config_path], 'unused-env') is True
     assert search_files_for_string([ws_config_path], 'unused_exp_template') is True
-    assert search_files_for_string([ws_config_path], 'spack_spec: zlib-configs') is True
+    assert search_files_for_string([ws_config_path], 'pkg_spec: zlib-configs') is True
     assert search_files_for_string([ws_config_path], 'app_not_in_ws_config') is False
     assert search_files_for_string([ws_config_path], 'pkg_not_in_ws_config') is False
 
@@ -1961,12 +1961,12 @@ spack:
 
     print(ws_config_path)
 
-    assert search_files_for_string([ws_config_path], 'spack_spec: zlib') is True  # keep used pkg
+    assert search_files_for_string([ws_config_path], 'pkg_spec: zlib') is True  # keep used pkg
     assert search_files_for_string([ws_config_path], 'unused-pkg') is False  # remove unused pkg
     assert search_files_for_string([ws_config_path], 'unused-env') is False  # remove unused env
     # remove unused experiment template and associated pkgs/envs
     assert search_files_for_string([ws_config_path], 'unused_exp_template') is False
-    assert search_files_for_string([ws_config_path], 'spack_spec: zlib-configs') is False
+    assert search_files_for_string([ws_config_path], 'pkg_spec: zlib-configs') is False
     # ensure apps/pkgs/envs are not merged into workspace config from other config files
     assert search_files_for_string([ws_config_path], 'app_not_in_ws_config') is False
     assert search_files_for_string([ws_config_path], 'pkg_not_in_ws_config') is False
