@@ -79,7 +79,7 @@ ramble:
               - nodes
               - environments
               - partitions
-  spack:
+  software:
     packages:
       gcc:
         pkg_spec: gcc@8.5.0

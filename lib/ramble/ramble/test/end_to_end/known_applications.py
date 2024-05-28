@@ -70,7 +70,7 @@ def test_known_applications(application, capsys):
                 n_ranks: '1'
                 n_nodes: '1'
                 processes_per_node: '1'\n""")
-            f.write("""  spack:
+            f.write("""  software:
     packages: {}
     environments: {}\n""")
 

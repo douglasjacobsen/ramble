@@ -37,7 +37,7 @@ ramble:
           experiments:
             test:
               variables: {}
-  spack:
+  software:
     packages:
       zlib:
         pkg_spec: 'zlib'

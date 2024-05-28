@@ -46,7 +46,7 @@ ramble:
               env_vars:
                 set:
                   MY_VAR: 'TEST'
-  spack:
+  software:
     packages: {}
     environments: {}
 """

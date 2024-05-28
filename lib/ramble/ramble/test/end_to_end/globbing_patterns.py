@@ -52,7 +52,7 @@ ramble:
               modifiers:
                 - name: glob-patterns-mod
                   mode: test-glob
-  spack:
+  software:
     packages: {}
     environments: {}
 """

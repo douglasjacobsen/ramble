@@ -488,7 +488,7 @@ ramble:
               variables:
                 n_nodes: '2'
 
-  spack:
+  software:
     packages: {}
     environments: {}
 """
