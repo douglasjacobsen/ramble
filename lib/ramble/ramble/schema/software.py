@@ -33,7 +33,7 @@ properties = {
                             'default': None,
                         },
                     },
-                    # Additional properies are of the form:
+                    # Additional properties are of the form:
                     #    <pkg_manager_name>_pkg_spec:
                     #    <pkg_manager_name>_compiler_spec:
                     #    <pkg_manager_name>_compiler:
