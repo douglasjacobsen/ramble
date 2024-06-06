@@ -89,7 +89,7 @@ class Spack(SpackLightweight):
         )
         software_environments = workspace.software_environments
         software_environment = software_environments.render_environment(
-            app_context, self.app_inst.expander
+            app_context, self.app_inst.expander, self
         )
         # Try to resolve using local cache first
         unresolved_specs = []
@@ -169,7 +169,7 @@ class Spack(SpackLightweight):
         )
         software_environments = workspace.software_environments
         software_environment = software_environments.render_environment(
-            app_context, self.app_inst.expander
+            app_context, self.app_inst.expander, self
         )
 
         for pkg_spec in software_environments.package_specs_for_environment(
