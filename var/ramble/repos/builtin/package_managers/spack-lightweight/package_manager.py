@@ -346,7 +346,7 @@ class SpackLightweight(PackageManagerBase):
         try:
             pkgman_version = self.runner.get_version()
         except RunnerError:
-            pkgman_version = "unkown"
+            pkgman_version = "unknown"
 
         self.hash_inventory["package_manager"].append(
             {
