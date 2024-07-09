@@ -31,6 +31,7 @@ def exp_dict():
         "decimal.06.var": "foo",
         "size": '"0000.96"',  # Escaped as a string
         "test_mask": '"0x0"',
+        "test_dict": {"a": "foo", "b": "bar"},
     }
 
 
@@ -73,6 +74,8 @@ def exp_dict():
         ('"2.1.1" in ["2.1.1", "3.1.1", "4.2.1"]', "True", set(), 1),
         ('"2.1.2" in ["2.1.1", "3.1.1", "4.2.1"]', "False", set(), 1),
         ("{test_mask}", "0x0", set(["test_mask"]), 1),
+        ("{test_dict['a']}", "foo", set(), 1),
+        ("{test_dict['b']}", "bar", set(), 1),
     ],
 )
 def test_expansions(input, output, no_expand_vars, passes):

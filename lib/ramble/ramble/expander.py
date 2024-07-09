@@ -661,6 +661,8 @@ class Expander(object):
             return self._ast_num(node)
         elif isinstance(node, ast.Constant):
             return self._ast_constant(node)
+        elif isinstance(node, ast.Slice):
+            return self._ast_slice(node)
         elif isinstance(node, ast.Name):
             return self._ast_name(node)
         # TODO: Remove when we drop support for 3.6
@@ -680,6 +682,8 @@ class Expander(object):
             return self._eval_unary_ops(node)
         elif isinstance(node, ast.Call):
             return self._eval_function_call(node)
+        elif isinstance(node, ast.Subscript):
+            return self._eval_subscript_node(node)
         else:
             node_type = str(type(node))
             raise MathEvaluationError(
@@ -699,6 +703,10 @@ class Expander(object):
 
     def _ast_constant(self, node):
         """Handle a constant node in the ast"""
+        return node.value
+
+    def _ast_slice(self, node):
+        """Handle a slice node in the ast"""
         return node.value
 
     def _ast_name(self, node):
@@ -862,6 +870,20 @@ class Expander(object):
             raise SyntaxError("Unsupported operand type in unary operator")
         except KeyError:
             raise SyntaxError("Unsupported unary operator")
+
+    def _eval_subscript_node(self, node):
+        """Evaluate a subscript node in the ast
+
+        Walk dictionary references and return the lowest level value.
+        """
+        var_name = self.eval_math(node.value)
+        idx_name = self.eval_math(node.slice)
+
+        if isinstance(var_name, str):
+            var_dict = self._variables[var_name]
+        else:
+            var_dict = var_name
+        return var_dict[idx_name]
 
 
 def raise_passthrough_error(in_str, out_str):
