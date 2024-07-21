@@ -29,7 +29,7 @@ steps:
         echo "Spack version is $(spack --version)"
         echo "Python version is $(python3 --version)"
 
-        COVERAGE=true LONG=true /workspace/share/ramble/qa/run-unit-tests
+        COVERAGE=true UNIT_TEST_COVERAGE=true /workspace/share/ramble/qa/run-unit-tests
         # $$ characters are required for cloud-build:
         # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
         unit_err=$$?
