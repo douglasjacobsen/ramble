@@ -65,7 +65,7 @@ if [ $? != 0 ]; then
 fi
 
 export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS"
-$coverage_run $(which ramble) unit-test -x --verbose -k "parallel"
+$coverage_run_append $(which ramble) unit-test -x --verbose -k "parallel"
 if [ $? != 0 ]; then
     ERROR=1
 fi
