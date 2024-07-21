@@ -55,6 +55,7 @@ workspace = RambleCommand("workspace")
         SCOPES.experiment,
     ],
 )
+@pytest.mark.parallel_success_criteria
 def test_success_fom_globbing(
     mutable_config, mutable_mock_workspace_path, mock_applications, value, formula, result, scope
 ):

@@ -23,6 +23,7 @@ workspace = RambleCommand("workspace")
 ramble_on = RambleCommand("on")
 
 
+@pytest.mark.parallel_success_criteria
 def test_success_function(mutable_config, mutable_mock_workspace_path, mock_applications):
     test_config = """
 ramble:

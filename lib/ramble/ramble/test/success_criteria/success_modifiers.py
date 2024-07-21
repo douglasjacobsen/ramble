@@ -41,6 +41,7 @@ workspace = RambleCommand("workspace")
         SCOPES.experiment,
     ],
 )
+@pytest.mark.parallel_success_criteria
 def test_success_modifier(
     mutable_config,
     mutable_mock_workspace_path,
@@ -81,6 +82,7 @@ def test_success_modifier(
             assert result in data
 
 
+@pytest.mark.parallel_success_criteria
 def test_success_criteria_with_multiple_experiments(mock_applications, mock_modifiers):
     test_config = """
 ramble:
