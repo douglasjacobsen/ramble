@@ -47,6 +47,7 @@ if [ $? != 0 ]; then
     ERROR=1
 fi
 
+export SERIAL_PYTEST_ADDOPTS=$PYTEST_ADDOPTS
 export PARALLEL_PYTEST_ADDOPTS=""
 # Check if xdist is available
 if ramble unit-test --config 2>&1 | grep xdist; then
@@ -59,15 +60,18 @@ fi
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-$coverage_run $(which ramble) unit-test -x --verbose -k "not parallel"
+export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS"
+$coverage_run $(which ramble) unit-test -x --verbose
 if [ $? != 0 ]; then
     ERROR=1
 fi
 
-export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS"
-$coverage_run_append $(which ramble) unit-test -x --verbose -k "parallel"
-if [ $? != 0 ]; then
-    ERROR=1
+if [ $ERROR == 1 ]; then
+  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS"
+  $coverage_run_append $(which ramble) unit-test -x --verbose -lf
+  if [ $? == 0 ]; then
+      ERROR=0
+  fi
 fi
 
 if [ $ERROR == 1 ]; then
