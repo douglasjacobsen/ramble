@@ -47,19 +47,11 @@ if [ $? != 0 ]; then
     ERROR=1
 fi
 
-PARALLEL_TEST_GROUPS="parallel_end_to_end
-parallel_modifier_functionality
-parallel_success_criteria
-"
-
 export PARALLEL_PYTEST_ADDOPTS=""
 # Check if xdist is available
 if ramble unit-test --config 2>&1 | grep xdist; then
-  echo "***** FOUND XDIST *****"
   export PARALLEL_PYTEST_ADDOPTS="-n auto"
 fi
-
-echo "Parallel addopts: $PARALLEL_PYTEST_ADDOPTS"
 
 # Profile and print top 20 lines for a simple call to spack spec
 #ramble -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
@@ -67,19 +59,16 @@ echo "Parallel addopts: $PARALLEL_PYTEST_ADDOPTS"
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-#$coverage_run $(which ramble) unit-test -x --verbose -k "not parallel"
+$coverage_run $(which ramble) unit-test -x --verbose -k "not parallel"
 if [ $? != 0 ]; then
     ERROR=1
 fi
 
 export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS"
-for PARALLEL_TEST_GROUP in $PARALLEL_TEST_GROUPS
-do
-  $coverage_run $(which ramble) unit-test -x --verbose -k "$PARALLEL_TEST_GROUP"
-  if [ $? != 0 ]; then
-      ERROR=1
-  fi
-done
+$coverage_run $(which ramble) unit-test -x --verbose -k "parallel"
+if [ $? != 0 ]; then
+    ERROR=1
+fi
 
 if [ $ERROR == 1 ]; then
     exit 1
