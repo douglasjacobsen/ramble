@@ -24,6 +24,7 @@ config = ramble.main.RambleCommand("config")
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_passthrough_variables(mutable_config, mutable_mock_workspace_path, mock_applications):
     test_config = """
 ramble:
@@ -77,6 +78,7 @@ ramble:
             assert undefined_found
 
 
+@pytest.mark.parallel_end_to_end
 def test_disable_passthrough(mutable_config, mutable_mock_workspace_path):
     test_config = """
 ramble:

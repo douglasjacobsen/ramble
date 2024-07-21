@@ -41,6 +41,7 @@ def check_output(output, compared_list, contains=False):
         )
     ],
 )
+@pytest.mark.parallel_end_to_end
 def test_workspace_tag_filtering(
     mutable_config,
     mutable_mock_workspace_path,

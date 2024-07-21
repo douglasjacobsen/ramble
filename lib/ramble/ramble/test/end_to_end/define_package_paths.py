@@ -29,6 +29,7 @@ def _spack_loc_log_line(pkg_spec):
     return f"with args: ['location', '-i', '{pkg_spec}']"
 
 
+@pytest.mark.parallel_end_to_end
 def test_define_package_paths():
     test_config = """
 ramble:
@@ -97,6 +98,7 @@ ramble:
         assert impi_log_line not in content
 
 
+@pytest.mark.parallel_end_to_end
 def test_package_path_variables():
     test_config = """
 ramble:

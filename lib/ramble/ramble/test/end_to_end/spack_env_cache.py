@@ -29,6 +29,7 @@ pytestmark = pytest.mark.usefixtures(
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_spack_env_cache():
     test_config = """
 ramble:

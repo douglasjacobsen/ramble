@@ -83,6 +83,7 @@ ramble:
     return ws
 
 
+@pytest.mark.parallel_end_to_end
 def test_analyze_fom_output():
     workspace_name = "test-fom-output"
     ws = _setup_workspace(workspace_name)
@@ -96,6 +97,7 @@ def test_analyze_fom_output():
         assert "possible hostname = test-user.c.googlers.com" in content
 
 
+@pytest.mark.parallel_end_to_end
 def test_analyze_print(monkeypatch):
     workspace_name = "test-analyze-print"
     _setup_workspace(workspace_name)

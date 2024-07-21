@@ -34,6 +34,7 @@ def enable_verbose():
     llnl.util.tty._verbose = old_setting
 
 
+@pytest.mark.parallel_end_to_end
 def test_workspace_phase_selection(mutable_config, mutable_mock_workspace_path, enable_verbose):
     test_config = """
 ramble:

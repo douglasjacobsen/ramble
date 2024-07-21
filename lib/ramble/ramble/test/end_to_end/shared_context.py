@@ -28,6 +28,7 @@ pytestmark = pytest.mark.usefixtures(
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_shared_contexts(
     mutable_config, mutable_mock_workspace_path, mock_applications, mock_modifiers
 ):

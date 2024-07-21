@@ -26,6 +26,7 @@ pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_p
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_nested_compilers_are_installed(mutable_config, mutable_mock_workspace_path, capsys):
     test_config = """
 ramble:

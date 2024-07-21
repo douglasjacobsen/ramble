@@ -28,6 +28,7 @@ workspace = RambleCommand("workspace")
 
 
 @pytest.mark.long
+@pytest.mark.parallel_end_to_end
 @deprecation.fail_if_not_removed
 @pytest.mark.filterwarnings("ignore:invalid escape sequence:DeprecationWarning")
 def test_known_applications(application, package_manager, capsys, mock_file_auto_create):

@@ -24,6 +24,7 @@ pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_p
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_wrfv4_spack_dry_run(mutable_config, mutable_mock_workspace_path):
     test_config = """
 ramble:
@@ -295,6 +296,7 @@ licenses:
                 assert os.path.exists(os.path.join(exp_dir, f"rsl.error.000{i}"))
 
 
+@pytest.mark.parallel_end_to_end
 def test_wrfv4_no_pkg_man_dry_run(mutable_config, mutable_mock_workspace_path):
     test_config = """
 ramble:

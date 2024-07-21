@@ -24,6 +24,7 @@ pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_p
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_end_to_end
 def test_gromacs_repeats(mutable_config, mutable_mock_workspace_path):
     test_config = """
 ramble:
