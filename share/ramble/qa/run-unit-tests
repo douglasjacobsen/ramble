@@ -47,6 +47,11 @@ if [ $? != 0 ]; then
     ERROR=1
 fi
 
+export UNIT_TEST_COVERAGE_ADDOPTS=""
+if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
+  export UNIT_TEST_COVERAGE_ADDOPTS="--cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml"
+fi
+
 export SERIAL_PYTEST_ADDOPTS=$PYTEST_ADDOPTS
 export PARALLEL_PYTEST_ADDOPTS=""
 # Check if xdist is available
@@ -60,15 +65,15 @@ fi
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS"
-$coverage_run $(which ramble) unit-test -x --verbose
+export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS"
+$(which ramble) unit-test -x --verbose
 if [ $? != 0 ]; then
     ERROR=1
 fi
 
 if [ $ERROR == 1 ]; then
-  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS"
-  $coverage_run_append $(which ramble) unit-test -x --verbose -lf
+  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS"
+  $coverage_run_append $(which ramble) unit-test -x --verbose --lf
   if [ $? == 0 ]; then
       ERROR=0
   fi
