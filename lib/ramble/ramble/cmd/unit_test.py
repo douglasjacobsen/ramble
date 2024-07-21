@@ -37,6 +37,10 @@ def setup_parser(subparser):
         help="show full pytest help, with advanced options",
     )
 
+    subparser.add_argument(
+        "-c", "--config", action="store_true", help="prints the output of  pytest --trace-config"
+    )
+
     # extra ramble arguments to list tests
     list_group = subparser.add_argument_group("listing tests")
     list_mutex = list_group.add_mutually_exclusive_group()
@@ -198,6 +202,11 @@ def unit_test(parser, args, unknown_args):
             return pytest.main(["-h"])
         except ImportError:
             logger.die("Pytest python module not found. Ensure requirements.txt are installed.")
+
+    if args.config:
+        import pytest
+
+        return pytest.main(["--trace-config", "-k", "match_no_test"])
 
     # add back any parsed pytest args we need to pass to pytest
     pytest_args = add_back_pytest_args(args, unknown_args)
