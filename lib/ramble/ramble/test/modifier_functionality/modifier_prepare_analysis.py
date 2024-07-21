@@ -31,6 +31,7 @@ on_cmd = RambleCommand("on")
         SCOPES.experiment,
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_basic_dry_run_mock_prepare_analysis_mod(
     mutable_mock_workspace_path, mock_applications, mock_modifiers, scope
 ):

@@ -29,6 +29,7 @@ workspace = RambleCommand("workspace")
         SCOPES.experiment,
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_gromacs_dry_run_mock_mods(
     mutable_mock_workspace_path, mutable_applications, mock_modifier, mock_modifiers, scope
 ):

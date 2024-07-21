@@ -34,6 +34,7 @@ workspace = RambleCommand("workspace")
         (modifier_helpers.lscpu_modifier, modifier_helpers.lscpu_answer),
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_gromacs_single_full_modifier_dry_run(
     mutable_mock_workspace_path, mutable_applications, scope, factory, answer
 ):
@@ -85,6 +86,7 @@ def test_gromacs_single_full_modifier_dry_run(
         ("lscpu", modifier_helpers.lscpu_answer),
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_gromacs_single_stub_modifier_dry_run(
     mutable_mock_workspace_path, mutable_applications, scope, mod_name, answer
 ):

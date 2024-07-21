@@ -47,6 +47,7 @@ workspace = RambleCommand("workspace")
         (modifier_helpers.env_var_unset_modifier, modifier_helpers.env_var_unset_modifier_answer),
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_gromacs_dry_run_mock_env_vars_mod(
     mutable_mock_workspace_path, mutable_applications, mock_modifiers, scope, factory, answer
 ):

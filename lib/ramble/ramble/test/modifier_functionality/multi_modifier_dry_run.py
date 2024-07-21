@@ -49,6 +49,7 @@ workspace = RambleCommand("workspace")
         ),
     ],
 )
+@pytest.mark.parallel_modifier_functionality
 def test_gromacs_multi_modifier_dry_run(
     mutable_mock_workspace_path, mutable_applications, scopes, factories, answers
 ):

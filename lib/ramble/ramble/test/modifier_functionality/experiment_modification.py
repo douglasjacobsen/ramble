@@ -6,6 +6,7 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
+import pytest
 import os
 
 import ramble.workspace
@@ -14,6 +15,7 @@ from ramble.main import RambleCommand
 workspace = RambleCommand("workspace")
 
 
+@pytest.mark.parallel_modifier_functionality
 def test_experiment_modification(
     mutable_mock_workspace_path, mutable_applications, mock_modifiers, request
 ):
