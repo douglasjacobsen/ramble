@@ -59,21 +59,17 @@ if ramble unit-test --config 2>&1 | grep xdist; then
   export PARALLEL_PYTEST_ADDOPTS="-n auto"
 fi
 
-# Profile and print top 20 lines for a simple call to spack spec
-#ramble -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
-
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-export PYTEST_ADDOPTS="$PYTEST_ADDOPTS $PARALLEL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS"
-$(which ramble) unit-test -x --verbose
+$(which ramble) unit-test -x --verbose ${PARALLEL_PYTEST_ADDOPTS} ${UNIT_TEST_COVERAGE_ADDOPTS}
 if [ $? != 0 ]; then
     ERROR=1
 fi
 
 if [ $ERROR == 1 ]; then
-  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS --cov-append"
-  $(which ramble) unit-test -x --verbose --lf
+  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS"
+  $(which ramble) unit-test -x --verbose --lf --cov-append
   if [ $? == 0 ]; then
       ERROR=0
   fi
