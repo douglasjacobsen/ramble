@@ -1,5 +1,8 @@
 [run]
 omit =
+  spack/lib/*
+  spack/var/*
   lib/ramble/spack/*
   lib/ramble/external/*
   lib/ramble/llnl/*
+  share/*
