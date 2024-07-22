@@ -13,3 +13,4 @@ pyarrow==3.0.0;python_version<="3.6"
 google-cloud-bigquery
 tqdm
 deprecation
+pytest-cov

@@ -23,6 +23,8 @@ steps:
 
         export PATH=$$(. /opt/spack/share/spack/setup-env.sh && spack location -i miniconda3)/bin:$${PATH}
 
+        conda install -r requirements.txt
+
         . /opt/spack/share/spack/setup-env.sh
         . /workspace/share/ramble/setup-env.sh
 
@@ -33,15 +35,6 @@ steps:
         # $$ characters are required for cloud-build:
         # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
         unit_err=$$?
-
-        echo " ***** LS OF EXEC DIR"
-
-        ls -lathr
-
-
-        echo " ***** LS OF EXEC DIR COMPLETE"
-
-        coverage combine -a --rcfile=pyproject.toml
 
         coverage report -m --rcfile=pyproject.toml --data-file=tests-coverage/.coverage --fail-under=60
 
@@ -84,4 +77,4 @@ substitutions:
   _BASE_VER: '7'
 timeout: 1500s
 options:
-  machineType: N1_HIGHCPU_8
+  machineType: E2_HIGHCPU_32
