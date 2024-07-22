@@ -34,8 +34,17 @@ steps:
         # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
         unit_err=$$?
 
+        echo " ***** LS OF EXEC DIR"
+
+        ls -lathr
+
+
+        echo " ***** LS OF EXEC DIR COMPLETE"
+
         coverage combine -a --rcfile=pyproject.toml
+
         coverage report -m --rcfile=pyproject.toml --data-file=tests-coverage/.coverage --fail-under=60
+
         # $$ characters are required for cloud-build:
         # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
         coverage_err=$$?
