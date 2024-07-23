@@ -18,8 +18,10 @@ force-exclude = '''
 '''
 
 [tool.coverage.run]
-branch = true
-data_file = "./tests-coverage/.coverage"
+# parallel = true
+#branch = true
+# concurrency = ["multiprocessing"]
+# data_file = "./tests-coverage/.coverage"
 include = [
   "**/bin/ramble",
   "**/bin/ramble-python",

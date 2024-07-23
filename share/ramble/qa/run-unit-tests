@@ -56,13 +56,14 @@ export SERIAL_PYTEST_ADDOPTS=$PYTEST_ADDOPTS
 export PARALLEL_PYTEST_ADDOPTS=""
 # Check if xdist is available
 if ramble unit-test --config 2>&1 | grep xdist; then
+  #export PARALLEL_PYTEST_ADDOPTS="-n 20 --tx 20*popen//python=./bin/ramble python"
   export PARALLEL_PYTEST_ADDOPTS="-n auto"
 fi
 
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-$(which ramble) unit-test -x --verbose ${PARALLEL_PYTEST_ADDOPTS} ${UNIT_TEST_COVERAGE_ADDOPTS}
+$(which ramble) unit-test ${PARALLEL_PYTEST_ADDOPTS} -x --verbose ${UNIT_TEST_COVERAGE_ADDOPTS}
 if [ $? != 0 ]; then
     ERROR=1
 fi
