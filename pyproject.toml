@@ -19,8 +19,6 @@ force-exclude = '''
 
 [tool.coverage.run]
 parallel = true
-branch = true
-concurrency = ["multiprocessing"]
 data_file = "./tests-coverage/.coverage"
 include = [
   "**/bin/ramble",

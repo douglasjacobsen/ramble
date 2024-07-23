@@ -25,11 +25,10 @@ coverage_run=""
 coverage_run_append=""
 
 # Set up some variables for running coverage tests.
-if [[ "$COVERAGE" == "true" ]]; then
+if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
     # these set up coverage for Python
     coverage=coverage
     coverage_run="coverage run"
-    coverage_run_append="coverage run -a"
 
     # bash coverage depends on some other factors
     mkdir -p coverage
