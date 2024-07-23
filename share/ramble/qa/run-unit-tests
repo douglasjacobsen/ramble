@@ -49,7 +49,7 @@ fi
 
 export UNIT_TEST_COVERAGE_ADDOPTS=""
 if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
-  export UNIT_TEST_COVERAGE_ADDOPTS="--cov --cov-config=pyproject.toml --cov-report="
+  export UNIT_TEST_COVERAGE_ADDOPTS="--cov --cov-report= --cov-config=pyproject.toml"
 fi
 
 export SERIAL_PYTEST_ADDOPTS=$PYTEST_ADDOPTS
@@ -63,18 +63,17 @@ fi
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-$(which ramble) unit-test ${PARALLEL_PYTEST_ADDOPTS} -x --verbose ${UNIT_TEST_COVERAGE_ADDOPTS}
+
+$(which ramble) unit-test -x --verbose -k "not parallel" ${UNIT_TEST_COVERAGE_ADDOPTS}
 if [ $? != 0 ]; then
     ERROR=1
 fi
 
-if [ $ERROR == 1 ]; then
-  export PYTEST_ADDOPTS="$SERIAL_PYTEST_ADDOPTS $UNIT_TEST_COVERAGE_ADDOPTS"
-  $(which ramble) unit-test -x --verbose --lf --cov-append
-  if [ $? == 0 ]; then
-      ERROR=0
-  fi
+$(which ramble) unit-test ${PARALLEL_PYTEST_ADDOPTS} -x --verbose -k "parallel" ${UNIT_TEST_COVERAGE_ADDOPTS} # --cov-append
+if [ $? != 0 ]; then
+    ERROR=1
 fi
+
 
 if [ $ERROR == 1 ]; then
     exit 1
