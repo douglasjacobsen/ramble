@@ -328,31 +328,41 @@ class SpackLightweight(PackageManagerBase):
     register_phase("push_to_spack_cache", pipeline="pushtocache", run_after=[])
 
     def _push_to_spack_cache(self, workspace, app_inst=None):
+        logger.all_msg(f' Pushing exp to cache...')
 
         # Test if experiment requires an environment
-        if not self.environment_required():
-            return
+        env_required = self.environment_required()
 
+        logger.all_msg(f" Checking if env has already been pushed....")
         env_path = self.app_inst.expander.env_path
         cache_tupl = ("push-to-cache", env_path)
         if workspace.check_cache(cache_tupl):
             logger.debug("{} already pushed, skipping".format(cache_tupl))
             return
         else:
+            logger.all_msg(f"     Nope!")
             workspace.add_to_cache(cache_tupl)
 
+        logger.all_msg(f' -- Trying to push env: {env_path}')
+
         try:
+            logger.all_msg(f'    Setting dry-run')
             self.runner.set_dry_run(workspace.dry_run)
-            self.runner.set_env(env_path)
+            logger.all_msg(f'    Setting env info')
+            self.runner.set_env(env_path, require_exists=env_required)
+            logger.all_msg(f'    Activating environment')
             self.runner.activate()
+            logger.all_msg(f' Env is: {self.runner.env_contents}')
 
             self.runner.push_to_spack_cache(workspace.spack_cache_path)
 
             self.runner.deactivate()
         except RunnerError as e:
+            logger.all_msg(f"  push hit a RunnerError: {str(e)}")
             if self.environment_required():
                 logger.die(e)
             pass
+        logger.all_msg(f" -- Ended pushing env?")
 
     def populate_inventory(
         self, workspace, force_compute=False, require_exist=False
@@ -1197,9 +1207,11 @@ class SpackRunner(object):
 
     def push_to_spack_cache(self, spack_cache_path):
         """Push packages for a given env to the spack cache"""
+        logger.all_msg(f' In runners push_to_spack_cache')
         self._check_active()
 
         hash_list = self.get_env_hash_list()
+        logger.all_msg(f' Hash list: {hash_list}')
 
         args = ["buildcache", "push"]
         user_flags = ramble.config.get(f"{self.buildcache_config_name}:flags")
