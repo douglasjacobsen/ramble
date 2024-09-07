@@ -564,6 +564,7 @@ class PushDeploymentPipeline(Pipeline):
     index_filename = "index.json"
     index_namespace = "deployment_files"
     tar_extension = ".tar.gz"
+    object_repo_name = "object_repo"
 
     def __init__(
         self, workspace, filters, create_tar=False, upload_url=None, deployment_name=None
@@ -573,7 +574,6 @@ class PushDeploymentPipeline(Pipeline):
         self.require_inventory = True
         self.create_tar = create_tar
         self.upload_url = upload_url
-        self.object_repo_name = "object_repo"
 
         if deployment_name:
             workspace.deployment_name = deployment_name
@@ -582,7 +582,7 @@ class PushDeploymentPipeline(Pipeline):
             self.deployment_name = workspace.name
 
     def _execute(self):
-        from spack.util import spack_yaml as syaml
+        #  from spack.util import spack_yaml as syaml
 
         configs_dir = os.path.join(
             self.workspace.named_deployment, ramble.workspace.workspace_config_path
@@ -593,31 +593,39 @@ class PushDeploymentPipeline(Pipeline):
 
         aux_software_dir = os.path.join(configs_dir, ramble.workspace.auxiliary_software_dir_name)
         fs.mkdirp(aux_software_dir)
-        aux_repo_conf = os.path.join(aux_software_dir, "repos.yaml")
 
-        repo_conf_defs = [
-            (conf_def["config_section"], f'{conf_def["config_section"]}.yaml')
-            for conf_def in ramble.repository.type_definitions.values()
-        ]
-
-        for repo_conf in repo_conf_defs:
-            aux_repo_conf = os.path.join(aux_software_dir, repo_conf[1])
-            repo_data = syaml.syaml_dict()
-            if os.path.exists(aux_repo_conf):
-                with open(aux_repo_conf) as f:
-                    repo_data = syaml.load_config(f.read())
-            else:
-                repo_data[repo_conf[0]] = []
-
-            add_repo = True
-            for repo in repo_data[repo_conf[0]]:
-                if repo == f"../../{self.object_repo_name}":
-                    add_repo = False
-            if add_repo:
-                repo_data[repo_conf[0]].append(f"../../{self.object_repo_name}")
-
-            with open(aux_repo_conf, "w+") as f:
-                f.write(syaml.dump_config(repo_data))
+        #  repo_conf_defs = []
+        #  for conf_def in ramble.repository.type_definitions.values():
+        #  conf_path = os.path.join(configs_dir, f'{conf_def["config_section"]}.yaml')
+        #  repo_conf_def = (
+        #  conf_def["config_section"],
+        #  conf_path,
+        #  f"$PWD/{self.object_repo_name}"
+        #  )
+        #  repo_conf_defs.append(repo_conf_def)
+        #
+        #  repo_conf_defs.append(
+        #  ("repo", os.path.join(aux_software_dir, "repo.yaml"), f"$PWD/{self.object_repo_name}")
+        #  )
+        #
+        #  for repo_conf in repo_conf_defs:
+        #  aux_repo_conf = repo_conf[1]
+        #  repo_data = syaml.syaml_dict()
+        #  if os.path.exists(aux_repo_conf):
+        #  with open(aux_repo_conf) as f:
+        #  repo_data = syaml.load_config(f.read())
+        #  else:
+        #  repo_data[repo_conf[0]] = []
+        #
+        #  add_repo = True
+        #  for repo in repo_data[repo_conf[0]]:
+        #  if repo == repo_conf[2]:
+        #  add_repo = False
+        #  if add_repo:
+        #  repo_data[repo_conf[0]].append(repo_conf[2])
+        #
+        #  with open(aux_repo_conf, "w+") as f:
+        #  f.write(syaml.dump_config(repo_data))
 
         repo_path = os.path.join(self.workspace.named_deployment, self.object_repo_name)
         for object_type_def in ramble.repository.type_definitions.values():
