@@ -48,7 +48,7 @@ class SpackStack(ExecutableApplication):
     workload(
         "create",
         executables=[
-            "builtin::remove_env_files",
+            # "builtin::remove_env_files",
             "configure",
             "install",
             "builtin::remove_packages",
@@ -160,7 +160,10 @@ class SpackStack(ExecutableApplication):
         if ramble.config.get("config:shell") in ["sh", "bash"]:
             # Do not expand the `removed_packages` variable, so it will not be
             # used to render experiments.
-            packages_to_remove = self.variables["removed_packages"]
+            packages_to_remove = self.expander.expand_var_name(
+                "removed_packages", merge_used_stage=False, typed=True
+            )
+            self.expander.flush_used_variable_stage()
             for pkg in packages_to_remove:
                 cmds.append(
                     f'grep "{pkg}" ' + "{env_path}/spack.yaml &> /dev/null"
