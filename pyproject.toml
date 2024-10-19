@@ -16,3 +16,64 @@ force-exclude = '''
   | __pycache__
 )/
 '''
+
+[tool.coverage.run]
+parallel = true
+# concurrency = ["multiprocessing"]
+data_file = "./tests-coverage/.coverage"
+include = [
+  "**/bin/ramble",
+  "**/bin/ramble-python",
+  "**/lib/ramble/ramble/**",
+  "**/var/ramble/repos/**",
+]
+omit = [
+    "**/spack/lib/**",
+    "**/spack/var/**",
+    "lib/ramble/spack/**",
+    "lib/ramble/external/**",
+    "lib/ramble/llnl/**",
+    "share/**",
+    "lib/ramble/ramble/test/**",
+    "var/ramble/**/test/**"
+]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    'pragma: no cover',
+
+    # Don't complain about missing debug-only code:
+    'def __repr__',
+    'if self\.debug',
+
+    # Don't complain if tests don't hit defensive assertion code:
+    'raise AssertionError',
+    'raise NotImplementedError',
+
+    # Don't complain if non-runnable code isn't run:
+    'if 0:',
+    'if False:',
+    'if __name__ == .__main__.:',
+]
+ignore_errors = true
+include = [
+  "**/bin/ramble",
+  "**/bin/ramble-python",
+  "**/lib/ramble/ramble/**",
+  "**/var/ramble/repos/**",
+]
+omit = [
+    "**/spack/lib/**",
+    "**/spack/var/**",
+    "lib/ramble/spack/**",
+    "lib/ramble/external/**",
+    "lib/ramble/llnl/**",
+    "share/**",
+    "lib/ramble/ramble/test/**",
+    "var/ramble/**/test/**"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
