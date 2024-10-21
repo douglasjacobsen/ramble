@@ -106,6 +106,8 @@ config_section = "workspace"
 config_file_name = "ramble.yaml"
 licenses_file_name = "licenses.yaml"
 
+metadata_file_name = "workspace_metadata.yaml"
+
 
 def default_config_yaml():
     """default ramble.yaml file to put in new workspaces"""
@@ -483,6 +485,7 @@ class Workspace:
         self.input_mirror_cache = None
         self.software_mirror_cache = None
         self.software_environments = None
+        self.metadata = syaml.syaml_dict()
         self.hash_inventory = {"experiments": [], "versions": []}
 
         from ramble.main import get_version
@@ -590,6 +593,8 @@ class Workspace:
                 template_name = workspace_execution_template[0:-ext_len]
                 self._read_template(template_name, template_execute_script)
 
+            self._read_metadata()
+
     def _read_application_config(self, path, f, raw_yaml=None):
         """Read an application configuration file"""
         if path not in self.application_configs:
@@ -609,6 +614,32 @@ class Workspace:
         config = self.config_sections[section]
         self._read_yaml(config, f, raw_yaml)
         self._check_deprecated(config["yaml"])
+
+    def _read_metadata(self):
+        """Read workspace metadata file
+
+        If a metadata file exists in the workspace root, read it in, and
+        populate this workspace's metadata object with its contents.
+        """
+        metadata_file_path = os.path.join(self.root, metadata_file_name)
+
+        if os.path.exists(metadata_file_path):
+            with open(metadata_file_path) as f:
+                self.metadata = syaml.load(f)
+        else:
+            self.metadata = syaml.syaml_dict()
+            self.metadata[namespace.metadata] = syaml.syaml_dict()
+
+    def _write_metadata(self):
+        """Write out workspace metadata file
+
+        Create, and populate the metadata file in the root of the workspace.
+        This file can be used to house cross-pipeline information.
+        """
+        metadata_file_path = os.path.join(self.root, metadata_file_name)
+
+        with open(metadata_file_path, "w+") as f:
+            syaml.dump(self.metadata, stream=f)
 
     def _check_deprecated(self, config):
         """
@@ -680,6 +711,8 @@ class Workspace:
 
             self._write_templates()
 
+            self._write_metadata()
+
     def _write_config(self, section, force=False):
         """Update YAML config file for this workspace, based on
         changes and write it"""
@@ -699,6 +732,29 @@ class Workspace:
             template_path = self.template_path(name)
             with open(template_path, "w+") as f:
                 f.write(conf["contents"])
+
+    def get_metadata(self, key):
+        """Get the value of a metadata key
+
+        Args:
+            key (str): Name of metadata key to retrieve
+
+        Returns:
+            (any): Value associated with key in metadata
+        """
+        if key in self.metadata[namespace.metadata]:
+            return self.metadata[namespace.metadata][key]
+        else:
+            return None
+
+    def update_metadata(self, key, value):
+        """Set the metadata key value
+
+        Args:
+            key (str): Key of metadata to set
+            value (any): Value to set in the metadata object
+        """
+        self.metadata[namespace.metadata][key] = value
 
     def clear(self):
         self.config_sections = {}
