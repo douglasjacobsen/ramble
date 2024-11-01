@@ -28,6 +28,12 @@ class PyNemo(ExecutableApplication):
     tags("ml-framework", "machine-learning")
 
     executable(
+        "setup_transformer_cache",
+        'bash -c "python3 -c \'from transformers import AutoTokenizer; AutoTokenizer.from_pretrained(\\"gpt2\\")\'"',
+        use_mpi=True,
+    )
+
+    executable(
         "pretraining_exec",
         'bash -c "cd /opt/NeMo; git rev-parse HEAD; export PYTHONPATH=/opt/NeMo:\${PYTHONPATH}; '
         "CUDA_VISIBLE_DEVICES={cuda_visible_devices} "
@@ -50,7 +56,11 @@ class PyNemo(ExecutableApplication):
 
     workload(
         "pretraining",
-        executables=["create_logs", "pretraining_exec"],
+        executables=[
+            "create_logs",
+            "setup_transformer_cache",
+            "pretraining_exec",
+        ],
         inputs=["nemo_fetched_config"],
     )
 
