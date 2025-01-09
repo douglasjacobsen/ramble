@@ -303,65 +303,62 @@ class Hpl(ExecutableApplication):
         r"\s+LU GFLOPS = (?P<gflops>\S+), per GPU =\s+(?P<per_gflops>\S+)"
     )
     figure_of_merit(
-        "Total GFLOPs",
+        "Total GFlops",
         fom_regex=gflops_regex,
         group_name="gflops",
-        units="GFLOPs",
+        units="GFLOP/s",
     )
     figure_of_merit(
-        "Per GPU GFLOPs",
+        "Per GPU GFlops",
         fom_regex=gflops_regex,
         group_name="per_gflops",
-        units="GFLOPs",
+        units="GFLOP/s",
     )
 
     figure_of_merit(
-        "Total LU GFLOPs",
+        "Total LU GFlops",
         fom_regex=lu_gflops_regex,
         group_name="gflops",
-        units="GFLOPs",
+        units="GFLOP/s",
     )
     figure_of_merit(
-        "Per GPU LU GFLOPs",
+        "Per GPU LU GFlops",
         fom_regex=lu_gflops_regex,
         group_name="per_gflops",
-        units="GFLOPs",
+        units="GFLOP/s",
     )
 
     # ( setting_name, setting_description )
     hpl_settings = [
-        ("output_file", "output file name (if any)"),
-        ("device_out", "(FORTRAN) device out (6=stdout,7=stderr,file)"),
-        ("N-Ns", "Number of problem sizes (N)"),
-        ("Ns", "Ns, Problem Sizes"),
-        ("N-NBs", "Number of NBs"),
-        ("NBs", "NBs, Block sizes"),
-        ("PMAP", "PMAP process mapping (0=Row-,1=Column-major)"),
-        ("N-Grids", "Number of Grids, process grids (P x Q)"),
-        ("Ps", "Ps, Dimension 1 parallelization"),
-        ("Qs", "Qs, Dimension 2 parallelization"),
-        ("threshold", "threshold"),
-        ("NPFACTs", "Number of PFACTs, panel fact"),
-        ("PFACTs", "PFACT Values (0=left, 1=Crout, 2=Right)"),
-        ("N-NBMINs", "Number of NBMINs, recursive stopping criteria"),
-        ("NBMINs", "NBMINs (>= 1)"),
-        ("N-NDIVs", "Number of NDIVs, panels in recursion"),
-        ("NDIVs", "NDIVs"),
-        ("N-RFACTs", "Number of RFACTS, recursive panel fact."),
-        ("RFACTs", "RFACTs (0=left, 1=Crout, 2=Right)"),
-        ("N-BCASTs", "Number of BCASTs, broadcast"),
-        (
-            "BCASTs",
-            "BCASTs (0=1rg,1=1rM,2=2rg,3=2rM,4=Lng,5=LnM,6=MKL BPUSH,7=AMD Hybrid Panel)",
-        ),
-        ("N-DEPTHs", "Number of DEPTHs, lookahead depth"),
-        ("DEPTHs", "DEPTHs (>=0)"),
-        ("SWAP", "SWAP (0=bin-exch,1=long,2=mix)"),
-        ("swapping_threshold", "swapping_threshold"),
-        ("L1", "L1 in (0=transposed,1=no-transposed) form"),
-        ("U", "U  in (0=transposed,1=no-transposed) form"),
-        ("Equilibration", "Equilibration (0=no,1=yes)"),
-        ("mem_alignment", "memory alignment in double (> 0)"),
+        "output_file",
+        "device_out",
+        "N-Ns",
+        "Ns",
+        "N-NBs",
+        "NBs",
+        "PMAP",
+        "N-Grids",
+        "Ps",
+        "Qs",
+        "threshold",
+        "NPFACTs",
+        "PFACTs",
+        "N-NBMINs",
+        "NBMINs",
+        "N-NDIVs",
+        "NDIVs",
+        "N-RFACTs",
+        "RFACTs",
+        "N-BCASTs",
+        "BCASTs",
+        "N-DEPTHs",
+        "DEPTHs",
+        "SWAP",
+        "swapping_threshold",
+        "L1",
+        "U",
+        "Equilibration",
+        "mem_alignment",
     ]
 
     # Integer sqrt
@@ -434,7 +431,6 @@ class Hpl(ExecutableApplication):
             nBlocks = problemSize // blockSize
             nBlocks -= nBlocks % lcmPQ
             problemSize = blockSize * nBlocks
-            usedPercentage = int(problemSize**2 / fullMemWords * 100)
 
             for name, var in self.workloads["standard"].variables.items():
                 if var.name not in self.variables:
@@ -444,26 +440,22 @@ class Hpl(ExecutableApplication):
             #      Value: Value to override variable with
             #      Comment: Comment to append to variable comment
             calculated_settings = {
-                "N-Ns": {"value": 1},
-                "Ns": {
-                    "value": int(problemSize),
-                    "comment": f"(= {usedPercentage}% of total available memory)",
-                },
-                "N-NBs": {"value": 1},
-                "NBs": {"value": blockSize},
-                "Ps": {"value": int(bestP)},
-                "Qs": {"value": int(bestQ)},
-                "N-Grids": {"value": 1},
+                "N-Ns": 1,
+                "Ns": int(problemSize),
+                "N-NBs": 1,
+                "NBs": blockSize,
+                "Ps": int(bestP),
+                "Qs": int(bestQ),
+                "N-Grids": 1,
             }
 
         # Handle applying overrides, and apply comments to variable definitions.
         # If workload is calculator, `calculated_settings` is defined
         # If workload is standard, `calculated_settings` is empty
-        for setting, comment in self.hpl_settings:
+        for setting in self.hpl_settings:
             value = self.expander.expand_var_name(setting)
 
             if setting in calculated_settings:
-                if "value" in calculated_settings[setting]:
-                    value = calculated_settings[setting]["value"]
+                value = calculated_settings[setting]
 
             self.define_variable(setting, value)

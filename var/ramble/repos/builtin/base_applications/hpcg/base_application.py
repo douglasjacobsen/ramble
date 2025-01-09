@@ -63,7 +63,7 @@ class Hpcg(ExecutableApplication):
     )
 
     figure_of_merit(
-        "Gflops",
+        "GFlops",
         fom_regex=r"Final Summary::HPCG result is (?P<status>[a-zA-Z]+) with a GFLOP/s rating of=(?P<gflops>[0-9]+\.[0-9]+)",
         group_name="gflops",
         units="GFLOP/s",
