@@ -7,6 +7,7 @@
 # except according to those terms.
 
 from ramble.appkit import *
+from ramble.util.common_regex import scientific_notation_number
 
 from ramble.base_app.builtin.hpl import Hpl as HplBase
 
@@ -199,4 +200,15 @@ class NvidiaHpl(HplBase):
         default="0:1:2:3:4:5:6:7",
         description="Colon delimited list of GPU IDs",
         workload_group="mxp",
+    )
+
+    figure_of_merit(
+        "Per GPU GFlops",
+        fom_regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)"
+        + r"\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+"
+        + rf"(?P<gflops>{scientific_notation_number})\s+\(\s+"
+        + rf"(?P<per_gpu_gflops>{scientific_notation_number})",
+        group_name="per_gpu_gflops",
+        units="GFLOP/s",
+        contexts=["problem-name"],
     )

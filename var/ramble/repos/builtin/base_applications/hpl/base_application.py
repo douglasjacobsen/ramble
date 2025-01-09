@@ -6,6 +6,7 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
+from ramble.util.common_regex import scientific_notation_number
 from ramble.appkit import *
 
 import math
@@ -272,7 +273,7 @@ class Hpl(ExecutableApplication):
     # FOMs:
     figure_of_merit(
         "Time",
-        fom_regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+(?P<gflops>[0-9].*)\n",
+        fom_regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+(?P<gflops>[0-9].*)",
         group_name="time",
         units="s",
         contexts=["problem-name"],
@@ -280,7 +281,9 @@ class Hpl(ExecutableApplication):
 
     figure_of_merit(
         "GFlops",
-        fom_regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+(?P<gflops>[0-9].*)\n",
+        fom_regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)"
+        + r"\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+"
+        + rf"(?P<gflops>{scientific_notation_number})",
         group_name="gflops",
         units="GFLOP/s",
         contexts=["problem-name"],
@@ -288,7 +291,7 @@ class Hpl(ExecutableApplication):
 
     figure_of_merit_context(
         "problem-name",
-        regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+(?P<gflops>[0-9].*)\n",
+        regex=r".*\s+(?P<N>[0-9]+)\s+(?P<NB>[0-9]+)\s+(?P<P>[0-9]+)\s+(?P<Q>[0-9]+)\s+(?P<time>[0-9]+\.[0-9]+)\s+(?P<gflops>[0-9].*)",
         output_format="N-NB-P-Q = {N}-{NB}-{P}-{Q}",
     )
 
