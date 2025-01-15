@@ -78,7 +78,7 @@ class Slurm(WorkflowManagerBase):
     )
 
     workflow_manager_variable(
-        name="partition",
+        name="slurm_partition",
         default="",
         description="partition to submit job to, if unspecified, it uses the default partition",
     )
@@ -120,8 +120,8 @@ class Slurm(WorkflowManagerBase):
             ("#SBATCH -e {experiment_run_dir}/slurm-%j.err"),
             ("#SBATCH --gpus-per-node {gpus_per_node}"),
         ]
-        if expander.expand_var_name("partition"):
-            pragmas.append("#SBATCH -p {partition}")
+        if expander.expand_var_name("slurm_partition"):
+            pragmas.append("#SBATCH -p {slurm_partition}")
         extra_headers = (
             self.app_inst.variables["extra_sbatch_headers"].strip().split("\n")
         )

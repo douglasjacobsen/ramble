@@ -47,7 +47,7 @@ ramble:
                   #SBATCH --time={time_limit_not_exist}
             test_{wm_name}_2:
               variables:
-                partition: h3
+                slurm_partition: h3
 """
     with ramble.workspace.create(workspace_name) as ws:
         ws.write()
