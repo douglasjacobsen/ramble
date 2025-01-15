@@ -78,6 +78,12 @@ class Slurm(WorkflowManagerBase):
         description="mpirun prefix, mostly served as an overridable default",
     )
 
+    workflow_manager_variable(
+        name="partition",
+        default="",
+        description="partition to submit job to, if unspecified, it uses the default partition",
+    )
+
     register_template(
         name="batch_submit",
         src_name="batch_submit.tpl",
@@ -109,13 +115,14 @@ class Slurm(WorkflowManagerBase):
         # Adding pre-defined and custom headers
         pragmas = [
             ("#SBATCH -N {n_nodes}"),
-            ("#SBATCH -p {partition}"),
             ("#SBATCH --ntasks-per-node {processes_per_node}"),
             ("#SBATCH -J {job_name}"),
             ("#SBATCH -o {experiment_run_dir}/slurm-%j.out"),
             ("#SBATCH -e {experiment_run_dir}/slurm-%j.err"),
             ("#SBATCH --gpus-per-node {gpus_per_node}"),
         ]
+        if expander.expand_var_name("partition"):
+            pragmas.append("#SBATCH -p {partition}")
         try:
             extra_sbatch_headers_raw = expander.expand_var_name(
                 "extra_sbatch_headers", allow_passthrough=False
