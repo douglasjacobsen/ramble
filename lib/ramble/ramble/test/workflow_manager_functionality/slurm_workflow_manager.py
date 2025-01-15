@@ -42,7 +42,9 @@ ramble:
           experiments:
             test_{wm_name}:
               variables:
-                extra_sbatch_headers: "#SBATCH --gpus-per-task={n_threads}"
+                extra_sbatch_headers: |
+                  #SBATCH --gpus-per-task={n_threads}
+                  #SBATCH --time={time_limit_not_exist}
             test_{wm_name}_2:
               variables:
                 partition: h3
@@ -87,6 +89,7 @@ ramble:
             assert "scontrol show hostnames" in content
             assert "#SBATCH --gpus-per-task=1" in content
             assert "#SBATCH -p" not in content
+            assert "#SBATCH --time" not in content
         with open(os.path.join(path, "batch_query")) as f:
             content = f.read()
             assert "squeue" in content

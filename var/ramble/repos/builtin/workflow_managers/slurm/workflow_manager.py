@@ -9,7 +9,6 @@
 import os
 
 from ramble.wmkit import *
-from ramble.expander import ExpanderError
 from ramble.application import experiment_status
 
 from spack.util.executable import ProcessError
@@ -123,14 +122,10 @@ class Slurm(WorkflowManagerBase):
         ]
         if expander.expand_var_name("partition"):
             pragmas.append("#SBATCH -p {partition}")
-        try:
-            extra_sbatch_headers_raw = expander.expand_var_name(
-                "extra_sbatch_headers", allow_passthrough=False
-            )
-            extra_sbatch_headers = extra_sbatch_headers_raw.strip().split("\n")
-            pragmas = pragmas + extra_sbatch_headers
-        except ExpanderError:
-            pass
+        extra_headers = (
+            self.app_inst.variables["extra_sbatch_headers"].strip().split("\n")
+        )
+        pragmas = pragmas + extra_headers
         header_str = "\n".join(self.conditional_expand(pragmas))
         return {"sbatch_headers_str": header_str}
 
