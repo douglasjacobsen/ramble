@@ -668,8 +668,12 @@ class PushDeploymentPipeline(Pipeline):
         self.action_string = "Pushing deployment of"
         self.require_inventory = True
         self.create_tar = create_tar
-        expanded_url = workspace_expander.expand_var(upload_url)
-        self.upload_url = ramble.util.path.normalize_path_or_url(expanded_url)
+
+        if upload_url:
+            expanded_url = workspace_expander.expand_var(upload_url)
+            self.upload_url = ramble.util.path.normalize_path_or_url(expanded_url)
+        else:
+            self.upload_url = None
 
         if deployment_name:
             expanded_name = workspace_expander.expand_var(deployment_name)
