@@ -72,6 +72,7 @@ ramble:
         assert "batch_submit" not in files
         assert "batch_query" not in files
         assert "batch_cancel" not in files
+        assert "batch_wait" not in files
 
         # Assert on slurm workflow manager
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_slurm")
@@ -80,6 +81,7 @@ ramble:
         assert "batch_submit" in files
         assert "batch_query" in files
         assert "batch_cancel" in files
+        assert "batch_wait" in files
         with open(os.path.join(path, "batch_submit")) as f:
             content = f.read()
             assert "slurm_execute_experiment" in content

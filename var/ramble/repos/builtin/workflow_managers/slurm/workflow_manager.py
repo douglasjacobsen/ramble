@@ -103,6 +103,12 @@ class Slurm(WorkflowManagerBase):
     )
 
     register_template(
+        name="batch_wait",
+        src_name="batch_wait.tpl",
+        dest_path="batch_wait",
+    )
+
+    register_template(
         name="slurm_execute_experiment",
         src_name="slurm_execute_experiment.tpl",
         dest_path="slurm_execute_experiment",
