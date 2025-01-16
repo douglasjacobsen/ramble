@@ -36,7 +36,7 @@ class NvidiaHplMxp(HplBase):
 
     executable(
         "execute",
-        './hpl-mxp.sh --gpu-affinity "{gpu_affinity}" --n {Ns} --nb {block_size} --nprow {Ps} --npcol {Qs} --nporder {nporder}',
+        '/workspace/hpl-mxp.sh --gpu-affinity "{gpu_affinity}" --n {Ns} --nb {block_size} --nprow {Ps} --npcol {Qs} --nporder {nporder}',
         use_mpi=True,
     )
 
