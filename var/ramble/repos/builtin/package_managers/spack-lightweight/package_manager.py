@@ -408,13 +408,12 @@ class SpackLightweight(PackageManagerBase):
         super()._clean_hash_variables(workspace, variables)
 
     register_phase(
-        "deploy_artifacts",
+        "deploy_spack_artifacts",
         pipeline="pushdeployment",
-        run_after=["software_create_env"],
+        run_after=["software_create_env", "deploy_artifacts"],
     )
 
-    def _deploy_artifacts(self, workspace, app_inst=None):
-        super()._deploy_artifacts(workspace, app_inst=app_inst)
+    def _deploy_spack_artifacts(self, workspace, app_inst=None):
         env_path = self.app_inst.expander.env_path
 
         try:
@@ -1269,7 +1268,9 @@ class SpackRunner(CommandRunner):
         for pkg in self.env_contents:
             args = location_args.copy()
             args.append(pkg)
-            path = self.execute(self.spack, args, return_output=True)
+
+            path = self.execute(self.spack, args, return_output=True).rstrip()
+
             if path is not None:
                 yield pkg, os.path.join(path, package_def_name)
 
