@@ -112,11 +112,16 @@ def variable_modification(
             if mode_name not in mod.variable_modifications:
                 mod.variable_modifications[mode_name] = {}
 
-            mod.variable_modifications[mode_name][name] = {
-                "modification": modification,
-                "method": method,
-                "separator": separator,
-            }
+            if name not in mod.variable_modifications[mode_name]:
+                mod.variable_modifications[mode_name][name] = []
+
+            mod.variable_modifications[mode_name][name].append(
+                {
+                    "modification": modification,
+                    "method": method,
+                    "separator": separator,
+                }
+            )
 
     return _execute_variable_modification
 
