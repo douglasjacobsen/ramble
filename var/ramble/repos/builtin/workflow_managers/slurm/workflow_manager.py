@@ -9,7 +9,6 @@
 import os
 
 from ramble.wmkit import *
-from ramble.expander import ExpanderError
 from ramble.application import experiment_status
 
 from spack.util.executable import ProcessError
@@ -78,6 +77,12 @@ class Slurm(WorkflowManagerBase):
         description="mpirun prefix, mostly served as an overridable default",
     )
 
+    workflow_manager_variable(
+        name="slurm_partition",
+        default="",
+        description="partition to submit job to, if unspecified, it uses the default partition",
+    )
+
     register_template(
         name="batch_submit",
         src_name="batch_submit.tpl",
@@ -109,21 +114,18 @@ class Slurm(WorkflowManagerBase):
         # Adding pre-defined and custom headers
         pragmas = [
             ("#SBATCH -N {n_nodes}"),
-            ("#SBATCH -p {partition}"),
             ("#SBATCH --ntasks-per-node {processes_per_node}"),
             ("#SBATCH -J {job_name}"),
             ("#SBATCH -o {experiment_run_dir}/slurm-%j.out"),
             ("#SBATCH -e {experiment_run_dir}/slurm-%j.err"),
             ("#SBATCH --gpus-per-node {gpus_per_node}"),
         ]
-        try:
-            extra_sbatch_headers_raw = expander.expand_var_name(
-                "extra_sbatch_headers", allow_passthrough=False
-            )
-            extra_sbatch_headers = extra_sbatch_headers_raw.strip().split("\n")
-            pragmas = pragmas + extra_sbatch_headers
-        except ExpanderError:
-            pass
+        if expander.expand_var_name("slurm_partition"):
+            pragmas.append("#SBATCH -p {slurm_partition}")
+        extra_headers = (
+            self.app_inst.variables["extra_sbatch_headers"].strip().split("\n")
+        )
+        pragmas = pragmas + extra_headers
         header_str = "\n".join(self.conditional_expand(pragmas))
         return {"sbatch_headers_str": header_str}
 

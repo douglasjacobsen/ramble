@@ -33,6 +33,7 @@ ramble:
     batch_submit: echo {wm_name}
     mpi_command: mpirun -n {n_ranks} -hostfile hostfile
     processes_per_node: 1
+    n_nodes: 1
     wm_name: ['None', 'slurm']
   applications:
     hostname:
@@ -41,8 +42,12 @@ ramble:
           experiments:
             test_{wm_name}:
               variables:
-                n_nodes: 1
-                extra_sbatch_headers: "#SBATCH --gpus-per-task={n_threads}"
+                extra_sbatch_headers: |
+                  #SBATCH --gpus-per-task={n_threads}
+                  #SBATCH --time={time_limit_not_exist}
+            test_{wm_name}_2:
+              variables:
+                slurm_partition: h3
 """
     with ramble.workspace.create(workspace_name) as ws:
         ws.write()
@@ -83,9 +88,17 @@ ramble:
             content = f.read()
             assert "scontrol show hostnames" in content
             assert "#SBATCH --gpus-per-task=1" in content
+            assert "#SBATCH -p" not in content
+            assert "#SBATCH --time" not in content
         with open(os.path.join(path, "batch_query")) as f:
             content = f.read()
             assert "squeue" in content
         with open(os.path.join(path, "batch_cancel")) as f:
             content = f.read()
             assert "scancel" in content
+
+        # Assert on the experiment with non-empty partition variable given
+        path = os.path.join(ws.experiment_dir, "hostname", "local", "test_slurm_2")
+        with open(os.path.join(path, "slurm_execute_experiment")) as f:
+            content = f.read()
+            assert "#SBATCH -p h3" in content
