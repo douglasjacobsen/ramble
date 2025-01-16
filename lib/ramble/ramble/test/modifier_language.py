@@ -93,10 +93,19 @@ def test_variable_modification_directive(mod_class):
 
     mod_inst = mod_class("/not/a/path")
     test_defs.append(add_variable_modification(mod_inst).copy())
+    test_defs.append(add_variable_modification(mod_inst, 2).copy())
+    test_defs.append(add_variable_modification(mod_inst).copy())
 
     expected_attrs = ["modification", "method"]
 
     assert hasattr(mod_inst, "variable_modifications")
+
+    mod_count = 0
+    for mode_name in mod_inst.variable_modifications:
+        for var_name in mod_inst.variable_modifications[mode_name]:
+            for modification in mod_inst.variable_modifications[mode_name][var_name]:
+                mod_count += 1
+    assert mod_count == 9  # Each call to add_variable_modification adds 3 modifications
 
     for test_def in test_defs:
         var_name = test_def["name"]
@@ -104,16 +113,34 @@ def test_variable_modification_directive(mod_class):
 
         assert mode_name in mod_inst.variable_modifications
         assert var_name in mod_inst.variable_modifications[mode_name]
-        for attr in expected_attrs:
-            assert attr in mod_inst.variable_modifications[mode_name][var_name]
-            assert test_def[attr] == mod_inst.variable_modifications[mode_name][var_name][attr]
+        found_match = (
+            False if len(mod_inst.variable_modifications[mode_name][var_name]) > 0 else True
+        )
+        for modification in mod_inst.variable_modifications[mode_name][var_name]:
+            match = True
+            for attr in expected_attrs:
+                assert attr in modification
+                if test_def[attr] != modification[attr]:
+                    match = False
+            if match:
+                found_match = True
+        assert found_match
 
         for mode_name in test_def["modes"]:
+            found_match = (
+                False if len(mod_inst.variable_modifications[mode_name][var_name]) > 0 else True
+            )
             assert mode_name in mod_inst.variable_modifications
             assert var_name in mod_inst.variable_modifications[mode_name]
-            for attr in expected_attrs:
-                assert attr in mod_inst.variable_modifications[mode_name][var_name]
-                assert test_def[attr] == mod_inst.variable_modifications[mode_name][var_name][attr]
+            for modification in mod_inst.variable_modifications[mode_name][var_name]:
+                match = True
+                for attr in expected_attrs:
+                    assert attr in modification
+                    if test_def[attr] != modification[attr]:
+                        match = False
+                if match:
+                    found_match = True
+            assert found_match
 
 
 @pytest.mark.parametrize("mod_class", mod_types)
