@@ -1184,7 +1184,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
             self._set_input_path()
 
             self._derive_variables_for_template_path(workspace)
-            self._define_object_template_vars()
+            self._define_object_template_vars(workspace)
             self._vars_are_expanded = True
 
     def _inputs_and_fetchers(self, workload=None):
@@ -1390,7 +1390,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
                     )
                 os.chmod(expand_path, _DEFAULT_CONTENT_PERM)
 
-            self._render_object_templates(exec_vars, replacement_vars=workspace.workspace_paths())
+            self._render_object_templates(exec_vars, workspace)
 
             experiment_script = workspace.experiments_script
             experiment_script.write(self.expander.expand_var("{batch_submit}\n"))
@@ -2291,12 +2291,14 @@ class ApplicationBase(metaclass=ApplicationMeta):
 
         return True
 
-    def _object_templates(self):
+    def _object_templates(self, workspace):
         """Return templates defined from different objects associated with the app_inst"""
+        run_dir = self.expander.experiment_run_dir
+        replacements = workspace.workspace_paths()
 
         def _get_template_config(obj, tpl_config, obj_type):
+            # Search up the object chain to resolve source path
             found = False
-            # Search up the object chain
             object_paths = [e[1] for e in ramble.repository.list_object_files(obj, obj_type)]
             src_name = tpl_config["src_name"]
             for obj_path in object_paths:
@@ -2306,18 +2308,22 @@ class ApplicationBase(metaclass=ApplicationMeta):
                     break
             if not found:
                 raise ApplicationError(f"Object {obj.name} is missing template file at {src_path}")
-            return (obj, {**tpl_config, "src_path": src_path})
+
+            # Resolve the destination path
+            dest_path = ramble.util.path.substitute_path_variables(
+                tpl_config["dest_path"], local_replacements=replacements
+            )
+            if not os.path.isabs(dest_path):
+                dest_path = os.path.join(run_dir, dest_path)
+
+            return (obj, {**tpl_config, "src_path": src_path, "dest_path": dest_path})
 
         for obj_type, obj in self._objects():
             for tpl_conf in obj.templates.values():
                 yield _get_template_config(obj, tpl_conf, obj_type=obj_type)
 
-    def _render_object_templates(self, extra_vars, replacement_vars=None):
-        run_dir = self.expander.experiment_run_dir
-        replacements = {}
-        if replacement_vars is not None:
-            replacements = replacement_vars
-        for obj, tpl_config in self._object_templates():
+    def _render_object_templates(self, extra_vars, workspace):
+        for obj, tpl_config in self._object_templates(workspace):
             src_path = tpl_config["src_path"]
             with open(src_path) as f_in:
                 content = f_in.read()
@@ -2329,24 +2335,18 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 extra_vars_func = getattr(obj, extra_vars_func_name)
                 extra_vars.update(extra_vars_func())
             rendered = self.expander.expand_var(content, extra_vars=extra_vars)
-            out_path = ramble.util.path.substitute_path_variables(
-                tpl_config["dest_name"], local_replacements=replacements
-            )
-            if not os.path.isabs(out_path):
-                out_path = os.path.join(run_dir, out_path)
+            out_path = tpl_config["dest_path"]
             perm = tpl_config.get("content_perm", _DEFAULT_CONTENT_PERM)
             with open(out_path, "w+") as f_out:
                 f_out.write(rendered)
                 f_out.write("\n")
             os.chmod(out_path, perm)
 
-    def _define_object_template_vars(self):
-        run_dir = self.expander.experiment_run_dir
-        for _, tpl_config in self._object_templates():
+    def _define_object_template_vars(self, workspace):
+        for _, tpl_config in self._object_templates(workspace):
             var_name = tpl_config["var_name"]
             if var_name is not None:
-                path = os.path.join(run_dir, tpl_config["dest_name"])
-                self.variables[var_name] = path
+                self.variables[var_name] = tpl_config["dest_path"]
 
     def _objects(self):
         """Return a tuple for each object instance associated with the app_inst.

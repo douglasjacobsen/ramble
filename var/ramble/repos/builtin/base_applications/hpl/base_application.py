@@ -344,7 +344,7 @@ class Hpl(ExecutableApplication):
     register_template(
         "hpl_dat",
         src_name="HPL.dat.tpl",
-        dest_name="HPL.dat",
+        dest_path="HPL.dat",
         define_var=False,
     )
 

@@ -86,26 +86,26 @@ class Slurm(WorkflowManagerBase):
     register_template(
         name="batch_submit",
         src_name="batch_submit.tpl",
-        dest_name="batch_submit",
+        dest_path="batch_submit",
     )
 
     register_template(
         name="batch_query",
         src_name="batch_query.tpl",
-        dest_name="batch_query",
+        dest_path="batch_query",
         extra_vars={"declare_status_map": _declare_status_map()},
     )
 
     register_template(
         name="batch_cancel",
         src_name="batch_cancel.tpl",
-        dest_name="batch_cancel",
+        dest_path="batch_cancel",
     )
 
     register_template(
         name="slurm_execute_experiment",
         src_name="slurm_execute_experiment.tpl",
-        dest_name="slurm_execute_experiment",
+        dest_path="slurm_execute_experiment",
         extra_vars_func="execute_vars",
     )
 
