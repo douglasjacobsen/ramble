@@ -54,12 +54,14 @@ ramble:
         assert "echo hello santa" in content
         assert "echo not_exist" not in content
     execute_path = os.path.join(run_dir, "execute_experiment")
+    script2_path = os.path.join(ws.shared_dir, "script.sh")
+    assert os.path.isfile(script2_path)
     with open(execute_path) as f:
         content = f.read()
         assert script_path in content
-
-    script_path = os.path.join(ws.shared_dir, "script.sh")
-    assert os.path.isfile(script_path)
+        # The workspace path should be expanded
+        assert "$workspace_shared" not in content
+        assert script2_path in content
 
 
 def test_template_inherited():

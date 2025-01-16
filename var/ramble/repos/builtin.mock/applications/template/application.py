@@ -14,7 +14,7 @@ class Template(ExecutableApplication):
 
     name = "template"
 
-    executable("foo", template=["bash {bar}"])
+    executable("foo", template=["bash {bar}", "echo {test}"])
 
     workload("test_template", executable="foo")
 
@@ -28,7 +28,7 @@ class Template(ExecutableApplication):
     register_template(
         name="bar",
         src_name="bar.tpl",
-        dest_name="bar.sh",
+        dest_path="bar.sh",
         # The `dynamic_hello_world` will be overridden by `_bar_vars`
         extra_vars={
             "dynamic_var1": "foobar",
@@ -45,6 +45,6 @@ class Template(ExecutableApplication):
     register_template(
         name="test",
         src_name="script.sh",
-        dest_name="$workspace_shared/script.sh",
+        dest_path="$workspace_shared/script.sh",
         output_perm="755",
     )
