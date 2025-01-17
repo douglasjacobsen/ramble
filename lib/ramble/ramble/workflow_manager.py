@@ -70,6 +70,10 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
                 continue
         return expanded
 
+    def template_render_vars(self):
+        """Define variables to be used in template rendering"""
+        return {"workflow_pragmas": "", "workflow_hostfile_cmd": ""}
+
     def copy(self):
         """Deep copy a workflow manager instance"""
         new_copy = type(self)(self._file_path)

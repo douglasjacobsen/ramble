@@ -1,8 +1,8 @@
 #!/bin/bash
-{sbatch_headers_str}
+{workflow_pragmas}
 
 cd {experiment_run_dir}
 
-scontrol show hostnames > {experiment_run_dir}/hostfile
+{workflow_hostfile_cmd}
 
 {command}

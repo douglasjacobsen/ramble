@@ -2324,12 +2324,15 @@ class ApplicationBase(metaclass=ApplicationMeta):
 
     def _render_object_templates(self, extra_vars, workspace):
         for obj, tpl_config in self._object_templates(workspace):
+            extra_vars = extra_vars.copy()
+            if callable(getattr(obj, "template_render_vars", None)):
+                extra_vars.update(obj.template_render_vars())
             src_path = tpl_config["src_path"]
             with open(src_path) as f_in:
                 content = f_in.read()
-            extra_vars_wm = tpl_config.get("extra_vars")
-            if extra_vars_wm is not None:
-                extra_vars.update(extra_vars_wm)
+            extra_vars_dict = tpl_config.get("extra_vars")
+            if extra_vars_dict is not None:
+                extra_vars.update(extra_vars_dict)
             extra_vars_func_name = tpl_config.get("extra_vars_func_name")
             if extra_vars_func_name is not None:
                 extra_vars_func = getattr(obj, extra_vars_func_name)
