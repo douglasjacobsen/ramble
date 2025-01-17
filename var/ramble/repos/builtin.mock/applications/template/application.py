@@ -14,7 +14,10 @@ class Template(ExecutableApplication):
 
     name = "template"
 
-    executable("foo", template=["bash {bar}", "echo {test}"])
+    executable(
+        "foo",
+        template=["bash {bar}", "echo {test}", "echo {expansion_test_path}"],
+    )
 
     workload("test_template", executable="foo")
 
@@ -47,4 +50,18 @@ class Template(ExecutableApplication):
         src_path="script.sh",
         dest_path="$workspace_shared/script.sh",
         output_perm="755",
+    )
+
+    # Setup to test the path expansion for both src and dest
+    workload_variable(
+        "src_script_path",
+        default="$workspace_configs/execute_experiment.tpl",
+        description="source path of the template",
+        workload="test_template",
+    )
+
+    register_template(
+        name="expansion_test_path",
+        src_path="{src_script_path}",
+        dest_path="{experiment_run_dir}/expansion_script.sh",
     )
