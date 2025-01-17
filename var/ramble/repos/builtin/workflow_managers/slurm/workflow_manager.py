@@ -112,10 +112,10 @@ class Slurm(WorkflowManagerBase):
         name="slurm_execute_experiment",
         src_name="slurm_execute_experiment.tpl",
         dest_path="slurm_execute_experiment",
-        extra_vars_func="execute_vars",
     )
 
-    def _execute_vars(self):
+    def template_render_vars(self):
+        vars = super().template_render_vars()
         expander = self.app_inst.expander
         # Adding pre-defined and custom headers
         pragmas = [
@@ -135,7 +135,11 @@ class Slurm(WorkflowManagerBase):
         )
         pragmas = pragmas + extra_headers
         header_str = "\n".join(self.conditional_expand(pragmas))
-        return {"sbatch_headers_str": header_str}
+        return {
+            **vars,
+            "workflow_pragmas": header_str,
+            "workflow_hostfile_cmd": self.runner.get_hostfile_cmd(),
+        }
 
     def _check_partition(self, partition):
         """Warns about potential issues of the slurm_partition config
@@ -246,3 +250,6 @@ class SlurmRunner:
             "default_partition": default_partition,
             "partitions": partitions,
         }
+
+    def get_hostfile_cmd(self):
+        return "scontrol show hostnames > {experiment_run_dir}/hostfile"
