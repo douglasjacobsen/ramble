@@ -83,35 +83,44 @@ class Slurm(WorkflowManagerBase):
         description="partition to submit job to, if unspecified, it uses the default partition",
     )
 
+    workflow_manager_variable(
+        name="slurm_execute_template_path",
+        default="slurm_execute_experiment.tpl",
+        description="Path to the custom template (under workspace_config dir) for generating "
+        "the slurm sbatch job script. If a relative path is given, it is searched "
+        "under the workflow manager's source directory. The path can contain "
+        "workspace path variables such as $workspace_config",
+    )
+
     register_template(
         name="batch_submit",
-        src_name="batch_submit.tpl",
+        src_path="batch_submit.tpl",
         dest_path="batch_submit",
     )
 
     register_template(
         name="batch_query",
-        src_name="batch_query.tpl",
+        src_path="batch_query.tpl",
         dest_path="batch_query",
         extra_vars={"declare_status_map": _declare_status_map()},
     )
 
     register_template(
         name="batch_cancel",
-        src_name="batch_cancel.tpl",
+        src_path="batch_cancel.tpl",
         dest_path="batch_cancel",
     )
 
     register_template(
         name="batch_wait",
-        src_name="batch_wait.tpl",
+        src_path="batch_wait.tpl",
         dest_path="batch_wait",
     )
 
     register_template(
         name="slurm_execute_experiment",
-        src_name="slurm_execute_experiment.tpl",
-        dest_path="slurm_execute_experiment",
+        src_path="{slurm_execute_template_path}",
+        dest_path="execute_experiment",
     )
 
     def template_render_vars(self):

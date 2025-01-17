@@ -27,7 +27,7 @@ class Template(ExecutableApplication):
 
     register_template(
         name="bar",
-        src_name="bar.tpl",
+        src_path="bar.tpl",
         dest_path="bar.sh",
         # The `dynamic_hello_world` will be overridden by `_bar_vars`
         extra_vars={
@@ -44,7 +44,7 @@ class Template(ExecutableApplication):
 
     register_template(
         name="test",
-        src_name="script.sh",
+        src_path="script.sh",
         dest_path="$workspace_shared/script.sh",
         output_perm="755",
     )

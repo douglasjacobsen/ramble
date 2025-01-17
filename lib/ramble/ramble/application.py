@@ -2300,24 +2300,36 @@ class ApplicationBase(metaclass=ApplicationMeta):
         """Return templates defined from different objects associated with the app_inst"""
         run_dir = self.expander.experiment_run_dir
         replacements = workspace.workspace_paths()
+        expander = self.expander
+
+        def _expand_path(path):
+            return ramble.util.path.substitute_path_variables(
+                expander.expand_var(path), local_replacements=replacements
+            )
 
         def _get_template_config(obj, tpl_config, obj_type):
-            # Search up the object chain to resolve source path
-            found = False
-            object_paths = [e[1] for e in ramble.repository.list_object_files(obj, obj_type)]
-            src_name = tpl_config["src_name"]
-            for obj_path in object_paths:
-                src_path = os.path.join(os.path.dirname(obj_path), src_name)
-                if os.path.isfile(src_path):
-                    found = True
-                    break
-            if not found:
-                raise ApplicationError(f"Object {obj.name} is missing template file at {src_path}")
+            # Resolve the source path
+            src_path_config = _expand_path(tpl_config["src_path"])
+            if not os.path.isabs(src_path_config):
+                # Search up the object chain to resolve source path
+                found = False
+                object_paths = [e[1] for e in ramble.repository.list_object_files(obj, obj_type)]
+                for obj_path in object_paths:
+                    src_path = os.path.join(os.path.dirname(obj_path), src_path_config)
+                    if os.path.isfile(src_path):
+                        found = True
+                        break
+                if not found:
+                    raise ApplicationError(
+                        f"Object {obj.name} is missing template file at {src_path_config}"
+                    )
+            else:
+                if not os.path.isfile(src_path_config):
+                    raise ApplicationError(f"Template file {src_path_config} does not exist")
+                src_path = src_path_config
 
             # Resolve the destination path
-            dest_path = ramble.util.path.substitute_path_variables(
-                tpl_config["dest_path"], local_replacements=replacements
-            )
+            dest_path = _expand_path(tpl_config["dest_path"])
             if not os.path.isabs(dest_path):
                 dest_path = os.path.join(run_dir, dest_path)
 
