@@ -62,7 +62,7 @@ def get_system_path_max():
     return sys_max_path_length
 
 
-def substitute_config_variables(path, local_replacements={}):
+def substitute_config_variables(path, local_replacements):
     """Substitute placeholders into paths.
 
     Ramble allows paths in configs to have some placeholders, as follows:
@@ -86,8 +86,10 @@ def substitute_config_variables(path, local_replacements={}):
     return re.sub(r"(\$\w+\b|\$\{\w+\})", repl, path)
 
 
-def substitute_path_variables(path, local_replacements={}):
+def substitute_path_variables(path, local_replacements=None):
     """Substitute config vars, expand environment vars, expand user home."""
+    if local_replacements is None:
+        local_replacements = {}
     path = substitute_config_variables(path, local_replacements)
     path = os.path.expandvars(path)
     path = os.path.expanduser(path)

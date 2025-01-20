@@ -23,7 +23,9 @@ config = ramble.main.RambleCommand("config")
 workspace = ramble.main.RambleCommand("workspace")
 
 
-def _create_config(scope=None, data={}, section="repos"):
+def _create_config(scope=None, data=None, section="repos"):
+    if data is None:
+        data = {}
     scope = scope or ramble.config.default_modify_scope()
     cfg_file = ramble.config.config.get_config_filename(scope, section)
     with open(cfg_file, "w") as f:

@@ -104,7 +104,7 @@ def setup_parser(subparser):
 def mirror_add(args):
     """Add a mirror to Ramble."""
     url = url_util.format(args.url)
-    ramble.mirror.add(args.name, url, args.scope, args)
+    ramble.mirror.add(args.name, url, args.scope)
 
 
 def mirror_remove(args):

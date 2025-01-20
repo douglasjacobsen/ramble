@@ -148,8 +148,8 @@ class ExpansionNode:
         allow_passthrough=True,
         expansion_func=str,
         evaluation_func=eval,
-        no_expand_vars=set(),
-        used_vars=set(),
+        no_expand_vars=None,
+        used_vars=None,
     ):
         """Define the value for this node.
 
@@ -170,6 +170,10 @@ class ExpansionNode:
             evaluation_func (func): function to use for evaluating math of strings
             no_expand_vars (set): set of variable names that should never be expanded
         """
+        if no_expand_vars is None:
+            no_expand_vars = set()
+        if used_vars is None:
+            used_vars = set()
         if self.contents is not None:
             parts = []
             last_idx = 0
@@ -336,7 +340,9 @@ class Expander:
 
     _ast_dbg_prefix = "EXPANDER AST:"
 
-    def __init__(self, variables, experiment_set, no_expand_vars=set()):
+    def __init__(self, variables, experiment_set, no_expand_vars=None):
+        if no_expand_vars is None:
+            no_expand_vars = set()
 
         self._keywords = ramble.keywords.keywords
 

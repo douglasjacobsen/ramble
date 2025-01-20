@@ -35,7 +35,7 @@ class AttributeGraph:
             self._sorted = None
             self._prepared = False
 
-    def update_graph(self, node, dep_nodes=[], internal_order=False):
+    def update_graph(self, node, dep_nodes=None, internal_order=False):
         """Update the graph with a new node and / or new dependencies.
 
         Given a node, and list of dependencies, define new edges in the
@@ -43,12 +43,14 @@ class AttributeGraph:
 
         Args:
             node (GraphNode): Node to inject or modify
-            dep_nodes (list(GraphNode)): List of nodes that are dependencies
+            dep_nodes (list(GraphNode) | None): List of nodes that are dependencies
             internal_order (Boolean): True to process internal dependencies,
                                       False to skip
 
         """
 
+        if dep_nodes is None:
+            dep_nodes = []
         self._make_editable()
         self.add_node(node)
         self.define_edges(node, dep_nodes, internal_order=internal_order)
@@ -68,7 +70,7 @@ class AttributeGraph:
         if node not in self.adj_list:
             self.adj_list[node] = set()
 
-    def define_edges(self, node, dep_nodes=[], internal_order=False):
+    def define_edges(self, node, dep_nodes=None, internal_order=False):
         """Define graph edges
 
         Process dependencies, and internal orderings (inside the node object)
@@ -76,11 +78,13 @@ class AttributeGraph:
 
         Args:
             node (GraphNode): Node to inject or modify
-            dep_nodes (list(GraphNode)): List of nodes that are dependencies
+            dep_nodes (list(GraphNode) | None): List of nodes that are dependencies
             internal_order (Boolean): True to process internal dependencies,
                                      False to skip
         """
 
+        if dep_nodes is None:
+            dep_nodes = []
         for dep in dep_nodes:
             if dep.key not in self.node_definitions:
                 self.node_definitions[dep.key] = dep
@@ -198,7 +202,7 @@ class PhaseGraph(AttributeGraph):
 
         super().add_node(node)
 
-    def update_graph(self, phase_name, dependencies=[], internal_order=False, obj_inst=None):
+    def update_graph(self, phase_name, dependencies=None, internal_order=False, obj_inst=None):
         """Update the graph with a new phase and / or new dependencies.
 
         Given a phase name, and list of dependencies, define new edges in the
@@ -206,11 +210,13 @@ class PhaseGraph(AttributeGraph):
 
         Args:
             phase_name (str): Name of the phase to inject or modify
-            dependencies (list(str)): List of phase names to inject dependencies on
+            dependencies (list(str) | None): List of phase names to inject dependencies on
             internal_order (Boolean): True to process internal dependencies,
                                       False to skip
             obj_inst (object): Application or modifier instance to extract phase function from
         """
+        if dependencies is None:
+            dependencies = []
         if self._prepared:
             del self._sorted
             self._sorted = None

@@ -85,7 +85,7 @@ def workload(
 
 
 @application_directive("workload_groups")
-def workload_group(name, workloads=[], mode=None, **kwargs):
+def workload_group(name, workloads=None, mode=None, **kwargs):
     """Adds a workload group to this application
 
     Defines a new workload group that can be used within the context of its
@@ -93,8 +93,10 @@ def workload_group(name, workloads=[], mode=None, **kwargs):
 
     Args:
         name (str): The name of the group
-        workloads (list(str)): A list of workloads to be grouped
+        workloads (list(str) | None): A list of workloads to be grouped
     """
+    if workloads is None:
+        workloads = []
 
     def _execute_workload_groups(app):
         if mode == "append":

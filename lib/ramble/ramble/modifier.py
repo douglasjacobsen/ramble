@@ -148,8 +148,11 @@ class ModifierBase(metaclass=ModifierMeta):
             results.write((" " * indent) + line + "\n")
         return results.getvalue()
 
-    def modded_variables(self, app, extra_vars={}):
+    def modded_variables(self, app, extra_vars=None):
         mods = {}
+
+        if extra_vars is None:
+            extra_vars = {}
 
         if self._usage_mode not in self.variable_modifications:
             return mods

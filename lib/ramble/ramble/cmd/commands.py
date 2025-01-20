@@ -97,9 +97,13 @@ class RambleArgparseRstWriter(ArgparseRstWriter):
         prog,
         out=None,
         aliases=False,
-        documented_commands=[],
-        rst_levels=["-", "-", "^", "~", ":", "`"],
+        documented_commands=None,
+        rst_levels=None,
     ):
+        if documented_commands is None:
+            documented_commands = []
+        if rst_levels is None:
+            rst_levels = ["-", "-", "^", "~", ":", "`"]
         out = sys.stdout if out is None else out
         super().__init__(prog, out, aliases, rst_levels)
         self.documented = documented_commands

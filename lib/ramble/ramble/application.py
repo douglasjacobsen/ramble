@@ -420,7 +420,10 @@ class ApplicationBase(metaclass=ApplicationMeta):
         """Returns an experiment log file path for the given logs directory"""
         return os.path.join(logs_dir, self.expander.experiment_namespace) + ".out"
 
-    def get_pipeline_phases(self, pipeline, phase_filters=["*"]):
+    def get_pipeline_phases(self, pipeline, phase_filters=None):
+        if phase_filters is None:
+            phase_filters = ["*"]
+
         self.build_modifier_instances()
         self.build_phase_order()
 
@@ -626,14 +629,16 @@ class ApplicationBase(metaclass=ApplicationMeta):
         phase_func(workspace, app_inst=self)
         self._phase_times[phase] = time.time() - start_time
 
-    def print_phase_times(self, pipeline, phase_filters=["*"]):
+    def print_phase_times(self, pipeline, phase_filters=None):
         """Print phase execution times by pipeline phase order
 
         Args:
             pipeline (str): Name of pipeline to print timing information for
-            phase_filters (list(str)): Filters to limit phases to print
+            phase_filters (list(str) | None): Filters to limit phases to print
         """
         logger.msg("Phase timing statistics:")
+        if phase_filters is None:
+            phase_filters = ["*"]
         for phase in self.get_pipeline_phases(pipeline, phase_filters=phase_filters):
             # Set default time to 0.0 s, to prevent KeyError from skipped phases
             if phase not in self._phase_times:

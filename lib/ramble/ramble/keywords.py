@@ -80,9 +80,11 @@ class Keywords:
                   specific inputs to further configure the experiment.
     """
 
-    def __init__(self, extra_keys={}):
+    def __init__(self, extra_keys=None):
         # Merge in additional Keys:
         self.keys = default_keys.copy()
+        if extra_keys is None:
+            extra_keys = {}
         self.update_keys(extra_keys)
 
     def copy(self):

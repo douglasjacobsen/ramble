@@ -78,7 +78,7 @@ class Logger:
             return self.log_stack[-1][1]
         return None
 
-    def _stream_kwargs(self, default_kwargs={}, index=None):
+    def _stream_kwargs(self, default_kwargs=None, index=None):
         """Construct keyword arguments for a stream
 
         Build keyword arguments of the form: {'stream': <log_stream>} to allow
@@ -97,6 +97,8 @@ class Logger:
         Returns:
             kwargs: Constructed kwargs with defaults applied
         """
+        if default_kwargs is None:
+            default_kwargs = {}
         kwargs = {}
         stream_index = None
         if index is not None:

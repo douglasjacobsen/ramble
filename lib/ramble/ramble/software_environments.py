@@ -69,7 +69,7 @@ class SoftwarePackage:
         """
         return self._used
 
-    def spec_str(self, all_packages: dict = {}, compiler=False):
+    def spec_str(self, all_packages=None, compiler=False):
         """Return a spec string for this software package
 
         Args:
@@ -170,7 +170,7 @@ class RenderedPackage(SoftwarePackage):
         self.compiler_spec = compiler_spec
         self._package_type = "Rendered"
 
-    def spec_str(self, all_packages: dict = {}, compiler=False):
+    def spec_str(self, all_packages=None, compiler=False):
         """Return a spec string for this software package
 
         Args:

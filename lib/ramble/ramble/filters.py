@@ -16,14 +16,14 @@ class Filters:
 
     def __init__(
         self,
-        phase_filters=ALL_PHASES,
+        phase_filters=None,
         include_where_filters=None,
         exclude_where_filters=None,
         tags=None,
     ):
         """Create a new filter instance"""
 
-        self.phases = phase_filters
+        self.phases = ALL_PHASES if phase_filters is None else phase_filters
         self.include_where = None
         self.exclude_where = None
         self.tags = set()
