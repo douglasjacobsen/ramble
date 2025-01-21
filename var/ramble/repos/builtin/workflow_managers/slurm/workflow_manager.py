@@ -95,7 +95,24 @@ class Slurm(WorkflowManagerBase):
         name="batch_submit",
         src_path="batch_submit.tpl",
         dest_path="batch_submit",
+        extra_vars_func="batch_submit_vars",
     )
+
+    def _batch_submit_vars(self):
+        vars = self.app_inst.variables
+        old_var_name = "_old_batch_submit"
+        if old_var_name in vars:
+            batch_submit_cmd = vars[old_var_name]
+            if "sbatch" not in batch_submit_cmd:
+                logger.warn(
+                    "`sbatch` is missing in the given `batch_submit` command"
+                )
+        else:
+            batch_submit_script = vars["batch_submit"]
+            batch_submit_cmd = f"sbatch {batch_submit_script}"
+        return {
+            "batch_submit_cmd": batch_submit_cmd,
+        }
 
     register_template(
         name="batch_query",

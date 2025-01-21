@@ -2389,6 +2389,10 @@ class ApplicationBase(metaclass=ApplicationMeta):
         for obj, tpl_config in self._object_templates(workspace):
             var_name = tpl_config["var_name"]
             if var_name is not None:
+                if var_name in self.variables:
+                    old_var = f"_old_{var_name}"
+                    self.variables[old_var] = self.variables[var_name]
+                    self.keywords.update_keys({old_var: var_attr})
                 self.variables[var_name] = tpl_config["dest_path"]
                 self.keywords.update_keys({var_name: var_attr})
             if callable(getattr(obj, "template_render_vars", None)):

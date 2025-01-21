@@ -29,8 +29,7 @@ ramble:
   variants:
     workflow_manager: '{wm_name}'
   variables:
-    # This batch_submit is overridden with slurm workflow manager
-    batch_submit: echo {wm_name}
+    batch_submit: sbatch {execute_experiment}
     mpi_command: mpirun -n {n_ranks} -hostfile hostfile
     processes_per_node: 1
     n_nodes: 1
@@ -60,13 +59,16 @@ ramble:
         ws._re_read()
         workspace("setup", "--dry-run", global_args=["-D", ws.root])
 
-        # assert the batch_submit is overridden, pointing to the generated script
+        # Assert on the all_experiments script
         all_exec_file = os.path.join(ws.root, "all_experiments")
         with open(all_exec_file) as f:
             content = f.read()
-            assert "echo None" in content
-            assert "echo slurm" not in content
-            assert os.path.join("hostname", "local", "test_slurm", "batch_submit") in content
+            batch_submit_path = os.path.join(
+                ws.experiment_dir, "hostname", "local", "test_slurm", "batch_submit"
+            )
+            assert batch_submit_path in content
+            # The sbatch is embedded in the batch_submit_path script instead
+            assert f"sbatch {batch_submit_path}" not in content
 
         # Assert on no workflow manager
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_None")
@@ -86,8 +88,11 @@ ramble:
         assert "batch_wait" in files
         with open(os.path.join(path, "batch_submit")) as f:
             content = f.read()
-            assert "slurm_experiment_sbatch" in content
+            # Assert the user-defined `batch_submit` is included
+            assert "slurm_experiment_sbatch" not in content
+            assert "execute_experiment" in content
             assert ".slurm_job" in content
+            assert "sbatch" in content
         with open(os.path.join(path, "slurm_experiment_sbatch")) as f:
             content = f.read()
             assert "scontrol show hostnames" in content
