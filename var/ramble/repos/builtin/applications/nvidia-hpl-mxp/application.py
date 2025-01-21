@@ -36,7 +36,7 @@ class NvidiaHplMxp(HplBase):
 
     executable(
         "execute",
-        '/workspace/hpl-mxp.sh --gpu-affinity "{gpu_affinity}" --n {Ns} --nb {block_size} --nprow {Ps} --npcol {Qs} --nporder {nporder}',
+        '{internal_mpi_command} /workspace/hpl-mxp.sh --gpu-affinity "{gpu_affinity}" --n {Ns} --nb {block_size} --nprow {Ps} --npcol {Qs} --nporder {nporder}',
         use_mpi=True,
     )
 
@@ -48,6 +48,13 @@ class NvidiaHplMxp(HplBase):
     workload_group(
         "all_workloads",
         workloads=["standard", "calculator"],
+    )
+
+    workload_variable(
+        "internal_mpi_command",
+        default="",
+        description="MPI Command for execution using container built-in MPI",
+        workload_group="all_workloads",
     )
 
     workload_variable(

@@ -23,13 +23,20 @@ class NvidiaHpcg(BaseHpcg):
 
     executable(
         "execute",
-        "./hpcg.sh --dat {experiment_run_dir}/hpcg.dat",
+        "{internal_mpi_command} /workspace/hpcg.sh --dat {experiment_run_dir}/hpcg.dat",
         use_mpi=True,
     )
 
     workload("standard", executables=["execute"])
 
     workload_group("all_workloads", workloads=["standard"], mode="append")
+
+    workload_variable(
+        "internal_mpi_command",
+        default="",
+        description="MPI Command for execution using container built-in MPI",
+        workload_group="all_workloads",
+    )
 
     workload_variable(
         "nvshmem_disable_cuda_vmm",

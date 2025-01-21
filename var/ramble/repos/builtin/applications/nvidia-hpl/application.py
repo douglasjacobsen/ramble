@@ -35,20 +35,13 @@ class NvidiaHpl(HplBase):
     tags("benchmark-app", "benchmark", "linpack", "optimized", "nvidia")
 
     executable(
-        "execute", "./hpl.sh --dat {experiment_run_dir}/HPL.dat", use_mpi=True
-    )
-
-    executable(
-        "execute-mxp",
-        './hpl-mxp.sh --gpu-affinity "{gpu_affinity}" --n {Ns} --nb {block_size} --nprow {Ps} --npcol {Qs} --nporder {nporder}',
+        "execute",
+        "{internal_mpi_command} /workspace/hpl.sh --dat {experiment_run_dir}/HPL.dat",
         use_mpi=True,
     )
 
     workload("standard", executables=["execute"])
     workload("calculator", executables=["execute"])
-
-    workload("standard-mxp", executables=["execute-mxp"])
-    workload("calculator-mxp", executables=["execute-mxp"])
 
     workload_group(
         "standard", workloads=["standard", "standard-mxp"], mode="append"
@@ -60,7 +53,13 @@ class NvidiaHpl(HplBase):
         "all_workloads",
         workloads=["standard", "standard-mxp", "calculator", "calculator-mxp"],
     )
-    workload_group("mxp", workloads=["standard-mxp", "calculator-mxp"])
+
+    workload_variable(
+        "internal_mpi_command",
+        default="",
+        description="MPI Command for execution using container built-in MPI",
+        workload_group="all_workloads",
+    )
 
     workload_variable(
         "nvshmem_disable_cuda_vmm",
