@@ -1074,7 +1074,7 @@ ramble:
         variable_definitions,
         experiment_name,
         package_manager=None,
-        zips=[],
+        zips=None,
         matrix=None,
         overwrite=False,
     ):
@@ -1096,13 +1096,16 @@ ramble:
                                               within generated experiments
             experiment_name (str): The name of the experiments to add
             package_manager (str): Name of package manager to use for the generated experiments
-            zips (list(str)): List of strings representing zips to define, in the
+            zips (list(str) | None): List of strings representing zips to define, in the
                               format zipname=[var1,var2,var3]
             matrix (str): String representing a matrix to define within the
                           experiment in the format of var1,var2,var3.
             overwrite (bool): Whether to overwrite existing definitions that
                               collide with new definitions or not.
         """
+
+        if zips is None:
+            zips = []
 
         def yaml_add_comment_before_key(
             base, key, comment, column=None, clear=False, start_char="#"
@@ -1507,7 +1510,7 @@ ramble:
 
         create_symlink(out_file, latest_file)
 
-    def dump_results(self, output_formats=["text"], print_results=False, summary_only=False):
+    def dump_results(self, output_formats=None, print_results=False, summary_only=False):
         """
         Write out result file in desired format
 
@@ -1516,6 +1519,9 @@ ramble:
         results.latest.<extension>
 
         """
+
+        if output_formats is None:
+            output_formats = ["text"]
 
         if not self.results:
             self.results = {}

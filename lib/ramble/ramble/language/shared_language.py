@@ -87,7 +87,7 @@ def figure_of_merit(
     group_name,
     log_file="{log_file}",
     units="",
-    contexts=[],
+    contexts=None,
     fom_type: FomType = FomType.UNDEFINED,
 ):
     """Adds a figure of merit to track for this object
@@ -100,9 +100,9 @@ def figure_of_merit(
       fom_regex (str): A regular expression using named groups to extract the FOM
       group_name (str): The name of the group that the FOM should be pulled from
       units (str): The units associated with the FOM
-      contexts (list(str)): List of contexts (defined by
-                            figure_of_merit_context) this figure of merit
-                            should exist in.
+      contexts (list(str) | None): List of contexts (defined by
+                                   figure_of_merit_context) this figure of merit
+                                   should exist in.
       fom_type: The type of figure of merit
     """
 
@@ -112,7 +112,7 @@ def figure_of_merit(
             "regex": fom_regex,
             "group_name": group_name,
             "units": units,
-            "contexts": contexts,
+            "contexts": [] if contexts is None else contexts,
             "fom_type": fom_type,
         }
 
@@ -276,7 +276,7 @@ def success_criteria(
 
 @shared_directive("builtins")
 def register_builtin(
-    name, required=True, injection_method="prepend", depends_on=[], dependents=[]
+    name, required=True, injection_method="prepend", depends_on=None, dependents=None
 ):
     """Register a builtin
 
@@ -326,11 +326,16 @@ def register_builtin(
         required (boolean): Whether the builtin will be auto-injected or not
         injection_method (str): The method of injecting the builtin. Can be
                                 'prepend' or 'append'
-        depends_on (list(str)): The names of builtins this builtin depends on
-                                (and must execute after).
-        dependents (list(str)): The names of builtins that should come
-                                after the current one.
+        depends_on (list(str) | None): The names of builtins this builtin depends on
+                                       (and must execute after).
+        dependents (list(str) | None): The names of builtins that should come
+                                       after the current one.
     """
+    if depends_on is None:
+        depends_on = []
+    if dependents is None:
+        dependents = []
+
     supported_injection_methods = ["prepend", "append"]
 
     def _store_builtin(obj):
@@ -355,7 +360,7 @@ def register_builtin(
 
 
 @shared_directive("phase_definitions")
-def register_phase(name, pipeline=None, run_before=[], run_after=[]):
+def register_phase(name, pipeline=None, run_before=None, run_after=None):
     """Register a phase
 
     Phases are portions of a pipeline that will execute when
@@ -370,9 +375,13 @@ def register_phase(name, pipeline=None, run_before=[], run_after=[]):
     Args:
       name (str): The name of the phase. Phases are functions named '_<phase>'.
       pipeline (str): The name of the pipeline this phase should be registered into.
-      run_before (list(str)): A list of phase names this phase should run before
-      run_after (list(str)): A list of phase names this phase should run after
+      run_before (list(str) | None): A list of phase names this phase should run before
+      run_after (list(str) | None): A list of phase names this phase should run after
     """
+    if run_before is None:
+        run_before = []
+    if run_after is None:
+        run_after = []
 
     def _execute_register_phase(obj):
         import ramble.util.graph

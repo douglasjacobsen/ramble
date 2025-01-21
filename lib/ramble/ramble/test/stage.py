@@ -194,7 +194,9 @@ def mock_stage_archive(tmp_build_stage_dir):
     #     <_hidden_fn>       Optional hidden file (contains _hidden_contents)
     #     <_archive_fn>      archive_url = file:///path/to/<_archive_fn>
     #
-    def create_stage_archive(expected_file_list=[_include_readme]):
+    def create_stage_archive(expected_file_list=None):
+        if expected_file_list is None:
+            expected_file_list = [_include_readme]
         tmpdir, test_stage_path = tmp_build_stage_dir
         mkdirp(test_stage_path)
 

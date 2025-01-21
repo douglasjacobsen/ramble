@@ -71,7 +71,7 @@ class CommandExecutable:
         template,
         use_mpi=False,
         mpi=False,
-        variables={},
+        variables=None,
         redirect="{log_file}",
         output_capture=OUTPUT_CAPTURE.DEFAULT,
         run_in_background=False,
@@ -85,12 +85,15 @@ class CommandExecutable:
         - use_mpi: Boolean value for if MPI should be applied to each
                    portion of this executable's template
         - mpi: Same as use_mpi
-        - variables (dict): dictionary of variable definitions to use for this executable only
+        - variables (dict | None): dictionary of variable definitions
+                                   to use for this executable only
         - redirect: File to redirect output of template into
         - output_capture: Operator to use when capturing output
         - run_in_background: If true, run the command in background
         """
 
+        if variables is None:
+            variables = {}
         if isinstance(template, str):
             self.template = [template]
         elif isinstance(template, list):

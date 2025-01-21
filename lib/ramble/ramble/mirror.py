@@ -420,7 +420,7 @@ def create(path, workspace):
     return mirror_stats.stats()
 
 
-def add(name, url, scope, args={}):
+def add(name, url, scope):
     """Add a named mirror in the given scope"""
     mirrors = ramble.config.get("mirrors", scope=scope)
     if not mirrors:

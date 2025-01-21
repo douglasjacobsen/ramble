@@ -240,7 +240,7 @@ class AnalyzePipeline(Pipeline):
         self,
         workspace,
         filters,
-        output_formats=["text"],
+        output_formats=None,
         upload=False,
         print_results=False,
         summary_only=False,
@@ -251,7 +251,7 @@ class AnalyzePipeline(Pipeline):
 
         super().__init__(workspace, filters)
         self.action_string = "Analyzing"
-        self.output_formats = output_formats
+        self.output_formats = ["text"] if output_formats is None else output_formats
         self.require_inventory = True
         self.upload_results = upload
         self.print_results = print_results
