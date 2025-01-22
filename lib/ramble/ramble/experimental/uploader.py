@@ -310,13 +310,6 @@ class BigQueryUploader(Uploader):
     # results = query_job.result()  # Waits for job to complete.
     # return results[0]
 
-    def get_experiment_id(experiment):
-        # get_max_current_id(...) # Warning: dangerous..
-
-        # This should be stable per machine/python version, but is not
-        # guaranteed to be globally stable
-        return hash(json.dumps(experiment, sort_keys=True))
-
 
 class PrintOnlyUploader(Uploader):
     """An uploader that only prints out formatted data without actually uploading."""

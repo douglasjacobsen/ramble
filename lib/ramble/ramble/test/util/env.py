@@ -15,7 +15,7 @@ def test_env_var_set_command_gen(mutable_mock_apps_repo):
 
     answer = ["export var1=val1;", "export var2=val2;"]
 
-    out_cmds, _ = ramble.util.env.Env.get_env_set_commands(tests, set())
+    out_cmds, _ = ramble.util.env.action_funcs["set"](tests, set())
     for cmd in answer:
         assert cmd in out_cmds
 
@@ -40,7 +40,7 @@ def test_env_var_append_command_gen(mutable_mock_apps_repo):
         'export path2="${path2}:path2";',
     ]
 
-    out_cmds, _ = ramble.util.env.Env.get_env_append_commands(tests, set())
+    out_cmds, _ = ramble.util.env.action_funcs["append"](tests, set())
     for cmd in answer:
         assert cmd in out_cmds
 
@@ -53,7 +53,7 @@ def test_env_var_prepend_command_gen(mutable_mock_apps_repo):
 
     answer = ['export path1="path2:path1:${path1}";', 'export path2="path1:path2:${path2}";']
 
-    out_cmds, _ = ramble.util.env.Env.get_env_prepend_commands(tests, set())
+    out_cmds, _ = ramble.util.env.action_funcs["prepend"](tests, set())
     for cmd in answer:
         assert cmd in out_cmds
 
@@ -63,6 +63,6 @@ def test_env_var_unset_command_gen(mutable_mock_apps_repo):
 
     answer = ["unset var1;", "unset var2;"]
 
-    out_cmds, _ = ramble.util.env.Env.get_env_unset_commands(tests, set())
+    out_cmds, _ = ramble.util.env.action_funcs["unset"](tests, set())
     for cmd in answer:
         assert cmd in out_cmds
