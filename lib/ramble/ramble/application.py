@@ -2339,11 +2339,9 @@ class ApplicationBase(metaclass=ApplicationMeta):
             for tpl_conf in obj.templates.values():
                 yield _get_template_config(obj, tpl_conf, obj_type=obj_type)
 
-    def _render_object_templates(self, extra_vars, workspace):
+    def _render_object_templates(self, extra_vars_origin, workspace):
         for obj, tpl_config in self._object_templates(workspace):
-            extra_vars = extra_vars.copy()
-            if callable(getattr(obj, "template_render_vars", None)):
-                extra_vars.update(obj.template_render_vars())
+            extra_vars = extra_vars_origin.copy()
             src_path = tpl_config["src_path"]
             with open(src_path) as f_in:
                 content = f_in.read()
@@ -2363,10 +2361,20 @@ class ApplicationBase(metaclass=ApplicationMeta):
             os.chmod(out_path, perm)
 
     def _define_object_template_vars(self, workspace):
-        for _, tpl_config in self._object_templates(workspace):
+        var_attr = {
+            "type": ramble.keywords.key_type.reserved,
+            "level": ramble.keywords.output_level.variable,
+        }
+        for obj, tpl_config in self._object_templates(workspace):
             var_name = tpl_config["var_name"]
             if var_name is not None:
                 self.variables[var_name] = tpl_config["dest_path"]
+                self.keywords.update_keys({var_name: var_attr})
+            if callable(getattr(obj, "template_render_vars", None)):
+                render_vars = obj.template_render_vars()
+                self.variables.update(render_vars)
+                for name in render_vars.keys():
+                    self.keywords.update_keys({name: var_attr})
 
     def _objects(self):
         """Return a tuple for each object instance associated with the app_inst.
