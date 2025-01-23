@@ -86,10 +86,9 @@ class Slurm(WorkflowManagerBase):
     workflow_manager_variable(
         name="slurm_execute_template_path",
         default="slurm_execute_experiment.tpl",
-        description="Path to the custom template (under workspace_config dir) for generating "
-        "the slurm sbatch job script. If a relative path is given, it is searched "
-        "under the workflow manager's source directory. The path can contain "
-        "workspace path variables such as $workspace_config",
+        description="Path to the custom template for generating the slurm sbatch job script. "
+        "If a relative path is given, it is searched under the workflow manager's source directory. "
+        "The path can contain workspace path variables such as $workspace_config.",
     )
 
     register_template(
