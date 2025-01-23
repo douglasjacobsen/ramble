@@ -120,7 +120,7 @@ class Slurm(WorkflowManagerBase):
     register_template(
         name="slurm_execute_experiment",
         src_path="{slurm_execute_template_path}",
-        dest_path="execute_experiment",
+        dest_path="slurm_execute_experiment",
     )
 
     def template_render_vars(self):

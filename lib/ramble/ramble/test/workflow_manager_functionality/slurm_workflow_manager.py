@@ -71,6 +71,7 @@ ramble:
         # Assert on no workflow manager
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_None")
         files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        assert "slurm_execute_experiment" not in files
         assert "batch_submit" not in files
         assert "batch_query" not in files
         assert "batch_cancel" not in files
@@ -85,9 +86,9 @@ ramble:
         assert "batch_wait" in files
         with open(os.path.join(path, "batch_submit")) as f:
             content = f.read()
-            assert "execute_experiment" in content
+            assert "slurm_execute_experiment" in content
             assert ".slurm_job" in content
-        with open(os.path.join(path, "execute_experiment")) as f:
+        with open(os.path.join(path, "slurm_execute_experiment")) as f:
             content = f.read()
             assert "scontrol show hostnames" in content
             assert "#SBATCH --gpus-per-task=1" in content
@@ -102,13 +103,13 @@ ramble:
 
         # Assert on the experiment with non-empty partition variable given
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_slurm_2")
-        with open(os.path.join(path, "execute_experiment")) as f:
+        with open(os.path.join(path, "slurm_execute_experiment")) as f:
             content = f.read()
             assert "#SBATCH -p h3" in content
 
         # Assert on the experiment with custom slurm execute template
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_slurm_3")
-        with open(os.path.join(path, "execute_experiment")) as f:
+        with open(os.path.join(path, "slurm_execute_experiment")) as f:
             content = f.read()
             # Since it uses the default execute_experiment tpl, no slurm content is present
             assert "#SBATCH" not in content
