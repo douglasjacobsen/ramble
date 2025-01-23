@@ -2314,14 +2314,17 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 # Search up the object chain to resolve source path
                 found = False
                 object_paths = [e[1] for e in ramble.repository.list_object_files(obj, obj_type)]
+                searched_paths = []
                 for obj_path in object_paths:
                     src_path = os.path.join(os.path.dirname(obj_path), src_path_config)
                     if os.path.isfile(src_path):
                         found = True
                         break
+                    searched_paths.append(src_path)
                 if not found:
                     raise ApplicationError(
-                        f"Object {obj.name} is missing template file at {src_path_config}"
+                        f"Object {obj.name} is missing template file {src_path_config}. "
+                        f"Searched paths: {searched_paths}"
                     )
             else:
                 if not os.path.isfile(src_path_config):
