@@ -16,7 +16,9 @@ plain_format = "@."
 
 
 def level_func(level):
-    if level <= 0:
+    if level < 0:
+        return str
+    elif level == 0:
         return section_title
     elif level == 1:
         return nested_1

@@ -338,13 +338,19 @@ class TemplatePackage(SoftwarePackage):
 
         if new_pkg.name in self._rendered_packages[pm_name]:
             if new_pkg != self._rendered_packages[pm_name][name]:
+                new_info = new_pkg.info(only_used=False, color_level=-1).replace("@", "")
+                old_info = (
+                    self._rendered_packages[pm_name][name]
+                    .info(only_used=False, color_level=-1)
+                    .replace("@", "")
+                )
                 raise RambleSoftwareEnvironmentError(
                     f"Package {new_pkg.name} defined multiple times with "
                     "inconsistent definitions.\n"
                     "New definition is:\n"
-                    f"{new_pkg}"
+                    f"{new_info}\n"
                     "Old definition is:\n"
-                    f"{self._rendered_packages[pm_name][name]}"
+                    f"{old_info}\n"
                 )
             return self._rendered_packages[pm_name][name]
         else:
