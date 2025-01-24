@@ -55,13 +55,18 @@ ramble:
         assert "echo not_exist" not in content
     execute_path = os.path.join(run_dir, "execute_experiment")
     script2_path = os.path.join(ws.shared_dir, "script.sh")
-    assert os.path.isfile(script2_path)
+    script3_path = os.path.join(run_dir, "expansion_script.sh")
+    script4_path = os.path.join(run_dir, "bar")
     with open(execute_path) as f:
         content = f.read()
         assert script_path in content
         # The workspace path should be expanded
         assert "$workspace_shared" not in content
         assert script2_path in content
+        assert script3_path in content
+    assert os.path.isfile(script2_path)
+    assert os.path.isfile(script3_path)
+    assert os.path.isfile(script4_path)
 
 
 def test_template_inherited():

@@ -492,8 +492,8 @@ def target_shells(shell_support_pattern=None):
 @shared_directive("templates")
 def register_template(
     name: str,
-    src_name: str,
-    dest_path: str,
+    src_path: str,
+    dest_path: Optional[str] = None,
     define_var: bool = True,
     extra_vars: Optional[dict] = None,
     extra_vars_func: Optional[str] = None,
@@ -501,7 +501,7 @@ def register_template(
 ):
     """Directive to define an object-specific template to be rendered into experiment run_dir.
 
-    For instance, `register_template(name="foo", src_name="foo.tpl", dest_path="foo.sh")`
+    For instance, `register_template(name="foo", src_path="foo.tpl", dest_path="foo.sh")`
     expects a "foo.tpl" template defined alongside the object source, and uses that to
     render a file under "{experiment_run_dir}/foo.sh". The rendered path can also be
     referenced with the `foo` variable name.
@@ -510,12 +510,16 @@ def register_template(
         name: The name of the template. It is also used as the variable name
               that an experiment can use to reference the rendered path, if
               `define_var` is true.
-        src_name: The leaf name of the template. This is used to locate the
-                  the template under the containing directory of the object.
-        dest_path: The location of the rendered output. It can either point
+        src_path: The location of the template. It can either point
+                  to an absolute or a relative path. It knows how to resolve
+                  workspace paths such as `$workspace_shared`. A relative path
+                  is relative to the containing directory of the object source.
+        dest_path: If present, the location of the rendered output. It can either point
                    to an absolute or a relative path. It knows how to resolve
                    workspace paths such as `$workspace_shared`. A relative path
-                   is relative to the `experiment_run_dir`.
+                   is relative to the `experiment_run_dir`. If not given, it will
+                   use the same name as the template (optionally drop the .tpl extension)
+                   and placed under `experiment_run_dir`.
         define_var: Controls if a variable named `name` should be defined.
         extra_vars: If present, the variable dict is used as extra variables to
                     render the template.
@@ -530,7 +534,7 @@ def register_template(
         var_name = name if define_var else None
         extra_vars_func_name = f"_{extra_vars_func}" if extra_vars_func is not None else None
         obj.templates[name] = {
-            "src_name": src_name,
+            "src_path": src_path,
             "dest_path": dest_path,
             "var_name": var_name,
             "extra_vars": extra_vars,

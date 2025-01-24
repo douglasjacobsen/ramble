@@ -116,7 +116,7 @@ class Hpcg(ExecutableApplication):
 
     register_template(
         name="hpcg_dat",
-        src_name="hpcg.dat.tpl",
+        src_path="hpcg.dat.tpl",
         dest_path="hpcg.dat",
         define_var=False,
     )
