@@ -2332,7 +2332,14 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 src_path = src_path_config
 
             # Resolve the destination path
-            dest_path = _expand_path(tpl_config["dest_path"])
+            tpl_ext = ".tpl"
+            dest_path_config = tpl_config["dest_path"]
+            if dest_path_config is None:
+                dest_path = os.path.basename(src_path)
+                if dest_path.endswith(tpl_ext):
+                    dest_path = dest_path[: -len(tpl_ext)]
+            else:
+                dest_path = _expand_path(tpl_config["dest_path"])
             if not os.path.isabs(dest_path):
                 dest_path = os.path.join(run_dir, dest_path)
 

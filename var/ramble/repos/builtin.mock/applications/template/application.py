@@ -46,6 +46,11 @@ class Template(ExecutableApplication):
         return {"dynamic_hello_world": val}
 
     register_template(
+        name="bar2",
+        src_path="bar.tpl",
+    )
+
+    register_template(
         name="test",
         src_path="script.sh",
         dest_path="$workspace_shared/script.sh",

@@ -493,7 +493,7 @@ def target_shells(shell_support_pattern=None):
 def register_template(
     name: str,
     src_path: str,
-    dest_path: str,
+    dest_path: Optional[str] = None,
     define_var: bool = True,
     extra_vars: Optional[dict] = None,
     extra_vars_func: Optional[str] = None,
@@ -511,13 +511,15 @@ def register_template(
               that an experiment can use to reference the rendered path, if
               `define_var` is true.
         src_path: The location of the template. It can either point
+                  to an absolute or a relative path. It knows how to resolve
+                  workspace paths such as `$workspace_shared`. A relative path
+                  is relative to the containing directory of the object source.
+        dest_path: If present, the location of the rendered output. It can either point
                    to an absolute or a relative path. It knows how to resolve
                    workspace paths such as `$workspace_shared`. A relative path
-                   is relative to the containing directory of the object source.
-        dest_path: The location of the rendered output. It can either point
-                   to an absolute or a relative path. It knows how to resolve
-                   workspace paths such as `$workspace_shared`. A relative path
-                   is relative to the `experiment_run_dir`.
+                   is relative to the `experiment_run_dir`. If not given, it will
+                   use the same name as the template (optionally drop the .tpl extension)
+                   and placed under `experiment_run_dir`.
         define_var: Controls if a variable named `name` should be defined.
         extra_vars: If present, the variable dict is used as extra variables to
                     render the template.
