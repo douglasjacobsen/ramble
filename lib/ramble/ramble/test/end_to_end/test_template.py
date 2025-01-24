@@ -68,6 +68,15 @@ ramble:
     assert os.path.isfile(script3_path)
     assert os.path.isfile(script4_path)
 
+    # Test template archival
+    workspace("archive", global_args=["-w", workspace_name])
+    exp_archive_path = os.path.join(
+        ws.latest_archive_path, "experiments", "template", "test_template", "test"
+    )
+    files = os.listdir(exp_archive_path)
+    assert "bar.sh" in files
+    assert "script.sh" in files
+
 
 def test_template_inherited():
     test_config = """
