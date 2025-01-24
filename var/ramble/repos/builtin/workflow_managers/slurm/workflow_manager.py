@@ -179,7 +179,7 @@ class Slurm(WorkflowManagerBase):
         expander = self.app_inst.expander
         run_dir = expander.expand_var_name("experiment_run_dir")
         job_id_file = os.path.join(run_dir, ".slurm_job")
-        status = experiment_status.UNKNOWN
+        status = experiment_status.UNRESOLVED
         if not os.path.isfile(job_id_file):
             logger.warn("job_id file is missing")
             return status
@@ -235,7 +235,13 @@ class SlurmRunner:
         if not status_out:
             self._ensure_runner("sacct")
             sacct_args = ["-o", "state", "-X", "-n", "-j", job_id]
-            status_out = self.sacct_runner.command(*sacct_args, output=str)
+            try:
+                status_out = self.sacct_runner.command(*sacct_args, output=str)
+            except ProcessError as e:
+                status_out = ""
+                logger.debug(
+                    f"sacct returns error {e}. The status is not resolved correctly."
+                )
         return status_out.strip()
 
     def get_partitions(self):
