@@ -109,7 +109,8 @@ ramble:
 
         # Assert on the experiment with custom slurm execute template
         path = os.path.join(ws.experiment_dir, "hostname", "local", "test_slurm_3")
-        with open(os.path.join(path, "slurm_experiment_sbatch")) as f:
+        assert not os.path.exists(os.path.join(path, "slurm_experiment_sbatch"))
+        with open(os.path.join(path, "execute_experiment")) as f:
             content = f.read()
             # Since it uses the default execute_experiment tpl, no slurm content is present
             assert "#SBATCH" not in content
