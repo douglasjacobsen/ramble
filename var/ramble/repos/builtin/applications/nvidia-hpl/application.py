@@ -165,7 +165,7 @@ class NvidiaHpl(HplBase, NvidiaHPCBase):
 
     workload_variable(
         "warmup_end_prog",
-        default="-1",
+        default="5",
         description="Runs the main loop once before the 'real' run. Stops the warmup at x%. Values can be 1 - 100.",
         workload_group="all_workloads",
     )
@@ -217,7 +217,7 @@ class NvidiaHpl(HplBase, NvidiaHPCBase):
 
     workload_variable(
         "hpl_ooc_mode",
-        default="1",
+        default="0",
         description="Enables / disales out-of-core mode",
         workload_group="all_workloads",
     )
