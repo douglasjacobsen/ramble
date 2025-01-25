@@ -15,7 +15,8 @@ import llnl.util.filesystem as fs
 
 import ramble.application
 import ramble.workspace
-from ramble.main import RambleCommand, RambleCommandError
+from ramble.main import RambleCommand
+from ramble.error import RambleCommandError
 from ramble.test.dry_run_helpers import search_files_for_string
 from ramble.namespace import namespace
 import ramble.config

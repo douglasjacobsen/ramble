@@ -20,6 +20,7 @@ import ramble.error
 import ramble.paths
 import ramble.workspace
 from ramble.util.logger import logger
+from ramble.error import RambleCommandError
 
 import spack.extensions
 import spack.util.string
@@ -119,8 +120,6 @@ def get_module(cmd_name):
         try:
             module = spack.extensions.get_module(cmd_name)
         except AttributeError:
-            from ramble.main import RambleCommandError
-
             raise RambleCommandError("Command %s does not exist." % cmd_name)
 
     attr_setdefault(module, SETUP_PARSER, lambda *args: None)  # null-op

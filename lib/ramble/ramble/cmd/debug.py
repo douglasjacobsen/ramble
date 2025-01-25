@@ -16,7 +16,7 @@ from llnl.util.filesystem import working_dir
 
 import ramble.config
 import ramble.paths
-from ramble.main import get_version
+import ramble.util.version
 
 import spack.platforms
 from spack.util.executable import which
@@ -61,7 +61,7 @@ def report(args):
     host_os = host_platform.operating_system("frontend")
     host_target = host_platform.target("frontend")
     architecture = spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
-    print("* **Ramble:**", get_version())
+    print("* **Ramble:**", ramble.util.version.get_version())
     print("* **Python:**", platform.python_version())
     print("* **Platform:**", architecture)
 

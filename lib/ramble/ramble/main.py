@@ -34,7 +34,6 @@ import llnl.util.tty.colify
 import llnl.util.tty.color as color
 from llnl.util.tty.log import log_output
 
-import ramble
 import ramble.cmd
 import ramble.config
 import ramble.workspace
@@ -46,7 +45,8 @@ import spack.util.debug
 import spack.util.environment
 from spack.util.executable import CommandNotFoundError
 import spack.util.path
-from ramble.error import RambleError
+from ramble.error import RambleError, RambleCommandError
+import ramble.util.version
 
 #: names of profile statistics
 stat_names = pstats.Stats.sort_arg_dict_default
@@ -104,52 +104,6 @@ def add_all_commands(parser):
     """Add all ramble subcommands to the parser."""
     for cmd in ramble.cmd.all_commands():
         parser.add_command(cmd)
-
-
-def get_version():
-    """Get a descriptive version of this instance of Ramble.
-
-    Outputs '<PEP440 version> (<git commit sha>)'.
-
-    The commit sha is only added when available.
-    """
-    version = ramble.ramble_version
-    git_hash = get_git_hash(path=ramble.paths.prefix)
-
-    if git_hash:
-        version += f" ({git_hash})"
-
-    return version
-
-
-def get_git_hash(path=ramble.paths.prefix):
-    """Get get hash from a path
-
-    Outputs '<git commit sha>'.
-    """
-    import spack.util.git
-
-    git_path = os.path.join(path, ".git")
-    if os.path.exists(git_path):
-        git = spack.util.git.git()
-        if not git:
-            return
-        rev = git(
-            "-C",
-            path,
-            "rev-parse",
-            "HEAD",
-            output=str,
-            error=os.devnull,
-            fail_on_error=False,
-        )
-        if git.returncode != 0:
-            return
-        match = re.match(r"[a-f\d]{7,}$", rev)
-        if match:
-            return match.group(0)
-
-    return
 
 
 def index_commands():
@@ -877,7 +831,7 @@ def _main(argv=None):
     # -h, -H, and -V are special as they do not require a command, but
     # all the other options do nothing without a command.
     if args.version:
-        print(get_version())
+        print(ramble.util.version.get_version())
         return 0
     elif args.help:
         sys.stdout.write(parser.format_help(level=args.help))
@@ -1033,7 +987,3 @@ def main(argv=None):
             raise
         logger.error(e)
         return 3
-
-
-class RambleCommandError(Exception):
-    """Raised when RambleCommand execution fails."""

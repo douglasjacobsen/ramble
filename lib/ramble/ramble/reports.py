@@ -15,7 +15,6 @@ import re
 import llnl.util.filesystem as fs
 import spack.util.spack_yaml as syaml
 
-import ramble.cmd.results
 import ramble.cmd.workspace
 import ramble.config
 import ramble.filters
@@ -75,48 +74,6 @@ def get_direction_suffix(self):
         return " (Lower is Better)"
     else:
         return ""
-
-
-def load_results(args):
-    """Loads results from a file or workspace to use for reports.
-
-    Check for results in this order:
-        1. via ``ramble results report -f FILENAME``
-        2. via ``ramble -w WRKSPC`` or ``ramble -D DIR`` or
-        ``ramble results report --workspace WRKSPC``(arguments)
-        3. via a path in the ramble.workspace.ramble_workspace_var environment variable.
-    """
-    results_dict = {}
-
-    if args.file:
-        if os.path.exists(args.file):
-            results_dict = ramble.cmd.results.import_results_file(args.file)
-        else:
-            logger.die(f"Cannot find file {args.file}")
-    else:
-        ramble_ws = ramble.cmd.find_workspace_path(args)
-
-        if not ramble_ws:
-            logger.die(
-                "ramble results report requires either a results filename, "
-                "a command line workspace, or an active workspace"
-            )
-
-        logger.debug("Looking for workspace results file...")
-        json_results_path = os.path.join(ramble_ws, "results.latest.json")
-        yaml_results_path = os.path.join(ramble_ws, "results.latest.yaml")
-        if os.path.exists(json_results_path):
-            logger.debug(f"Importing {json_results_path}")
-            results_dict = ramble.cmd.results.import_results_file(json_results_path)
-        elif os.path.exists(yaml_results_path):
-            logger.debug(f"Importing {yaml_results_path}")
-            results_dict = ramble.cmd.results.import_results_file(yaml_results_path)
-        else:
-            logger.die(
-                "No JSON or YAML results file was found. Please run "
-                "'ramble workspace analyze -f json'."
-            )
-    return results_dict
 
 
 def is_repeat_child(experiment):

@@ -52,6 +52,7 @@ import ramble.util.matrices
 import ramble.util.env
 from ramble.util.logger import logger
 from ramble.util.conversions import list_str_to_list
+import ramble.util.version
 
 #: Environment variable used to indicate the active workspace
 ramble_workspace_var = "RAMBLE_WORKSPACE"
@@ -435,14 +436,12 @@ class Workspace:
         self.software_environments = None
         self.metadata = syaml.syaml_dict()
         self.hash_inventory = {"experiments": [], "versions": []}
-
-        from ramble.main import get_version
-
+        version = ramble.util.version.get_version()
         self.hash_inventory["versions"].append(
             {
                 "name": "ramble",
-                "version": get_version(),
-                "digest": ramble.util.hashing.hash_string(get_version()),
+                "version": version,
+                "digest": ramble.util.hashing.hash_string(version),
             }
         )
 
