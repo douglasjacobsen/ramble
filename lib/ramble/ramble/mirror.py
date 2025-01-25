@@ -19,13 +19,10 @@ import collections
 import operator
 import os
 import os.path
-import sys
-import traceback
 
 import ruamel.yaml.error as yaml_error
 
 from llnl.util.compat import Mapping
-from llnl.util.filesystem import mkdirp
 
 import ramble.config
 import ramble.error
@@ -372,54 +369,6 @@ def mirror_archive_paths(fetcher, per_input_ref):
     return MirrorReference(per_input_ref, global_ref)
 
 
-def create(path, workspace):
-    """Create a directory to be used as a ramble mirror, and fill it with
-    input archives.
-
-    Arguments:
-        path: Path to create a mirror directory hierarchy in.
-        workspace: Workspace containing workloads to mirror inputs for.
-
-    Return Value:
-        Returns a tuple of lists: (present, mirrored, error)
-
-        * present:  Workload specs that were already present.
-        * mirrored: Workload specs that were successfully mirrored.
-        * error:    Workload specs that failed to mirror due to some error.
-
-    This routine iterates through all applications and workloads added to a
-    workspace, and it creates specs for them. If the workload has any input
-    files attached to it, it is downloaded and added to the mirror.
-    """
-    parsed = url_util.parse(path)
-    mirror_root = url_util.local_file_path(parsed)
-    if not mirror_root:
-        raise ramble.error.RambleError("MirrorCaches only work with file:// URLs")
-
-    # automatically spec-ify anything in the specs array.
-    specs = [
-        s if isinstance(s, ramble.spec.Spec) else ramble.spec.Spec(s)
-        for s in workspace.all_specs()
-    ]
-
-    # Get the absolute path of the root before we start jumping around.
-    if not os.path.isdir(mirror_root):
-        try:
-            mkdirp(mirror_root)
-        except OSError as e:
-            raise MirrorError("Cannot create directory '%s':" % mirror_root, str(e))
-
-    mirror_cache = ramble.caches.MirrorCache(mirror_root)
-    mirror_stats = MirrorStats()
-
-    # Iterate through application specs and download all safe tarballs for each
-    for spec in specs:
-        mirror_stats.next_spec(spec)
-        _add_single_spec(spec, mirror_root, mirror_cache, mirror_stats)
-
-    return mirror_stats.stats()
-
-
 def add(name, url, scope):
     """Add a named mirror in the given scope"""
     mirrors = ramble.config.get("mirrors", scope=scope)
@@ -502,32 +451,6 @@ class MirrorStats:
 
     def error(self, resource):
         self.errors.add(self.current_spec)
-
-
-def _add_single_spec(spec, mirror_root, mirror, mirror_stats):
-    logger.msg(f"Adding inputs for application {spec.format('{name}')} to mirror")
-    num_retries = 3
-    while num_retries > 0:
-        try:
-            app_inst = spec.application_class(spec.application_file_path)
-            app_inst.mirror_inputs(mirror_root, mirror, mirror_stats)
-
-            exception = None
-            break
-        except Exception as e:
-            exc_tuple = sys.exc_info()
-            exception = e
-        num_retries -= 1
-
-    if exception:
-        if ramble.config.get("config:debug"):
-            traceback.print_exception(file=sys.stderr, *exc_tuple)
-        else:
-            logger.warn(
-                "Error while fetching %s" % spec.cformat("{name}"),
-                getattr(exception, "message", exception),
-            )
-        mirror_stats.error()
 
 
 def push_url_from_directory(output_directory):

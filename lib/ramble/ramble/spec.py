@@ -7,11 +7,9 @@
 # except according to those terms.
 
 import io
-import os
 
 import llnl.util.tty.color as clr
 
-import ramble.repository
 import ramble.error
 from ramble.util.logger import logger
 
@@ -138,8 +136,6 @@ class Spec:
         self.name = None
         self.namespace = None
 
-        self._application = None
-        self._application_class = None
         self.workloads = {}
 
         if isinstance(spec_like, str):
@@ -277,29 +273,6 @@ class Spec:
             if self.namespace
             else (self.name if self.name else "")
         )
-
-    @property
-    def application(self):
-        if not self._application:
-            app_type = ramble.repository.ObjectTypes.applications
-            self._application = ramble.repository.paths[app_type].get(self)
-        return self._application
-
-    @property
-    def application_class(self):
-        if not self._application_class:
-            app_type = ramble.repository.ObjectTypes.applications
-            self._application_class = ramble.repository.paths[app_type].get_obj_class(
-                self.fullname
-            )
-        return self._application_class
-
-    @property
-    def application_file_path(self):
-        app_type = ramble.repository.ObjectTypes.applications
-        file_dir = ramble.repository.paths[app_type].dirname_for_object_name(self.fullname)
-        app_file = ramble.repository.paths[app_type].filename_for_object_name(self.fullname)
-        return os.path.join(file_dir, app_file)
 
 
 def parse(string):
