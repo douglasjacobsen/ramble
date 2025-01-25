@@ -79,6 +79,33 @@ def all_config_options(config_data: Dict):
     return all_configs
 
 
+def _type_value(input_value):
+    """Attempt to convert an input value to other types.
+
+    Precedence order is:
+    - Integer
+    - Float
+    - String
+
+    This is a utility function to help keep types of keys in yaml files
+    consistent between reads and writes.
+    """
+
+    try:
+        out = int(input_value)
+        return out
+    except ValueError:
+        pass
+
+    try:
+        out = float(input_value)
+        return out
+    except ValueError:
+        pass
+
+    return str(input_value)
+
+
 def get_config_value(config_data: Dict, option_name: str):
     """Get a config option based on dictionary attribute syntax
 
@@ -97,14 +124,15 @@ def get_config_value(config_data: Dict, option_name: str):
     option_scope = config_data
 
     while len(option_parts) > 1:
-        cur_part = option_parts.pop(0)
+        cur_part = _type_value(option_parts.pop(0))
         if cur_part in option_scope:
             option_scope = option_scope[cur_part]
         else:
             return None
 
-    if option_parts[0] in option_scope:
-        return option_scope[option_parts[0]]
+    typed_part = _type_value(option_parts[0])
+    if typed_part in option_scope:
+        return option_scope[typed_part]
     return None
 
 
@@ -126,16 +154,17 @@ def set_config_value(config_data: Dict, option_name: str, option_value: Any, for
     option_scope = config_data
 
     while len(option_parts) > 1:
-        cur_part = option_parts.pop(0)
+        cur_part = _type_value(option_parts.pop(0))
         if cur_part not in option_scope:
             if not force:
                 return
             option_scope[cur_part] = {}
         option_scope = option_scope[cur_part]
 
-    set_value = force or option_parts[0] in option_scope
+    typed_part = _type_value(option_parts[0])
+    set_value = force or typed_part in option_scope
     if set_value:
-        option_scope[option_parts[0]] = option_value
+        option_scope[typed_part] = option_value
 
 
 def remove_config_value(config_data: Dict, option_name: str):
