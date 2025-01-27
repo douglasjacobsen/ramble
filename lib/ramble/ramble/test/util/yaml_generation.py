@@ -26,6 +26,7 @@ def yaml_config(tmpdir_factory):
     test_data["bar"]["bar2"] = {}
     test_data["bar"]["bar_str"] = "bar"
     test_data["bar"]["bar2"]["bar3"] = "bar4"
+    test_data["bar"]["bar2"][32] = 0.3
 
     test_data["baz"] = {}
     test_data["baz"]["baz2"] = "baz"
@@ -48,6 +49,7 @@ def test_read_config_file(yaml_config):
     assert "foo2" in read_data["foo"]
     assert "bar" in read_data
     assert "bar2" in read_data["bar"]
+    assert 32 in read_data["bar"]["bar2"]
     assert "baz" in read_data
     assert "baz2" in read_data["baz"]
 
@@ -70,6 +72,7 @@ def test_get_config_value(yaml_config):
         ("bar.bar_str", "bar"),
         ("bar.bar2.bar3", "bar4"),
         ("baz.baz2", "baz"),
+        ("bar.bar2.32", 0.3),
     ]
 
     for config, ans in config_tests:
