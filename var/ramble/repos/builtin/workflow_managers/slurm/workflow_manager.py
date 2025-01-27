@@ -87,7 +87,7 @@ class Slurm(WorkflowManagerBase):
         name="slurm_execute_template_path",
         default="slurm_experiment_sbatch.tpl",
         description="Path to the custom template for generating the slurm sbatch job script. "
-        "If a relative path is given, it is searched under the workflow manager's source directory. "
+        "For a relative path, it is searched under the workflow manager's source directory. "
         "The path can contain workspace path variables such as $workspace_config.",
     )
 
@@ -207,6 +207,11 @@ class Slurm(WorkflowManagerBase):
         wm_status = _STATUS_MAP.get(wm_status_raw)
         if wm_status is not None and hasattr(experiment_status, wm_status):
             status = getattr(experiment_status, wm_status)
+        if status == experiment_status.UNRESOLVED:
+            logger.warn(
+                f"The slurm workflow manager failed to resolve the status of job {job_id}. "
+                "Enable debug mode (`ramble -d`) for more detailed error messages."
+            )
         return status
 
 
