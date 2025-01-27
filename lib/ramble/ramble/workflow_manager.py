@@ -9,7 +9,10 @@
 
 from typing import List
 
-from ramble.language.workflow_manager_language import WorkflowManagerMeta
+from ramble.language.workflow_manager_language import (
+    WorkflowManagerMeta,
+    workflow_manager_variable,
+)
 from ramble.language.shared_language import SharedMeta
 from ramble.util.naming import NS_SEPARATOR
 import ramble.util.class_attributes
@@ -28,6 +31,30 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
     ]
     maintainers: List[str] = []
     tags: List[str] = []
+
+    workflow_manager_variable(
+        "workflow_banner",
+        default="""# ****************************************************
+# * No workflow is used with this experiment
+# * Execution command: {batch_submit}
+# * If this file is not the same as the above path, it is unlikely that this script
+# * is used when `ramble on` executes experiments.
+# ****************************************************
+""",
+        description="Banner to describe the workflow within execution templates",
+    )
+
+    workflow_manager_variable(
+        "workflow_pragmas",
+        default="",
+        description="Pragmas to apply within execution templates for the workflow",
+    )
+
+    workflow_manager_variable(
+        "workflow_hostfile_cmd",
+        default="",
+        description="Hostfile command to apply within execution templates for the workflow",
+    )
 
     def __init__(self, file_path):
         super().__init__()
@@ -74,7 +101,7 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
 
     def template_render_vars(self):
         """Define variables to be used in template rendering"""
-        return {"workflow_pragmas": "", "workflow_hostfile_cmd": ""}
+        return {}
 
     def copy(self):
         """Deep copy a workflow manager instance"""
