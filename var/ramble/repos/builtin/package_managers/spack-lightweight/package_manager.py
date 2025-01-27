@@ -616,7 +616,7 @@ class SpackRunner(CommandRunner):
 
     def get_version(self):
         """Get spack's version"""
-        from ramble.main import get_git_hash
+        from ramble.util.version import get_git_hash
         import importlib.util
 
         version_spec = importlib.util.spec_from_file_location(

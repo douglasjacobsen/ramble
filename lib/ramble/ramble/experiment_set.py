@@ -15,7 +15,6 @@ import ramble.expander
 from ramble.expander import Expander
 from ramble.namespace import namespace
 import ramble.repository
-import ramble.workspace
 import ramble.keywords
 import ramble.error
 import ramble.renderer

@@ -93,3 +93,7 @@ class RambleError(Exception):
 
 class SpecError(RambleError):
     """Superclass for all errors that occur while constructing specs."""
+
+
+class RambleCommandError(Exception):
+    """Raised when RambleCommand execution fails."""

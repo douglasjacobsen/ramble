@@ -14,7 +14,8 @@ import ramble.application
 import ramble.workspace
 import ramble.config
 import ramble.software_environments
-from ramble.main import RambleCommand, RambleCommandError
+from ramble.main import RambleCommand
+from ramble.error import RambleCommandError
 
 
 # everything here uses the mock_workspace_path

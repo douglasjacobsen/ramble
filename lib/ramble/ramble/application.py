@@ -38,7 +38,6 @@ import ramble.repeats
 import ramble.repository
 import ramble.modifier
 import ramble.modifier_types.disabled
-import ramble.pipeline
 import ramble.success_criteria
 import ramble.util.executable
 import ramble.util.colors as rucolor
