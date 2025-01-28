@@ -108,7 +108,7 @@ class Slurm(WorkflowManagerBase):
                     "`sbatch` is missing in the given `batch_submit` command"
                 )
         else:
-            batch_submit_script = vars["batch_submit"]
+            batch_submit_script = vars["slurm_experiment_sbatch"]
             batch_submit_cmd = f"sbatch {batch_submit_script}"
         return {
             "batch_submit_cmd": batch_submit_cmd,

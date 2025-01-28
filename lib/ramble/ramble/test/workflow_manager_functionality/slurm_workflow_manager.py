@@ -21,6 +21,46 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
+def test_slurm_workflow_default():
+    workspace_name = "test_slurm_workflow_default"
+
+    test_config = """
+ramble:
+  variants:
+    workflow_manager: slurm
+  variables:
+    processes_per_node: 1
+    n_nodes: 1
+  applications:
+    hostname:
+      workloads:
+        local:
+          experiments:
+            test_default: {}
+"""
+    with ramble.workspace.create(workspace_name) as ws:
+        ws.write()
+        config_path = os.path.join(ws.config_dir, ramble.workspace.config_file_name)
+        with open(config_path, "w+") as f:
+            f.write(test_config)
+        ws._re_read()
+        workspace("setup", "--dry-run", global_args=["-D", ws.root])
+
+        path = os.path.join(ws.experiment_dir, "hostname", "local", "test_default")
+        files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        assert "batch_submit" in files
+        assert "batch_query" in files
+        assert "batch_cancel" in files
+        assert "batch_wait" in files
+        with open(os.path.join(path, "batch_submit")) as f:
+            content = f.read()
+            assert "slurm_experiment_sbatch" in content
+            assert "execute_experiment" not in content
+            assert ".slurm_job" in content
+            assert "sbatch" in content
+            assert "batch_submit" not in content
+
+
 def test_slurm_workflow():
     workspace_name = "test_slurm_workflow"
 
