@@ -108,7 +108,7 @@ class Slurm(WorkflowManagerBase):
                     "`sbatch` is missing in the given `batch_submit` command"
                 )
         else:
-            batch_submit_script = vars["batch_submit"]
+            batch_submit_script = vars["slurm_experiment_sbatch"]
             batch_submit_cmd = f"sbatch {batch_submit_script}"
         return {
             "batch_submit_cmd": batch_submit_cmd,
@@ -151,7 +151,6 @@ class Slurm(WorkflowManagerBase):
             ("#SBATCH --gpus-per-node {gpus_per_node}"),
         ]
         partition = expander.expand_var_name("slurm_partition")
-        self._check_partition(partition)
         if partition:
             pragmas.append("#SBATCH -p {slurm_partition}")
         extra_headers = (
@@ -164,33 +163,6 @@ class Slurm(WorkflowManagerBase):
             "workflow_pragmas": header_str,
             "workflow_hostfile_cmd": self.runner.get_hostfile_cmd(),
         }
-
-    def _check_partition(self, partition):
-        """Warns about potential issues of the slurm_partition config
-
-        Only gives out warning as the user may be relying on a custom
-        execute template that contains the relevant partition info.
-        """
-        try:
-            partition_prop = self.runner.get_partitions()
-        except RunnerError:
-            return
-        if partition_prop is None:
-            return
-
-        partitions = partition_prop["partitions"]
-        if partition not in partitions:
-            default_partition = partition_prop["default_partition"]
-            if default_partition is not None and not partition:
-                logger.info(
-                    "`slurm_partition` is not given, "
-                    f"using default partition {default_partition}"
-                )
-            else:
-                logger.warn(
-                    "Missing valid `slurm_partition` setting. "
-                    f"It should be one of {partitions}"
-                )
 
     def get_status(self, workspace):
         expander = self.app_inst.expander
