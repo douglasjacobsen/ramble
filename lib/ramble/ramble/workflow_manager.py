@@ -74,9 +74,7 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
 
     def get_status(self, workspace):
         """Return status of a given job"""
-        raise NotImplementedError(
-            f"The workflow manager {self.name} does not support `get_status`"
-        )
+        return None
 
     def conditional_expand(self, templates):
         """Return a (potentially empty) list of expanded strings
