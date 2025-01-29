@@ -27,7 +27,16 @@ __all__ = ["DirectiveMeta", "DirectiveError"]
 #: them
 reserved_names = []
 
-namespaces = ["ramble.app", "ramble.mod", "ramble.pkg_man", "ramble.package_manager", "ramble.wm"]
+namespaces = [
+    "ramble.app",
+    "ramble.mod",
+    "ramble.pkg_man",
+    "ramble.package_manager",
+    "ramble.wm",
+    "ramble.workflow_manager",
+    "ramble.application",
+    "ramble.modifier",
+]
 
 
 class DirectiveMeta(type):

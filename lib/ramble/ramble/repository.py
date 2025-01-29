@@ -228,7 +228,9 @@ def list_object_files(obj_inst, object_type):
     repo_path = paths[object_type]
     base_repo_path = paths[base_type]
     obj_file = obj_inst._file_path
-    result = [(type_def["dir_name"], obj_file)]
+    result = []
+    if repo_path.in_path(obj_file) or base_repo_path.in_path(obj_file):
+        result = [(type_def["dir_name"], obj_file)]
     base_chain = obj_inst.__class__.__mro__[1:]
 
     for cls in base_chain:
@@ -245,6 +247,7 @@ def list_object_files(obj_inst, object_type):
             result.append((base_type_def["dir_name"], path))
         else:
             break
+    logger.all_msg(f" Deployment files: {result}")
     return result
 
 

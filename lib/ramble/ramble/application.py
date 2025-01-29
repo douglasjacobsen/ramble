@@ -39,6 +39,8 @@ import ramble.repository
 import ramble.modifier
 import ramble.modifier_types.disabled
 import ramble.success_criteria
+import ramble.workflow_manager
+import ramble.paths
 import ramble.util.executable
 import ramble.util.colors as rucolor
 import ramble.util.hashing
@@ -311,6 +313,10 @@ class ApplicationBase(metaclass=ApplicationMeta):
                         "Valid workflow managers can be listed via:\n"
                         "\tramble list --type workflow_managers"
                     )
+        if self.workflow_manager is None:
+            base_path = os.path.join(ramble.paths.module_path, "workflow_manager.py")
+            self.workflow_manager = ramble.workflow_manager.WorkflowManagerBase(base_path)
+            self.workflow_manager.set_application(self)
 
     def build_phase_order(self):
         if self._pipeline_graphs is not None:
@@ -1768,7 +1774,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         # When workflow_manager is present, only use app_status when workflow is completed.
         if self.workflow_manager is not None:
             wm_status = self.workflow_manager.get_status(workspace)
-            if not wm_status == experiment_status.COMPLETE:
+            if not (wm_status == experiment_status.COMPLETE or wm_status is None):
                 status = wm_status
         self.set_status(status)
 

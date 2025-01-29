@@ -564,6 +564,8 @@ class Workspace:
 #   - n_nodes (Will be replaced with the required number of nodes)
 #   Any experiment parameters will be available as variables as well.
 
+{workflow_banner}
+
 cd "{experiment_run_dir}"
 
 {command}

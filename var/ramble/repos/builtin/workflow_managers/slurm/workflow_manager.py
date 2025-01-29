@@ -48,6 +48,18 @@ class Slurm(WorkflowManagerBase):
         self.runner = SlurmRunner()
 
     workflow_manager_variable(
+        "workflow_banner",
+        default="""# ****************************************************
+# * Workflow manager: slurm
+# * Execution script is: {slurm_experiment_sbatch}
+# * If this file is not the same as the above path, it is unlikely that this script
+# * is used when `ramble on` executes experiments.
+# ****************************************************
+""",
+        description="Banner to describe the workflow within execution templates",
+    )
+
+    workflow_manager_variable(
         name="job_name",
         default="{application_name}_{workload_name}_{experiment_name}",
         description="Slurm job name",
@@ -139,7 +151,7 @@ class Slurm(WorkflowManagerBase):
     )
 
     def template_render_vars(self):
-        vars = super().template_render_vars()
+        vars = {}
         expander = self.app_inst.expander
         # Adding pre-defined and custom headers
         pragmas = [
