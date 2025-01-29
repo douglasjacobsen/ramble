@@ -1891,6 +1891,52 @@ ramble:
 
         return self._workspace_path_replacements
 
+    def add_include(self, new_include):
+        """Add a new include to this workspace"""
+
+        if namespace.include not in self.config_sections["workspace"]["yaml"][namespace.ramble]:
+            self.config_sections["workspace"]["yaml"][namespace.ramble][namespace.include] = []
+        includes = self.config_sections["workspace"]["yaml"][namespace.ramble][namespace.include]
+        includes.append(new_include)
+        self._write_config(config_section)
+
+    def remove_include(self, index=None, pattern=None):
+        """Remove one or more includes from this workspace.
+
+        Args:
+            index (optional): Numerical position of include to remove
+            pattern (optional): String or pattern of include to remove.
+                                Removes all matching includes.
+        """
+
+        if namespace.include not in self.config_sections["workspace"]["yaml"][namespace.ramble]:
+            return
+
+        includes = self.config_sections["workspace"]["yaml"][namespace.ramble][namespace.include]
+        changed = False
+
+        if index is not None:
+            if index < 0 or index >= len(includes):
+                logger.die(
+                    f"Requested index {index} " "is outside of the range of existing includes."
+                )
+            includes.pop(index)
+            changed = True
+
+        if pattern is not None:
+            remove_indices = []
+            for idx, include in enumerate(includes):
+                if fnmatch.fnmatch(include, pattern):
+                    remove_indices.append(idx)
+
+            for remove_idx in reversed(remove_indices):
+                if remove_idx >= 0 and remove_idx < len(includes):
+                    includes.pop(remove_idx)
+                    changed = True
+
+        if changed:
+            self._write_config(config_section)
+
     def included_config_scopes(self):
         """List of included configuration scopes from the environment.
 
