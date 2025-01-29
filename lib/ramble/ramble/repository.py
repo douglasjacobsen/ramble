@@ -247,7 +247,6 @@ def list_object_files(obj_inst, object_type):
             result.append((base_type_def["dir_name"], path))
         else:
             break
-    logger.all_msg(f" Deployment files: {result}")
     return result
 
 
