@@ -747,7 +747,7 @@ _ramble_workspace_manage() {
     then
         RAMBLE_COMPREPLY="-h --help"
     else
-        RAMBLE_COMPREPLY="experiments software"
+        RAMBLE_COMPREPLY="experiments software includes"
     fi
 }
 
@@ -762,4 +762,8 @@ _ramble_workspace_manage_experiments() {
 
 _ramble_workspace_manage_software() {
     RAMBLE_COMPREPLY="-h --help --environment-name --env --environment-packages --external-env --package-name --pkg --package-spec --pkg-spec --spec --compiler-package --compiler-pkg --compiler --compiler-spec --package-manager-prefix --prefix --remove --delete --overwrite -o --dry-run --print"
+}
+
+_ramble_workspace_manage_includes() {
+    RAMBLE_COMPREPLY="-h --help --list -l --remove -r --remove-index --add -a"
 }
