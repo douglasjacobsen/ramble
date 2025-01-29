@@ -26,6 +26,8 @@ import ramble.filters
 from ramble.main import RambleCommand
 import ramble.util.path
 
+from ramble.util.logger import logger
+
 
 description = "(experimental) manage workspace deployments"
 section = "workspaces"
@@ -127,7 +129,14 @@ def deployment_pull(args):
         )
         local_index_path = os.path.join(ws.root, push_cls.index_filename)
 
-        pull_file(remote_index_path, local_index_path)
+        try:
+            pull_file(remote_index_path, local_index_path)
+        except ramble.fetch_strategy.FetchError:
+            logger.die(
+                "Error extracting deployment index file.\n"
+                "   Make sure your deployment was pushed with "
+                "`ramble deployment push` before pulling it."
+            )
 
         with open(local_index_path) as f:
             index_data = sjson.load(f)
@@ -138,7 +147,13 @@ def deployment_pull(args):
             if os.path.exists(dest):
                 fs.force_remove(dest)
 
-            pull_file(src, dest)
+            try:
+                pull_file(src, dest)
+            except ramble.fetch_strategy.FetchError:
+                logger.die(
+                    f"Error fetching file {file} from deployment. "
+                    "Deployment may be corrupt or incomplete."
+                )
 
         obj_repo_path = os.path.join(
             ws.root, ramble.pipeline.PushDeploymentPipeline.object_repo_name
