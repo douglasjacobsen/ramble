@@ -112,7 +112,7 @@ class NcclTests(ExecutableApplication):
     )
     workload_variable(
         "result_check",
-        default="0",
+        default="1",
         description="0 to skip checking, 1 to enable checking",
         workloads=all_workloads,
     )
