@@ -1292,6 +1292,7 @@ class SpackRunner(CommandRunner):
             "version": "",
             "compiler": "",
             "compiler_version": "",
+            "target": "",
             "variants": "",
         }
 
@@ -1317,7 +1318,10 @@ class SpackRunner(CommandRunner):
             info_dict["compiler_version"] = parts[3]
 
         if len(parts) >= 5:
-            info_dict["variants"] = ",".join(parts[4:]).strip()
+            info_dict["target"] = parts[4]
+
+        if len(parts) >= 6:
+            info_dict["variants"] = ",".join(parts[5:]).strip()
 
         if info_dict["name"]:
             return info_dict
@@ -1334,7 +1338,7 @@ class SpackRunner(CommandRunner):
         """
         find_args = [
             "find",
-            '--format="{name},{version},{compiler.name},{compiler.version},{variants}"',
+            '--format="{name},{version},{compiler.name},{compiler.version},{target},{variants}"',
             "-c",
         ]
 
