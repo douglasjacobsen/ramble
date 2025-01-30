@@ -271,4 +271,4 @@ class SlurmRunner:
         }
 
     def get_hostfile_cmd(self):
-        return "scontrol show hostnames > {experiment_run_dir}/hostfile"
+        return "scontrol show hostnames > {hostfile}"

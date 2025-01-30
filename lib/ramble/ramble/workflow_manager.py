@@ -56,6 +56,10 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
         description="Hostfile command to apply within execution templates for the workflow",
     )
 
+    workflow_manager_variable(
+        "hostfile", default="{experiment_run_dir}/hostfile", description="Default hostfile path"
+    )
+
     def __init__(self, file_path):
         super().__init__()
 
