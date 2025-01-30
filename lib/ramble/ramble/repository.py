@@ -773,7 +773,7 @@ class RepoPath:
 
         """
         # namespaces are added to repo, and object modules are leaves.
-        namespace, dot, module_name = fullname.rpartition(".")
+        namespace, _, module_name = fullname.rpartition(".")
 
         # If it's a module in some repo, or if it is the repo's
         # namespace, let the repo handle it.
@@ -1061,7 +1061,7 @@ class Repo:
         if self.is_prefix(fullname):
             return self
 
-        namespace, dot, module_name = fullname.rpartition(".")
+        namespace, _, module_name = fullname.rpartition(".")
         if namespace == self.full_namespace:
             if self.real_name(module_name):
                 return self
@@ -1076,7 +1076,7 @@ class Repo:
         if fullname in sys.modules:
             return sys.modules[fullname]
 
-        namespace, dot, module_name = fullname.rpartition(".")
+        namespace, _, module_name = fullname.rpartition(".")
 
         if self.is_prefix(fullname):
             module = ObjectNamespace(fullname)
@@ -1528,7 +1528,7 @@ class ReposFinder:
 
     def compute_loader(self, fullname):
         # namespaces are added to repo, and object modules are leaves.
-        namespace, dot, module_name = fullname.rpartition(".")
+        namespace, _, module_name = fullname.rpartition(".")
 
         # If it's a module in some repo, or if it is the repo's
         # namespace, let the repo handle it.

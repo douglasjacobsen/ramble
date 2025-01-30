@@ -355,7 +355,7 @@ class URLFetchStrategy(FetchStrategy):
         else:
             # Telling urllib to check if url is accessible
             try:
-                url, headers, response = ramble.util.web.read_from_url(url)
+                url, _, response = ramble.util.web.read_from_url(url)
             except ramble.util.web.SpackWebError as werr:
                 msg = "Urllib fetch failed to verify url\
                       {}\n with error {}".format(

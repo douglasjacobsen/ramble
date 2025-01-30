@@ -183,12 +183,12 @@ class Workload:
 
         if self.variables:
             out_str += rucolor.nested_1(f"{indentation}    Variables:\n")
-            for name, var in self.variables.items():
+            for var in self.variables.values():
                 out_str += var.as_str(n_indent + 4)
 
         if self.environment_variables:
             out_str += rucolor.nested_1(f"{indentation}    Environment Variables:\n")
-            for name, env_var in self.environment_variables.items():
+            for env_var in self.environment_variables.values():
                 out_str += env_var.as_str(n_indent + 4)
 
         return out_str

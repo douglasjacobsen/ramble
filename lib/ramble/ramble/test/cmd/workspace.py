@@ -69,7 +69,7 @@ def check_basic(ws):
     for workloads, application_context in ws.all_applications():
         if application_context.context_name == "basic":
             found_basic = True
-        for experiments, workload_context in ws.all_workloads(workloads):
+        for _, workload_context in ws.all_workloads(workloads):
             if workload_context.context_name == "test_wl":
                 found_test_wl = True
             elif workload_context.context_name == "test_wl2":
@@ -88,7 +88,7 @@ def check_no_basic(ws):
     for workloads, application_context in ws.all_applications():
         if application_context.context_name == "basic":
             found_basic = True
-        for experiments, workload_context in ws.all_workloads(workloads):
+        for _, workload_context in ws.all_workloads(workloads):
             if workload_context.context_name == "test_wl":
                 found_test_wl = True
             elif workload_context.context_name == "test_wl2":

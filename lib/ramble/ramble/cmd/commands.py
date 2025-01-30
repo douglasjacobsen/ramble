@@ -306,7 +306,7 @@ def update_completion(parser, args):
     times, and to simplify completion update for developers.
 
     """
-    for shell, shell_args in update_completion_args.items():
+    for shell_args in update_completion_args.values():
         for attr, value in shell_args.items():
             setattr(args, attr, value)
         _commands(parser, args)

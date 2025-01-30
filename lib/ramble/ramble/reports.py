@@ -330,7 +330,7 @@ class PlotGenerator:
                 marker="o",
                 label=f"{perf_measure}",
             )
-        ymin, ymax = ax.get_ylim()
+        _, ymax = ax.get_ylim()
 
         # TODO: the plot can get very compressed for log weak scaling plots
         if not self.logy:
@@ -812,7 +812,7 @@ class MultiLinePlot(ScalingPlotGenerator):
                     alpha=0.2,
                 )
 
-        ymin, ymax = ax.get_ylim()
+        _, ymax = ax.get_ylim()
 
         # TODO: the plot can get very compressed for log weak scaling plots
         if not self.logy:
@@ -835,7 +835,7 @@ class MultiLinePlot(ScalingPlotGenerator):
     def generate_plot_data(self, pdf_report):
         super().generate_plot_data(pdf_report)
 
-        perf_measure, scale_var, *additional_vars = self.spec
+        perf_measure, scale_var, *_ = self.spec
         y_label = perf_measure
 
         self.draw_multiline(perf_measure, scale_var, pdf_report, y_label)

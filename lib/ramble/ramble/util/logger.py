@@ -136,7 +136,7 @@ class Logger:
         print). Perform this action for all logs and the default log (to
         screen).
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(default_kwargs=kwargs, index=idx)
             with self.configure_colors(**st_kwargs):
                 tty.info(*args, **st_kwargs)
@@ -203,7 +203,7 @@ class Logger:
         print). Perform this action all logs, and the default stream (print to
         screen).
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(index=idx, default_kwargs=kwargs)
             with self.configure_colors(**st_kwargs):
                 tty.error(*args, **st_kwargs)
@@ -217,7 +217,7 @@ class Logger:
         print). Perform this action all logs. After all logs are printed to,
         terminate execution (and error) using tty.die.
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(index=idx, default_kwargs=kwargs)
             with self.configure_colors(**st_kwargs):
                 tty.error(*args, **st_kwargs)

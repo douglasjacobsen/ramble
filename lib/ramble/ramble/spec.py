@@ -139,7 +139,7 @@ class Spec:
         self.workloads = {}
 
         if isinstance(spec_like, str):
-            namespace, dot, spec_name = spec_like.rpartition(".")
+            namespace, _, spec_name = spec_like.rpartition(".")
             if not namespace:
                 namespace = None
             self.name = spec_name

@@ -195,7 +195,7 @@ class NamespaceTrie:
         self._sep = separator
 
     def __setitem__(self, namespace, value):
-        first, sep, rest = namespace.partition(self._sep)
+        first, _, rest = namespace.partition(self._sep)
 
         if not first:
             self._value = NamespaceTrie.Element(value)
@@ -207,7 +207,7 @@ class NamespaceTrie:
         self._subspaces[first][rest] = value
 
     def _get_helper(self, namespace, full_name):
-        first, sep, rest = namespace.partition(self._sep)
+        first, _, rest = namespace.partition(self._sep)
         if not first:
             if not self._value:
                 raise KeyError("Can't find namespace '%s' in trie" % full_name)
@@ -223,7 +223,7 @@ class NamespaceTrie:
     def is_prefix(self, namespace):
         """True if the namespace has a value, or if it's the prefix of one that
         does."""
-        first, sep, rest = namespace.partition(self._sep)
+        first, _, rest = namespace.partition(self._sep)
         if not first:
             return True
         elif first not in self._subspaces:
@@ -233,7 +233,7 @@ class NamespaceTrie:
 
     def is_leaf(self, namespace):
         """True if this namespace has no children in the trie."""
-        first, sep, rest = namespace.partition(self._sep)
+        first, _, rest = namespace.partition(self._sep)
         if not first:
             return bool(self._subspaces)
         elif first not in self._subspaces:
@@ -243,7 +243,7 @@ class NamespaceTrie:
 
     def has_value(self, namespace):
         """True if there is a value set for the given namespace."""
-        first, sep, rest = namespace.partition(self._sep)
+        first, _, rest = namespace.partition(self._sep)
         if not first:
             return self._value is not None
         elif first not in self._subspaces:

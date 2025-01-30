@@ -164,7 +164,7 @@ def test_required_builtins(mutable_mock_apps_repo, app):
         if conf[app_inst._builtin_required_key]:
             required_builtins.append(builtin)
 
-    for workload, wl_conf in app_inst.workloads.items():
+    for workload in app_inst.workloads.keys():
         exec_graph = app_inst._get_executable_graph(workload)
         for builtin in required_builtins:
             assert exec_graph.get_node(builtin) is not None
@@ -181,7 +181,7 @@ def test_register_builtin_app(mutable_mock_apps_repo):
         else:
             excluded_builtins.append(builtin)
 
-    for workload, wl_conf in app_inst.workloads.items():
+    for workload in app_inst.workloads.keys():
         exec_graph = app_inst._get_executable_graph(workload)
 
         for builtin in required_builtins:
