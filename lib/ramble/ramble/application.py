@@ -333,22 +333,22 @@ class ApplicationBase(metaclass=ApplicationMeta):
 
             for mod_inst in self._modifier_instances:
                 # Define phase nodes
-                for phase, phase_node in mod_inst.all_pipeline_phases(pipeline):
+                for _, phase_node in mod_inst.all_pipeline_phases(pipeline):
                     self._pipeline_graphs[pipeline].add_node(phase_node, obj_inst=mod_inst)
 
                 # Define phase edges
-                for phase, phase_node in mod_inst.all_pipeline_phases(pipeline):
+                for _, phase_node in mod_inst.all_pipeline_phases(pipeline):
                     self._pipeline_graphs[pipeline].define_edges(phase_node, internal_order=True)
 
             if self.package_manager:
                 # Define phase nodes
-                for phase, phase_node in self.package_manager.all_pipeline_phases(pipeline):
+                for _, phase_node in self.package_manager.all_pipeline_phases(pipeline):
                     self._pipeline_graphs[pipeline].add_node(
                         phase_node, obj_inst=self.package_manager
                     )
 
                 # Define phase edges
-                for phase, phase_node in self.package_manager.all_pipeline_phases(pipeline):
+                for _, phase_node in self.package_manager.all_pipeline_phases(pipeline):
                     self._pipeline_graphs[pipeline].define_edges(phase_node, internal_order=True)
 
     def set_env_variable_sets(self, env_variable_sets):
@@ -369,7 +369,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         self.no_expand_vars = set()
         workload_name = self.expander.workload_name
         if workload_name in self.workloads:
-            for name, var in self.workloads[workload_name].variables.items():
+            for var in self.workloads[workload_name].variables.values():
                 if not var.expandable:
                     self.no_expand_vars.add(var.name)
 
@@ -1000,7 +1000,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
             workload = self.workloads[self.expander.workload_name]
 
             new_env_vars = {}
-            for name, env_var in workload.environment_variables.items():
+            for env_var in workload.environment_variables.values():
                 action = "set"
                 value = env_var.value
 
@@ -1504,7 +1504,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
             # Build inventory of inputs
             self._inputs_and_fetchers(self.expander.workload_name)
 
-            for input_file, input_conf in self._input_fetchers.items():
+            for input_conf in self._input_fetchers.values():
                 if input_conf["fetcher"].digest:
                     self.hash_inventory["inputs"].append(
                         {"name": input_conf["input_name"], "digest": input_conf["fetcher"].digest}
@@ -1587,7 +1587,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
             # Copy all figure of merit files
             criteria_list = workspace.success_list
             analysis_files, _, _ = self._analysis_dicts(criteria_list)
-            for file, file_conf in analysis_files.items():
+            for file in analysis_files.keys():
                 if os.path.exists(file):
                     shutil.copy(file, archive_experiment_dir)
 

@@ -808,7 +808,7 @@ def _main(argv=None):
     # them, which reduces startup latency.
     parser = make_argument_parser()
     parser.add_argument("command", nargs=argparse.REMAINDER)
-    args, unknown = parser.parse_known_args(argv)
+    args, _ = parser.parse_known_args(argv)
 
     # Recover stored LD_LIBRARY_PATH variables from ramble shell function
     # This is necessary because MacOS System Integrity Protection clears

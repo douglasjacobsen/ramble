@@ -209,7 +209,7 @@ def config_add(args):
         setup_parser.add_parser.print_help()
         exit(1)
 
-    scope, section = _get_scope_and_section(args)
+    scope, _ = _get_scope_and_section(args)
 
     if args.file:
         ramble.config.add_from_file(args.file, scope=scope)

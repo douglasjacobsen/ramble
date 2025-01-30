@@ -78,7 +78,7 @@ class Pipeline:
 
         Populate the workspace inventory information with experiment hash data.
         """
-        for exp, app_inst, _ in self._experiment_set.all_experiments():
+        for _, app_inst, _ in self._experiment_set.all_experiments():
             app_inst.populate_inventory(
                 self.workspace,
                 force_compute=self.force_inventory,
@@ -378,7 +378,7 @@ class ArchivePipeline(Pipeline):
             excluded_secrets.add(ramble.application.ApplicationBase.license_inc_name)
 
         fs.mkdirp(archive_shared)
-        for root, dirs, files in os.walk(self.workspace.shared_dir):
+        for root, _, files in os.walk(self.workspace.shared_dir):
             for name in files:
                 if name not in excluded_secrets:
                     src_dir = os.path.join(self.workspace.shared_dir, root)
@@ -392,7 +392,7 @@ class ArchivePipeline(Pipeline):
             self.workspace.latest_archive_path, ramble.workspace.workspace_log_path
         )
         fs.mkdirp(archive_logs)
-        for root, dirs, files in os.walk(self.workspace.log_dir):
+        for root, _, files in os.walk(self.workspace.log_dir):
             for name in files:
                 src_dir = os.path.join(self.workspace.log_dir, root)
                 src = os.path.join(src_dir, name)
@@ -561,7 +561,7 @@ class ExecutePipeline(Pipeline):
         if not self.suppress_run_header:
             logger.all_msg("Running executors...")
 
-        for exp, app_inst, idx in self._experiment_set.filtered_experiments(self.filters):
+        for _, app_inst, _ in self._experiment_set.filtered_experiments(self.filters):
             if app_inst.is_template:
                 logger.debug(f"{app_inst.name} is a template. Skipping execution.")
                 continue
@@ -617,7 +617,7 @@ class LogsPipeline(Pipeline):
         if not self.suppress_run_header:
             logger.all_msg("Finding log information...")
 
-        for exp, app_inst, idx in self._experiment_set.filtered_experiments(self.filters):
+        for exp, app_inst, _ in self._experiment_set.filtered_experiments(self.filters):
             if app_inst.is_template:
                 continue
             if app_inst.repeats.is_repeat_base:
@@ -706,7 +706,7 @@ class PushDeploymentPipeline(Pipeline):
 
     def _deployment_files(self):
         """Yield the full path to each file in a deployment"""
-        for root, dirs, files in os.walk(self.workspace.named_deployment):
+        for root, _, files in os.walk(self.workspace.named_deployment):
             for name in files:
                 yield os.path.join(self.workspace.named_deployment, root, name)
 
@@ -752,7 +752,7 @@ class PushDeploymentPipeline(Pipeline):
 
 def _copy_tree(src_dir, dest_dir):
     """Copy all files in src_dir to dest_dir"""
-    for root, dirs, files in os.walk(src_dir):
+    for root, _, files in os.walk(src_dir):
         for name in files:
             src = os.path.join(src_dir, root, name)
             dest = src.replace(src_dir, dest_dir)

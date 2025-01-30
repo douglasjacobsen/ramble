@@ -1360,7 +1360,7 @@ ramble:
 
         experiment_set = self.build_experiment_set()
 
-        for exp, app_inst, _ in experiment_set.all_experiments():
+        for _, app_inst, _ in experiment_set.all_experiments():
             app_inst.build_modifier_instances()
             env_name_str = app_inst.expander.expansion_str(ramble.keywords.keywords.env_name)
             env_name = app_inst.expander.expand_var(env_name_str)
@@ -1907,7 +1907,7 @@ ramble:
         # highest-precedence scopes are last.
         includes = config_dict(self.config_sections["workspace"]["yaml"]).get("include", [])
         missing = []
-        for i, config_path in enumerate(reversed(includes)):
+        for config_path in reversed(includes):
             # allow paths to contain ramble config/environment variables, etc.
             config_path = substitute_path_variables(
                 config_path, local_replacements=self.workspace_paths()

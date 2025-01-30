@@ -456,9 +456,7 @@ class TestStage:
     @pytest.mark.disable_clean_stage_check
     def test_composite_stage_with_expand_resource(self, composite_stage_with_expanding_resource):
 
-        composite_stage, root_stage, resource_stage, mock_resource = (
-            composite_stage_with_expanding_resource
-        )
+        composite_stage, root_stage, _, mock_resource = composite_stage_with_expanding_resource
 
         composite_stage.create()
         composite_stage.fetch()

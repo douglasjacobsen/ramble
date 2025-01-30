@@ -88,7 +88,7 @@ def _all_ramble_files(root=ramble.paths.prefix, modified_only=False):
         yield from _get_modified_files(root)
     else:
         visited = set()
-        for cur_root, folders, files in os.walk(root):
+        for cur_root, _, files in os.walk(root):
             for filename in files:
                 path = os.path.realpath(os.path.join(cur_root, filename))
 

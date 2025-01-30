@@ -218,7 +218,7 @@ def apply_default_config_values(config_data, app_inst, default_config_string):
     workload = app_inst.workloads[app_inst.expander.workload_name]
 
     # Set all '{default_config_value}' values to value from the base config
-    for var_name, var_def in workload.variables.items():
+    for var_name in workload.variables.keys():
         if len(var_name.split(".")) > 1:
             var_val = app_inst.expander.expand_var(app_inst.expander.expansion_str(var_name))
 

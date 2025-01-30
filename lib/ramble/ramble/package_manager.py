@@ -90,7 +90,7 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
     def environment_required(self):
         app_inst = self.app_inst
         if hasattr(app_inst, "software_specs"):
-            for pkg, info in app_inst.software_specs.items():
+            for info in app_inst.software_specs.values():
                 if fnmatch.fnmatch(self.name, info["package_manager"]):
                     return True
 

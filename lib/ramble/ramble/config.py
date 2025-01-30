@@ -474,7 +474,7 @@ class Configuration:
     @_config_mutator
     def pop_scope(self):
         """Remove the highest precedence scope and return it."""
-        name, scope = self.scopes.popitem(last=True)
+        _, scope = self.scopes.popitem(last=True)
         return scope
 
     @_config_mutator
