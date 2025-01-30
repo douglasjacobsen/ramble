@@ -1771,10 +1771,14 @@ class ApplicationBase(metaclass=ApplicationMeta):
         success = success and criteria_list.passed()
 
         status = experiment_status.SUCCESS if success else experiment_status.FAILED
-        # When workflow_manager is present, only use app_status when workflow is completed.
+        # When workflow_manager is present, only use app_status when workflow is completed or
+        # unresolved.
         if self.workflow_manager is not None:
             wm_status = self.workflow_manager.get_status(workspace)
-            if not (wm_status == experiment_status.COMPLETE or wm_status is None):
+            if not (
+                wm_status is None
+                or wm_status in [experiment_status.COMPLETE, experiment_status.UNRESOLVED]
+            ):
                 status = wm_status
         self.set_status(status)
 
