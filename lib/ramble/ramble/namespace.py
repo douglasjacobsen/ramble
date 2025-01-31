@@ -65,3 +65,4 @@ class namespace:
     workflow_manager = "workflow_manager"
 
     metadata = "metadata"
+    include = "include"

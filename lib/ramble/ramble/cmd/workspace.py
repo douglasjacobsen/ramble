@@ -34,6 +34,7 @@ import ramble.experimental.uploader
 import ramble.software_environments
 import ramble.util.colors as rucolor
 from ramble.util.logger import logger
+from ramble.namespace import namespace
 
 
 description = "manage experiment workspaces"
@@ -59,7 +60,7 @@ subcommands = [
     "manage",
 ]
 
-manage_commands = ["experiments", "software"]
+manage_commands = ["experiments", "software", "includes"]
 
 
 def workspace_activate_setup_parser(subparser):
@@ -1313,6 +1314,61 @@ def workspace_manage_software(args):
 
     if ws.dry_run:
         ws.print_config()
+
+
+def workspace_manage_includes_setup_parser(subparser):
+    """manage workspace includes"""
+    actions = subparser.add_mutually_exclusive_group()
+    actions.add_argument(
+        "--list", "-l", action="store_true", help="whether to print existing includes"
+    )
+
+    actions.add_argument(
+        "--remove",
+        "-r",
+        dest="remove_pattern",
+        metavar="PATTERN",
+        help="whether to remove an existing include by name / pattern",
+    )
+
+    actions.add_argument(
+        "--remove-index",
+        dest="remove_index",
+        metavar="IDX",
+        help="whether to remove an existing include by index",
+    )
+
+    actions.add_argument(
+        "--add", "-a", dest="add_include", metavar="PATH", help="whether to add a new include"
+    )
+
+
+def workspace_manage_includes(args):
+    """Execute workspace manage include command"""
+
+    ws = ramble.cmd.require_active_workspace(cmd_name="workspace manage includes")
+
+    if args.list:
+        with ws.read_transaction():
+            workspace_dict = ws._get_workspace_dict()
+            if namespace.include in workspace_dict[namespace.ramble]:
+                includes = workspace_dict[namespace.ramble][namespace.include]
+                if includes:
+                    logger.msg("Workspace includes:")
+                    for idx, include in enumerate(includes):
+                        logger.msg(f"{idx}: {include}")
+                    return
+            logger.msg("Workspace contains no includes.")
+    elif args.remove_index:
+        remove_index = int(args.remove_index)
+        with ws.write_transaction():
+            ws.remove_include(index=remove_index)
+    elif args.remove_pattern:
+        with ws.write_transaction():
+            ws.remove_include(pattern=args.remove_pattern)
+    elif args.add_include:
+        with ws.write_transaction():
+            ws.add_include(args.add_include)
 
 
 def workspace_generate_config_setup_parser(subparser):
