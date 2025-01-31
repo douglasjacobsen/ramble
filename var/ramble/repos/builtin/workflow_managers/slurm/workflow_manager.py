@@ -96,6 +96,12 @@ class Slurm(WorkflowManagerBase):
     )
 
     workflow_manager_variable(
+        name="workflow_node_id",
+        default="${SLURM_NODEID}",
+        description="node ID to be inserted at runtime",
+    )
+
+    workflow_manager_variable(
         name="slurm_execute_template_path",
         default="slurm_experiment_sbatch.tpl",
         description="Path to the custom template for generating the slurm sbatch job script. "
