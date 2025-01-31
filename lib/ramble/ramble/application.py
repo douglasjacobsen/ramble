@@ -70,6 +70,7 @@ experiment_status = Enum(
     "experiment_status",
     [
         "UNKNOWN",
+        "UNQUEUED",
         # unresolved means the status is not fetched successfully
         "UNRESOLVED",
         "SETUP",
@@ -155,6 +156,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         self.generated_experiments = []
         self.repeats = ramble.repeats.Repeats()
         self._command_list = []
+        self._command_list_without_logs = []
         self.chained_experiments = None
         self.chain_order = []
         self.chain_prepend = []
@@ -1017,10 +1019,12 @@ class ApplicationBase(metaclass=ApplicationMeta):
             return
 
         self._command_list = []
+        self._command_list_without_logs = []
 
         # Inject all prepended chained experiments
         for chained_exp in self.chain_prepend:
             self._command_list.append(self.chain_commands[chained_exp])
+            self._command_list_without_logs.append(self.chain_commands[chained_exp])
 
         # ensure all log files are purged and set up
         logs = []
@@ -1099,20 +1103,28 @@ class ApplicationBase(metaclass=ApplicationMeta):
                         bg_cmd = ""
 
                     for part in cmd_conf.template:
-                        command_part = f"{mpi_cmd}{part}{redirect}{bg_cmd}"
-                        self._command_list.append(
-                            self.expander.expand_var(command_part, exec_vars)
-                        )
+                        command_part = f"{mpi_cmd}{part}"
+                        suffix_part = f"{redirect}{bg_cmd}"
+
+                        expanded_cmd = self.expander.expand_var(command_part, exec_vars)
+                        suffix_cmd = self.expander.expand_var(suffix_part, exec_vars)
+
+                        self._command_list.append(expanded_cmd + " " + suffix_cmd)
+                        self._command_list_without_logs.append(expanded_cmd)
 
             else:  # All Builtins
                 func = exec_node.attribute
                 func_cmds = func()
                 for cmd in func_cmds:
-                    self._command_list.append(self.expander.expand_var(cmd, exec_vars))
+                    expanded = self.expander.expand_var(cmd, exec_vars)
+                    self._command_list.append(expanded)
+                    self._command_list_without_logs.append(expanded)
 
         # Inject all appended chained experiments
         for chained_exp in self.chain_append:
-            self._command_list.append(self.chain_commands[chained_exp])
+            expanded = self.expander.expand_var(self.chain_commands[chained_exp])
+            self._command_list.append(expanded)
+            self._command_list_without_logs.append(expanded)
 
     def _define_formatted_executables(self):
         """Define variables representing the formatted executables
@@ -1125,39 +1137,50 @@ class ApplicationBase(metaclass=ApplicationMeta):
         """
 
         self.variables[self.keywords.unformatted_command] = "\n".join(self._command_list)
+        self.variables[self.keywords.unformatted_command_without_logs] = "\n".join(
+            self._command_list_without_logs
+        )
+        formatted_exec_groups = [self._formatted_executables]
 
-        for var_name, formatted_conf in self._formatted_executables.items():
-            if var_name in self.variables:
-                raise FormattedExecutableError(
-                    f"Formatted executable {var_name} defined, but variable "
-                    "definition already exists."
-                )
+        objs_to_extract = [self, self.workflow_manager, self.package_manager]
 
-            n_indentation = 0
-            if namespace.indentation in formatted_conf:
-                n_indentation = int(formatted_conf[namespace.indentation])
+        for obj in objs_to_extract + self._modifier_instances:
+            if obj and hasattr(obj, "formatted_executables"):
+                formatted_exec_groups.append(obj.formatted_executables)
 
-            prefix = ""
-            if namespace.prefix in formatted_conf:
-                prefix = formatted_conf[namespace.prefix]
+        for formatted_exec_group in formatted_exec_groups:
+            for var_name, formatted_conf in formatted_exec_group.items():
+                if var_name in self.variables:
+                    raise FormattedExecutableError(
+                        f"Formatted executable {var_name} defined, but variable "
+                        "definition already exists."
+                    )
 
-            join_separator = "\n"
-            if namespace.join_separator in formatted_conf:
-                join_separator = formatted_conf[namespace.join_separator].replace(r"\n", "\n")
+                n_indentation = 0
+                if namespace.indentation in formatted_conf:
+                    n_indentation = int(formatted_conf[namespace.indentation])
 
-            indentation = " " * n_indentation
+                prefix = ""
+                if namespace.prefix in formatted_conf:
+                    prefix = formatted_conf[namespace.prefix]
 
-            commands_to_format = self._command_list
-            if namespace.commands in formatted_conf:
-                commands_to_format = formatted_conf[namespace.commands].copy()
+                join_separator = "\n"
+                if namespace.join_separator in formatted_conf:
+                    join_separator = formatted_conf[namespace.join_separator].replace(r"\n", "\n")
 
-            formatted_lines = []
-            for command in commands_to_format:
-                expanded = self.expander.expand_var(command)
-                for out_line in expanded.split("\n"):
-                    formatted_lines.append(indentation + prefix + out_line)
+                indentation = " " * n_indentation
 
-            self.variables[var_name] = join_separator.join(formatted_lines)
+                commands_to_format = self._command_list
+                if namespace.commands in formatted_conf:
+                    commands_to_format = formatted_conf[namespace.commands].copy()
+
+                formatted_lines = []
+                for command in commands_to_format:
+                    expanded = self.expander.expand_var(command)
+                    for out_line in expanded.split("\n"):
+                        formatted_lines.append(indentation + prefix + out_line)
+
+                self.variables[var_name] = join_separator.join(formatted_lines)
 
     def _derive_variables_for_template_path(self, workspace):
         """Define variables for template paths (for add_expand_vars)"""

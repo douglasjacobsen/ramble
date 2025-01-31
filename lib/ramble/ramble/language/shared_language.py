@@ -543,3 +543,24 @@ def register_template(
         }
 
     return _define_template
+
+
+@shared_directive("formatted_executables")
+def formatted_executable(name: str, prefix: str, indentation: int, commands: list):
+    """Define a new formatted execution for this object
+
+    Args:
+        name: Name of the new formatted executable
+        prefix: Prefix for each line of the formatted executable
+        indentation: Number of spaces to indent before the prefix of each line
+        commands: List of commands to expand when generating the formatted executable
+    """
+
+    def _define_formatted_executable(obj):
+        obj.formatted_executables[name] = {
+            "prefix": prefix,
+            "indentation": indentation,
+            "commands": commands.copy(),
+        }
+
+    return _define_formatted_executable
