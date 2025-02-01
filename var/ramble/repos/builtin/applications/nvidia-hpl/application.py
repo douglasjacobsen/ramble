@@ -248,8 +248,8 @@ class NvidiaHpl(HplBase, NvidiaHPCBase):
         workload_group="all_workloads",
     )
     environment_variable(
-        "HPL_OCC_TILE_M",
-        "{hpl_occ_tile_m}",
+        "HPL_OOC_TILE_M",
+        "{hpl_ooc_tile_m}",
         description="Row blocking factor. Needs to be > 0",
         workload_group="all_workloads",
     )
@@ -261,8 +261,8 @@ class NvidiaHpl(HplBase, NvidiaHPCBase):
         workload_group="all_workloads",
     )
     environment_variable(
-        "HPL_OCC_TILE_N",
-        "{hpl_occ_tile_n}",
+        "HPL_OOC_TILE_N",
+        "{hpl_ooc_tile_n}",
         description="Column blocking factor. Needs to be > 0",
         workload_group="all_workloads",
     )
