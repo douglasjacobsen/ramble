@@ -505,6 +505,11 @@ class SpackLightweight(PackageManagerBase):
             app_inst (Application): A reference to the application instance for
                                     the current experiment
         """
+
+        # Do not manipulate null results
+        if app_inst.result is None:
+            return
+
         if self._spec_prefix not in app_inst.result.software:
             app_inst.result.software[self._spec_prefix] = []
 
