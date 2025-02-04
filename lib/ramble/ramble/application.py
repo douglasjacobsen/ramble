@@ -1812,7 +1812,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
         so when the workspace dumps results they are included.
         """
 
-        workspace.append_result(self.result.to_dict())
+        if hasattr(self, "result") and self.result is not None:
+            workspace.append_result(self.result.to_dict())
 
     def calculate_statistics(self, workspace):
         """Calculate statistics for results of repeated experiments
