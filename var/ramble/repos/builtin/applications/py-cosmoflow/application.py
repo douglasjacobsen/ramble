@@ -70,7 +70,7 @@ class PyCosmoflow(ExecutableApplication):
 
     workload_variable(
         "dockerfile_path",
-        default="{mlperf-hpc}/cosmoflow/builds/Dockerfile",
+        default="{workload_input_dir}/Dockerfile_{docker_tensorflow_version}",
         description="Dockerfile for cosmoflow from the MLPerf-HPC repo",
         workload_group="all_workloads",
     )
@@ -86,6 +86,13 @@ class PyCosmoflow(ExecutableApplication):
         "docker_tag_version",
         default="1.0",
         description="Version of docker image tag",
+        workload_group="all_workloads",
+    )
+
+    workload_variable(
+        "docker_tensorflow_version",
+        default="22.11-tf2-py3",
+        description="Version of tensorflow base container to use",
         workload_group="all_workloads",
     )
 
@@ -237,6 +244,35 @@ class PyCosmoflow(ExecutableApplication):
         group_name="mean_time",
         units="s",
     )
+
+    register_phase(
+        "create_cosmoflow_dockerfile",
+        pipeline="setup",
+        run_after=["get_inputs"],
+        run_before=["ingest_default_configs"],
+    )
+
+    def _create_cosmoflow_dockerfile(self, workspace, app_inst):
+        """Render the template Dockerfile for building"""
+
+        base_dockerfile = canonicalize_path(
+            os.path.join(os.path.dirname(self._file_path), "Dockerfile")
+        )
+
+        # Avoid problems with missing docker file, but this shouldn't happen
+        # because the file is next to the modifier.py
+        #  if not os.path.exists(base_dockerfile):
+        #  return
+
+        new_dockerfile_path = self.expander.expand_var_name("dockerfile_path")
+        dockerfile_dir = os.path.dirname(new_dockerfile_path)
+        mkdirp(dockerfile_dir)
+
+        with open(base_dockerfile) as f:
+            dockerfile = f.read()
+
+        with open(new_dockerfile_path, "w+") as f:
+            f.write(self.expander.expand_var(dockerfile))
 
     register_phase(
         "ingest_default_configs", pipeline="setup", run_after=["get_inputs"]
