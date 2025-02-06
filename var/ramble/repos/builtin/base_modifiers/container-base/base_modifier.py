@@ -30,6 +30,7 @@ class ContainerBase(BasicModifier):
         "container_uri",
         description="The variable controls the URI the container is pulled from. "
         "This should be of the format accepted by this container runtime.",
+        modes=["standard"],
     )
 
     modifier_variable(
@@ -132,41 +133,39 @@ class ContainerBase(BasicModifier):
                         for name in group["vars"]:
                             name_set.add(name)
 
-        # Only define variables if mode is standard
-        if self._usage_mode == "standard":
-            # Define container_env-vars
-            set_names = set()
+        # Define container_env-vars
+        set_names = set()
 
-            for env_var_set in app_inst._env_variable_sets:
-                extract_names(env_var_set.items(), set_names)
+        for env_var_set in app_inst._env_variable_sets:
+            extract_names(env_var_set.items(), set_names)
 
-            for mod_inst in app_inst._modifier_instances:
-                extract_names(mod_inst.all_env_var_modifications(), set_names)
+        for mod_inst in app_inst._modifier_instances:
+            extract_names(mod_inst.all_env_var_modifications(), set_names)
 
-            env_var_list = ",".join(set_names)
-            app_inst.define_variable("container_env_vars", env_var_list)
+        env_var_list = ",".join(set_names)
+        app_inst.define_variable("container_env_vars", env_var_list)
 
-            # Define container_mounts
-            input_mounts = app_inst.expander.expand_var("{container_mounts}")
+        # Define container_mounts
+        input_mounts = app_inst.expander.expand_var("{container_mounts}")
 
-            exp_mount = "{experiment_run_dir}:{experiment_run_dir}"
-            expanded_exp_mount = app_inst.expander.expand_var(exp_mount)
+        exp_mount = "{experiment_run_dir}:{experiment_run_dir},{workload_input_dir}:{workload_input_dir}"
+        expanded_exp_mount = app_inst.expander.expand_var(exp_mount)
 
-            if (
-                exp_mount not in input_mounts
-                and expanded_exp_mount not in input_mounts
-            ):
-                add_mod = self._usage_mode not in self.variable_modifications
-                add_mod = add_mod or (
-                    self._usage_mode in self.variable_modifications
-                    and "container_mounts"
-                    not in self.variable_modifications[self._usage_mode]
+        if (
+            exp_mount not in input_mounts
+            and expanded_exp_mount not in input_mounts
+        ):
+            add_mod = self._usage_mode not in self.variable_modifications
+            add_mod = add_mod or (
+                self._usage_mode in self.variable_modifications
+                and "container_mounts"
+                not in self.variable_modifications[self._usage_mode]
+            )
+            if add_mod:
+                self.variable_modification(
+                    "container_mounts",
+                    modification=exp_mount,
+                    separator=",",
+                    method="append",
+                    mode=self._usage_mode,
                 )
-                if add_mod:
-                    self.variable_modification(
-                        "container_mounts",
-                        modification=exp_mount,
-                        separator=",",
-                        method="append",
-                        mode=self._usage_mode,
-                    )
