@@ -72,12 +72,10 @@ class Lammps(ExecutableApplication):
 
     input_file(
         "lammps-stage",
-        url="https://github.com/lammps/lammps/archive/refs/tags/stable_23Jun2022_update3.tar.gz",
-        target_dir="{application_input_dir}/stable_23Jun2022_update3",
-        description="Stage of lammps source from 20220623.3 release",
-        sha256="8a276a01b50d37eecfe6eb36f420f354cde51936d20aca7944dea60d3c098c89",
+        url="https://github.com/lammps/lammps/archive/refs/tags/{input_stage}.tar.gz",
+        target_dir="{application_input_dir}/lammps-input-stage",
+        description="Stage of lammps source from release",
     )
-
     executable(
         "copy",
         template=["cp {input_path} {experiment_run_dir}/input.txt"],
@@ -276,11 +274,19 @@ class Lammps(ExecutableApplication):
     )
 
     workload_variable(
+        "input_stage",
+        default="stable_23Jun2022_update3.tar.gz",
+        description="Stage name of LAMMPS input archive",
+        workloads=["hns-reaxff"],
+    )
+
+    workload_variable(
         "input_file",
         default="in.reaxc.hns",
         description="hns-reaxff input file name",
         workloads=["hns-reaxff"],
     )
+
     workload_variable(
         "input_path",
         default=os.path.join(f"{intel_test_path}"),
