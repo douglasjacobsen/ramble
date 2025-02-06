@@ -10,30 +10,32 @@ import spack.util.environment
 from ramble.util.shell_utils import get_compatible_base_shell
 
 
-def _get_env_set_commands(var_conf, var_set, shell="sh"):
+def _get_env_set_commands(var_conf, expander, var_set, shell="sh"):
     env_mods = RambleEnvModifications()
     for var, val in var_conf.items():
-        var_set.add(var)
-        env_mods.set(var, val)
+        expanded_var = expander.expand_var(var)
+        var_set.add(expanded_var)
+        env_mods.set(expanded_var, val)
 
     env_cmds_arr = env_mods.shell_modifications(shell=shell, explicit=True)
 
     return (env_cmds_arr.split("\n"), var_set)
 
 
-def _get_env_unset_commands(var_conf, var_set, shell="sh"):
+def _get_env_unset_commands(var_conf, expander, var_set, shell="sh"):
     env_mods = RambleEnvModifications()
     for var in var_conf:
-        if var in var_set:
-            var_set.remove(var)
-        env_mods.unset(var)
+        expanded_var = expander.expand_var(var)
+        if expanded_var in var_set:
+            var_set.remove(expanded_var)
+        env_mods.unset(expanded_var)
 
     env_cmds_arr = env_mods.shell_modifications(shell=shell, explicit=True)
 
     return (env_cmds_arr.split("\n"), var_set)
 
 
-def _get_env_append_commands(var_conf, var_set, shell="sh"):
+def _get_env_append_commands(var_conf, expander, var_set, shell="sh"):
     env_mods = RambleEnvModifications()
 
     append_funcs = {
@@ -51,17 +53,18 @@ def _get_env_append_commands(var_conf, var_set, shell="sh"):
         for group in append_funcs.keys():
             if group in append_group.keys():
                 for var, val in append_group[group].items():
-                    if var not in var_set:
-                        env_mods.set(var, "${%s}" % var)
-                        var_set.add(var)
-                    append_funcs[group](var, val, sep=sep)
+                    expanded_var = expander.expand_var(var)
+                    if expanded_var not in var_set:
+                        env_mods.set(expanded_var, "${%s}" % expanded_var)
+                        var_set.add(expanded_var)
+                    append_funcs[group](expanded_var, val, sep=sep)
 
     env_cmds_arr = env_mods.shell_modifications(shell=shell, explicit=True)
 
     return (env_cmds_arr.split("\n"), var_set_orig)
 
 
-def _get_env_prepend_commands(var_conf, var_set, shell="sh"):
+def _get_env_prepend_commands(var_conf, expander, var_set, shell="sh"):
     env_mods = RambleEnvModifications()
 
     prepend_funcs = {
@@ -73,10 +76,11 @@ def _get_env_prepend_commands(var_conf, var_set, shell="sh"):
     for prepend_group in var_conf:
         for group in prepend_group.keys():
             for var, val in prepend_group[group].items():
-                if var not in var_set:
-                    env_mods.set(var, "${%s}" % var)
-                    var_set.add(var)
-                prepend_funcs[group](var, val)
+                expanded_var = expander.expand_var(var)
+                if expanded_var not in var_set:
+                    env_mods.set(expanded_var, "${%s}" % expanded_var)
+                    var_set.add(expanded_var)
+                prepend_funcs[group](expanded_var, val)
 
     env_cmds_arr = env_mods.shell_modifications(shell=shell, explicit=True)
 

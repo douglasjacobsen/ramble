@@ -1365,7 +1365,9 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 app_licenses = license_conf[self.name] if self.name in license_conf else {}
 
                 for action, conf in app_licenses.items():
-                    (env_cmds, var_set) = action_funcs[action](conf, var_set, shell=shell)
+                    (env_cmds, var_set) = action_funcs[action](
+                        conf, self.expander, var_set, shell=shell
+                    )
 
                     lock = lk.Lock(os.path.join(self.license_path, ".ramble-license"))
                     with lk.WriteTransaction(lock):
@@ -2299,7 +2301,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         # Process environment variable actions
         for env_var_set in self._env_variable_sets:
             for action, conf in env_var_set.items():
-                (env_cmds, _) = action_funcs[action](conf, set(), shell=shell)
+                (env_cmds, _) = action_funcs[action](conf, self.expander, set(), shell=shell)
 
                 for cmd in env_cmds:
                     if cmd:
@@ -2307,7 +2309,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
 
         for mod_inst in self._modifier_instances:
             for action, conf in mod_inst.all_env_var_modifications():
-                (env_cmds, _) = action_funcs[action](conf, set(), shell=shell)
+                (env_cmds, _) = action_funcs[action](conf, self.expander, set(), shell=shell)
 
                 for cmd in env_cmds:
                     if cmd:
