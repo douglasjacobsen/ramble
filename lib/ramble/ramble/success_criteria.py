@@ -49,6 +49,11 @@ class ScopedCriteriaList:
         for scope in self._valid_scopes:
             self.criteria[scope] = []
 
+    def reset(self):
+        for scope in self._valid_scopes:
+            for criteria in self.criteria[scope]:
+                criteria.reset()
+
     def validate_scope(self, scope):
         if scope not in self._valid_scopes:
             logger.die(
@@ -156,7 +161,7 @@ class SuccessCriteria:
                     f'Success criteria with mode="{mode}" '
                     'require a "fom_name" and "formula" attribute.'
                 )
-            self.formula = formula
+            self.fom_formula = formula
             self.fom_name = fom_name
             self.fom_context = fom_context
 
@@ -210,7 +215,7 @@ class SuccessCriteria:
 
                     comparison_tested = True
                     result = app_inst.expander.evaluate_predicate(
-                        self.formula, extra_vars=comparison_vars
+                        self.fom_formula, extra_vars=comparison_vars
                     )
 
             # If fom doesn't match any fom names, fail the comparison
