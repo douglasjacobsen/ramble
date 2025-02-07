@@ -546,7 +546,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         criteria_list = workspace.success_list
         for criteria in criteria_list.all_criteria():
             if criteria.mode == "fom_comparison":
-                self.expander.expand_var(criteria.formula)
+                self.expander.expand_var(criteria.fom_formula)
                 self.expander.expand_var(criteria.fom_name)
                 self.expander.expand_var(criteria.fom_context)
             elif criteria.mode == "application_function":
@@ -1668,6 +1668,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         fom_values = {}
 
         criteria_list = workspace.success_list
+        criteria_list.reset()
 
         files, contexts, foms = self._analysis_dicts(criteria_list)
 
