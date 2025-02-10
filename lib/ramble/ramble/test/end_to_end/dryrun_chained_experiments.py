@@ -108,6 +108,8 @@ ramble:
 
     mock_output_data = """
   14 100 1.5 1.0 2.0
+
+# All processes entering MPI_Finalize
 """
 
     setup_type = ramble.pipeline.pipelines.setup

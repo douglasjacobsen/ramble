@@ -269,3 +269,9 @@ class IntelMpiBenchmarks(ExecutableApplication):
         regex=combined_regex,
         output_format="Bytes: {bytes} (Combo)",
     )
+
+    success_criteria(
+        "run_to_completion",
+        mode="string",
+        match=r".*All processes entering MPI_Finalize",
+    )
