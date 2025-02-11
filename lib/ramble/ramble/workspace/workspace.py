@@ -1953,7 +1953,12 @@ ramble:
         # highest-precedence scopes are last.
         includes = config_dict(self.config_sections["workspace"]["yaml"]).get("include", [])
         missing = []
-        for config_path in reversed(includes):
+        for full_config_path in reversed(includes):
+            # Remove trailing slash
+            config_path = full_config_path
+            if full_config_path.endswith("/"):
+                config_path = full_config_path[:-1]
+
             # allow paths to contain ramble config/environment variables, etc.
             config_path = substitute_path_variables(
                 config_path, local_replacements=self.workspace_paths()
