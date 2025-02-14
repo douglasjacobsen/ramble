@@ -148,7 +148,12 @@ class ContainerBase(BasicModifier):
         # Define container_mounts
         input_mounts = app_inst.expander.expand_var("{container_mounts}")
 
-        exp_mount = "{experiment_run_dir}:{experiment_run_dir},{workload_input_dir}:{workload_input_dir}"
+        workload = app_inst.workloads[app_inst.expander.workload_name]
+
+        exp_mount = "{experiment_run_dir}:{experiment_run_dir}"
+        if len(workload.inputs) > 0:
+            exp_mount += ",{workload_input_dir}:{workload_input_dir}"
+
         expanded_exp_mount = app_inst.expander.expand_var(exp_mount)
 
         if (
