@@ -129,6 +129,7 @@ class CommandRunner:
         error = False
 
         self._cmd_start(executable, args)
+        out_str = None
         try:
             if active_stream is None:
                 if return_output:
@@ -155,7 +156,7 @@ class CommandRunner:
 
         self._cmd_end(executable, args)
 
-        if return_output:
+        if out_str is not None:
             return out_str
         return
 
