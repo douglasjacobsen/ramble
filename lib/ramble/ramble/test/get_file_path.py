@@ -42,7 +42,7 @@ ramble:
             test:
               variables:
                 n_ranks: '1'
-  spack:
+  software:
     packages: {}
     environments: {}
 """

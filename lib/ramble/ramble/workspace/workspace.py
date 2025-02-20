@@ -1718,11 +1718,11 @@ ramble:
         tty.debug("Removing configurations that do not spark joy.")
         for pkg in software_environments.unused_packages():
             if pkg.name in package_dict:
-                tty.debug(f"Removing {pkg.name} from Spack packages")
+                tty.debug(f"Removing {pkg.name} from software packages")
                 package_dict.pop(pkg.name)
         for env in software_environments.unused_environments():
             if env.name in environments_dict:
-                tty.debug(f"Removing {env.name} from Spack environments")
+                tty.debug(f"Removing {env.name} from software environments")
                 environments_dict.pop(env.name)
 
         ramble.config.config.update_config(
@@ -2070,32 +2070,19 @@ ramble:
         spack_dict = ramble.config.config.get_config("spack")
         software_dict = ramble.config.config.get_config(namespace.software)
 
-        print_warnings = True
-        if hasattr(self, "_printed_deprecations"):
-            print_warnings = not self._printed_deprecations
-
-        if spack_dict and software_dict:
-            if print_warnings:
-                logger.warn("Both a spack and software configuration section are defined.")
-                logger.warn("The spack configuration section is deprecated.")
-                logger.warn("The software configuration section will be used.")
-        elif spack_dict:
-            if print_warnings:
-                logger.warn("The spack configuration section is deprecated")
-                logger.warn("Please update to the software dict.")
-
-            if namespace.packages in spack_dict:
-                for pkg, config in spack_dict[namespace.packages].items():
-                    if "spack_spec" in config:
-                        logger.warn(f'Package {pkg} defines "spack_spec" which is deprecated')
-                        logger.warn('Convert this to "pkg_spec" or "spack_pkg_spec" instead.')
-            return spack_dict
+        if spack_dict:
+            logger.die(
+                "The spack configuration section is deprecated. "
+                "Please update to the software dict."
+            )
 
         if namespace.packages in software_dict:
             for pkg, config in software_dict[namespace.packages].items():
                 if "spack_spec" in config:
-                    logger.warn(f'Package {pkg} defines "spack_spec" which is deprecated')
-                    logger.warn('Convert this to "pkg_spec" or "spack_pkg_spec" instead.')
+                    logger.die(
+                        f'Package {pkg} defines "spack_spec" which is deprecated. '
+                        'Convert this to "pkg_spec" or "spack_pkg_spec" instead.'
+                    )
 
         return software_dict
 

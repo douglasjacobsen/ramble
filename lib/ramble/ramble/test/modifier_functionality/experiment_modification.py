@@ -36,7 +36,7 @@ ramble:
                 n_nodes: [1, 2]
               modifiers:
               - name: modify-experiment
-  spack:
+  software:
     packages: {}
     environments: {}
 """
