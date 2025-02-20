@@ -88,30 +88,33 @@ class GcpMetadata(BasicModifier):
             )
 
         payloads = [
-            # type, end point, per_node, log_name
-            ("instance", "machine-type", False, None),
-            ("instance", "image", False, None),
-            ("instance", "hostname", False, None),
+            # type, end point, per_node, log_name, include_hostname
+            ("instance", "machine-type", False, None, False),
+            ("instance", "image", False, None, False),
+            ("instance", "hostname", False, None, False),
             (
                 "instance",
                 "id",
                 True,
                 None,
+                True,
             ),  # True since we want the gid of every node
-            ("project", "numeric-project-id", False, None),
-            ("instance", "attributes/physical_host", True, None),
+            ("project", "numeric-project-id", False, None, False),
+            ("instance", "attributes/physical_host", True, None, False),
         ]
 
         n_nodes = int(self.expander.expand_var_name("n_nodes"))
         if n_nodes > 1 and self._usage_mode != "local":
             # Single-out the vm_id of the executing-node
-            payloads.append(("instance", "id", False, "main-gid"))
+            payloads.append(("instance", "id", False, "main-gid", False))
 
-        for type, end_point, per_node, log_name in payloads:
+        for type, end_point, per_node, log_name, include_hostname in payloads:
             prefix = ""
             suffix = ""
             if per_node:
                 prefix = self.expander.expand_var("{metadata_parallel_prefix}")
+                if include_hostname:
+                    prefix = prefix.replace(" -N ", " ")
                 suffix = self.expander.expand_var("{metadata_parallel_suffix}")
             log_name = (
                 log_name if log_name is not None else end_point.split("/")[-1]
@@ -148,7 +151,7 @@ class GcpMetadata(BasicModifier):
         if os.path.isfile(file_name):
             with open(file_name) as f:
                 for cur_id in f.readlines():
-                    cur_id = cur_id.strip()
+                    cur_id = cur_id.split(":")[-1].strip()
                     if cur_id.isnumeric():
                         ids.add(cur_id)
         return sorted(ids)
@@ -164,6 +167,26 @@ class GcpMetadata(BasicModifier):
                 "w+",
             ) as f:
                 f.write(", ".join(sorted(ids)))
+
+    def _process_id_map(self):
+        if self._usage_mode == "local":
+            return
+        with open(
+            self.expander.expand_var(
+                "{experiment_run_dir}/gcp-metadata.id.log"
+            ),
+        ) as f:
+            content = f.read()
+        if ":" not in content:
+            return
+        content = content.replace("\n", ", ")
+        with open(
+            self.expander.expand_var(
+                "{experiment_run_dir}/gcp-metadata.id_map.log"
+            ),
+            "w+",
+        ) as f:
+            f.write(content)
 
     def _process_physical_hosts(self, workspace):
         run_dir = self.expander.expand_var("{experiment_run_dir}")
@@ -207,6 +230,7 @@ class GcpMetadata(BasicModifier):
 
     def _prepare_analysis(self, workspace):
         self._process_id_list()
+        self._process_id_map()
         self._process_physical_hosts(workspace)
 
     figure_of_merit(
@@ -246,6 +270,14 @@ class GcpMetadata(BasicModifier):
         fom_regex=r"(?P<gid>.*)",
         group_name="gid",
         log_file="{experiment_run_dir}/gcp-metadata.id_list.log",
+        fom_type=FomType.INFO,
+    )
+
+    figure_of_merit(
+        "hostname-to-gid-map",
+        fom_regex=r"(?P<map>.*)",
+        group_name="map",
+        log_file="{experiment_run_dir}/gcp-metadata.id_map.log",
         fom_type=FomType.INFO,
     )
 
