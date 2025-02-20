@@ -31,6 +31,7 @@ def max_decimal_places(list):
 
 class StatsBase:
     min_count = 1
+    name = ""
 
     def compute(self, values):
         pass

@@ -66,11 +66,6 @@ def setup_parser(subparser):
         help="list full names of all tests",
     )
 
-    # use tests for extension
-    subparser.add_argument(
-        "--extension", default=None, help="run test for a given ramble extension"
-    )
-
     # spell out some common pytest arguments, so they'll show up in help
     pytest_group = subparser.add_argument_group(
         "common pytest arguments (ramble unit-test --pytest-help for more)"
@@ -200,13 +195,7 @@ def unit_test(parser, args, unknown_args):
     # add back any parsed pytest args we need to pass to pytest
     pytest_args = add_back_pytest_args(args, unknown_args)
 
-    # The default is to test the core of Ramble. If the option `--extension`
-    # has been used, then test that extension.
     pytest_root = ramble.paths.ramble_root
-    if args.extension:
-        target = args.extension
-        extensions = ramble.config.get("config:extensions")
-        pytest_root = ramble.extensions.path_for_extension(target, *extensions)
 
     # pytest.ini lives in the root of the ramble repository.
     with working_dir(pytest_root):
