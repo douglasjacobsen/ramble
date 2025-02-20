@@ -190,7 +190,7 @@ class IntelMpiBenchmarks(ExecutableApplication):
     #  bytes #repetitions  t_min[usec]  t_max[usec]  t_avg[usec]
     latency_regex = (
         r"^\s+(?P<bytes>\d+)\s+(?P<repetitions>\d+)\s+"
-        + r"(?P<t_min>\d+\.\d+)\s+(?P<t_avg>\d+\.\d+)\s+(?P<t_max>\d+\.\d+)$"
+        + r"(?P<t_min>\d+\.\d+)\s+(?P<t_max>\d+\.\d+)\s+(?P<t_avg>\d+\.\d+)$"
     )
 
     log_str = os.path.join(
