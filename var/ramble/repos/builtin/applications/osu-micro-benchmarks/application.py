@@ -263,12 +263,12 @@ class OsuMicroBenchmarks(ExecutableApplication):
 
         fom_regex = None
         if fom_type == self.fom_types.single_lat:
-            fom_regex = r"\s*(?P<msg_size>[0-9]+)+\s+(?P<avg_lat>[0-9\.]+)\s*$"
+            fom_regex = r"\s*(?P<msg_size>[0-9]+)\s+(?P<avg_lat>[0-9\.]+)\s*$"
             self._add_foms(fom_regex)
         elif fom_type == self.fom_types.single_tail_lat:
             fom_regex = r"\s*(?P<msg_size>[0-9]+)\s+(?P<avg_lat>[0-9\.]+)\s+(?P<p50_lat>[0-9\.]+)\s+(?P<p90_lat>[0-9\.]+)\s+(?P<p99_lat>[0-9\.]+)\s*$"
         elif fom_type == self.fom_types.avg_lat:
-            fom_regex = r"\s*(?P<msg_size>[0-9]+)+\s+(?P<avg_lat>[0-9\.]+)\s*$"
+            fom_regex = r"\s*(?P<msg_size>[0-9]+)\s+(?P<avg_lat>[0-9\.]+)\s*$"
         elif fom_type == self.fom_types.avg_tail_lat:
             fom_regex = r"\s*(?P<msg_size>[0-9]+)\s+(?P<avg_lat>[0-9\.]+)\s+(?P<p50_lat>[0-9\.]+)\s+(?P<p90_lat>[0-9\.]+)\s+(?P<p99_lat>[0-9\.]+)\s*$"
         elif fom_type == self.fom_types.single_bw:
