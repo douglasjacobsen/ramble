@@ -36,14 +36,13 @@ class UserManaged(PackageManagerBase):
         Ramble.
         """
 
-        package_objects = [app_inst]
-        package_objects.append(self)
-        if app_inst.workflow_manager is not None:
-            package_objects.append(app_inst.workflow_manager)
-        package_objects.extend(app_inst._modifier_instances)
+        if app_inst is None:
+            package_objects = [(None, self)]
+        else:
+            package_objects = app_inst._objects()
 
-        for obj in package_objects:
-            for pkgname, _ in obj.required_packages.items():
+        for _, obj in package_objects:
+            for pkgname in obj.required_packages.keys():
                 app_inst.keywords.update_keys(
                     {
                         f"{pkgname}_path": {
