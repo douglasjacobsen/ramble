@@ -171,11 +171,13 @@ class GcpMetadata(BasicModifier):
     def _process_id_map(self):
         if self._usage_mode == "local":
             return
-        with open(
-            self.expander.expand_var(
-                "{experiment_run_dir}/gcp-metadata.id.log"
-            ),
-        ) as f:
+        id_log = os.path.join(
+            self.expander.expand_var("{experiment_run_dir}"),
+            "gcp-metadata.id.log",
+        )
+        if not os.path.isfile(id_log):
+            return
+        with open(id_log) as f:
             content = f.read()
         if ":" not in content:
             return
