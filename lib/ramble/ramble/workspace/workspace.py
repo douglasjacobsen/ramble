@@ -576,7 +576,21 @@ cd "{experiment_run_dir}"
 
     @classmethod
     def _default_config_yaml(self):
-        return """\
+
+        # Construct string for default variants
+        variant_string = ""
+        variant_dict = ramble.config.get("variants")
+        variant_defs = []
+
+        for var, val in variant_dict.items():
+            variant_defs.append(f"    {var}: {val}")
+
+        if variant_defs:
+            merged_string = "\n".join(variant_defs)
+            variant_string = f"""  variants:
+{merged_string}"""
+
+        return f"""\
 # This is a ramble workspace config file.
 #
 # It describes the experiments, the software stack
@@ -594,20 +608,21 @@ cd "{experiment_run_dir}"
 #         experiments:
 #           single_node: # Arbitrary experiment name
 #             variables:
-#               n_ranks: '{processes_per_node}'
+#               n_ranks: '{{processes_per_node}}'
 
 ramble:
   env_vars:
     set:
-      OMP_NUM_THREADS: '{n_threads}'
+      OMP_NUM_THREADS: '{{n_threads}}'
+{variant_string}
   variables:
-    mpi_command: mpirun -n {n_ranks}
-    batch_submit: '{execute_experiment}'
+    mpi_command: mpirun -n {{n_ranks}}
+    batch_submit: '{{execute_experiment}}'
     processes_per_node: 1
-  applications: {}
+  applications: {{}}
   software:
-    packages: {}
-    environments: {}
+    packages: {{}}
+    environments: {{}}
 """
 
     def _read_application_config(self, path, f, raw_yaml=None):
