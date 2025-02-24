@@ -50,7 +50,7 @@ def test_known_applications(application, package_manager, mock_file_auto_create)
             "-w",
             "test_workload",
         ]
-        if package_manager == "None":
+        if package_manager == "user-managed":
             app_inst = ramble.repository.get(application)
             for pkg in app_inst.required_packages.keys():
                 args.append("-v")
