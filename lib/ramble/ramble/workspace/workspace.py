@@ -327,8 +327,14 @@ def create(name, read_default_template=True):
 
 def config_dict(yaml_data):
     """Get the configuration scope section out of a ramble.yaml"""
-    key = ramble.config.first_existing(yaml_data, ramble.schema.workspace.keys)
-    return yaml_data[key]
+    try:
+        key = ramble.config.first_existing(yaml_data, ramble.schema.workspace.keys)
+        return yaml_data[key]
+    except KeyError:
+        raise RambleActiveWorkspaceError(
+            "ramble.yaml needs to contain at least one of the "
+            f"required keys {ramble.schema.workspace.keys}"
+        )
 
 
 def get_workspace(args, cmd_name, required=False):
