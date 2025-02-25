@@ -22,6 +22,8 @@ class UserManaged(PackageManagerBase):
 
     _spec_prefix = "user_managed"
 
+    uses_software_environment = False
+
     register_phase(
         "define_requirements",
         pipeline="setup",
