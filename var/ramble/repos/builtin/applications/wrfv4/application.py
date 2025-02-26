@@ -80,13 +80,13 @@ class Wrfv4(ExecutableApplication):
 
     workload(
         "CONUS_2p5km",
-        executables=["cleanup", "copy", "execute"],
+        executables=["copy", "cleanup", "execute"],
         input="CONUS_2p5km",
     )
 
     workload(
         "CONUS_12km",
-        executables=["cleanup", "copy", "fix_12km", "execute"],
+        executables=["copy", "cleanup", "fix_12km", "execute"],
         input="CONUS_12km",
     )
 
