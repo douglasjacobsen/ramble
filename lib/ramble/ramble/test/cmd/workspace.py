@@ -617,9 +617,11 @@ ramble:
 
     ws1._re_read()
 
-    with pytest.raises(ramble.workspace.RambleWorkspaceError) as e:
+    with pytest.raises(
+        ramble.workspace.RambleWorkspaceError,
+        match="Package zlib would be defined in multiple conflicting ways",
+    ):
         workspace("concretize", global_args=["-w", workspace_name])
-        assert "Package zlib would be defined in multiple conflicting ways" in e
 
 
 def test_force_concretize():
@@ -1839,14 +1841,12 @@ ramble:
     with open(template_path, "w+") as f:
         f.write("{command}")
 
-    with pytest.raises(ramble.workspace.RambleInvalidTemplateNameError):
+    err_str = (
+        f"Template file {tpl_name}.tpl results in a template name of "
+        f"{tpl_name} which is reserved by ramble"
+    )
+    with pytest.raises(ramble.workspace.RambleInvalidTemplateNameError, match=err_str):
         ws1._re_read()
-        captured = capsys.readouterr()
-        err_str = (
-            f"Template file {tpl_name}.tpl results in a template name of"
-            + f"{tpl_name} which is reserved by ramble"
-        )
-        assert err_str in captured
 
 
 def test_custom_executables_info():

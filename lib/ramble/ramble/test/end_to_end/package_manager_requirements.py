@@ -122,7 +122,7 @@ ramble:
             f.write(test_config)
         ws._re_read()
 
-        with pytest.raises(ValidationFailedError) as e:
+        with pytest.raises(
+            ValidationFailedError, match='Validation of: "spack list not-a-package" failed'
+        ):
             workspace("setup", global_args=["-w", workspace_name])
-
-            assert 'Validation of: "spack list not-a-package" failed' in e

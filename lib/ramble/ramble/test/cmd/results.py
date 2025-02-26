@@ -20,20 +20,20 @@ INPUT_DATA = py.path.local(ramble.paths.test_path).join("data", "results_upload"
     [
         (
             py.path.local(INPUT_DATA).join("test1_empty_experiments.json"),
-            "Error parsing file: Does not contain valid data to upload.",
+            "Does not contain valid data to import.",
         ),
         (
             py.path.local(INPUT_DATA).join("test2_not_json.txt.json"),
-            "Error parsing file: Invalid JSON formatting.",
+            "Invalid JSON formatting.",
         ),
         (
             py.path.local(INPUT_DATA).join("test3_malformed_json.json"),
-            "Error parsing file: Invalid JSON formatting",
+            "Invalid JSON formatting",
         ),
     ],
 )
 def test_file_import_rejects_invalid_files(filename, expected_output, capsys):
     with pytest.raises(SystemExit):
         ramble.cmd.results.import_results_file(filename)
-        captured = capsys.readouterr()
-        assert expected_output in captured
+    captured = capsys.readouterr().err
+    assert expected_output in captured

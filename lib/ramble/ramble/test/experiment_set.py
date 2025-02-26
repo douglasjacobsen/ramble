@@ -125,13 +125,11 @@ def test_vector_length_mismatch_errors(request, mutable_mock_workspace_path, cap
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
 
-            captured = capsys.readouterr()
+        captured = capsys.readouterr().err
 
-            assert (
-                "Length mismatch in vector variables in experiment series1_{n_ranks}" in captured
-            )
-            assert "Variable wl_var2 has length 1" in captured
-            assert "Variable n_nodes has length 2" in captured
+        assert "Length mismatch in vector variables in experiment series1_{n_ranks}" in captured
+        assert "Variable processes_per_node has length 3" in captured
+        assert "Variable n_nodes has length 2" in captured
 
 
 def test_nonunique_vector_errors(mutable_mock_workspace_path, capsys):
@@ -165,8 +163,8 @@ def test_nonunique_vector_errors(mutable_mock_workspace_path, capsys):
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
 
-            captured = capsys.readouterr()
-            assert "is not unique." in captured
+        captured = capsys.readouterr().err
+        assert "is not unique." in captured
 
 
 def test_zipped_vector_experiments(mutable_mock_workspace_path):
@@ -445,8 +443,8 @@ def test_matrix_undefined_var_errors(mutable_mock_workspace_path, capsys):
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
 
-            captured = capsys.readouterr()
-            assert "variable foo has not been defined yet." in captured
+        captured = capsys.readouterr().err
+        assert "variable or zip foo has not been defined yet." in captured
 
 
 def test_experiment_names_match(mutable_mock_workspace_path):
@@ -599,14 +597,12 @@ def test_cross_experiment_missing_experiment_errors(mutable_mock_workspace_path)
         exp_set.set_application_context(application_context)
         exp_set.set_workload_context(workload_context)
 
-        with pytest.raises(ramble.expander.RambleSyntaxError) as e:
+        expected = (
+            "basic.test_wl.does_not_exist does not exist in: "
+            f'"{experiment1_context.variables["test_var"]}"'
+        )
+        with pytest.raises(ramble.expander.RambleSyntaxError, match=expected):
             exp_set.set_experiment_context(experiment1_context)
-
-            expected = (
-                "basic.test_wl_does_not_exist does not exist in "
-                f'"{experiment1_context.variables["test_var"]}"'
-            )
-            assert e.error == expected
 
 
 def test_n_ranks_correct_defaults(mutable_mock_workspace_path):
@@ -721,7 +717,7 @@ def test_processes_per_node_correct_defaults(mutable_mock_workspace_path):
 
 
 @pytest.mark.parametrize("var", ["env_path"])
-def test_reserved_keywords_error_in_application(mutable_mock_workspace_path, var, capsys):
+def test_reserved_keywords_error_in_application(mutable_mock_workspace_path, var):
     workspace("create", "test")
 
     assert "test" in workspace("list")
@@ -740,16 +736,16 @@ def test_reserved_keywords_error_in_application(mutable_mock_workspace_path, var
             "batch_submit": "",
         }
 
-        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError):
+        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError) as e:
             exp_set.set_application_context(application_context)
-            captured = capsys.readouterr()
-            assert "In application basic" in captured
-            assert f"{var}" in captured
-            assert "is reserved by ramble" in captured
+        captured = str(e.value)
+        assert "In application basic" in captured
+        assert f"{var}" in captured
+        assert "is reserved by ramble" in captured
 
 
 @pytest.mark.parametrize("var", ["env_path"])
-def test_reserved_keywords_error_in_workload(mutable_mock_workspace_path, var, capsys):
+def test_reserved_keywords_error_in_workload(mutable_mock_workspace_path, var):
     workspace("create", "test")
 
     assert "test" in workspace("list")
@@ -772,16 +768,16 @@ def test_reserved_keywords_error_in_workload(mutable_mock_workspace_path, var, c
         workload_context.variables = {"wl_var1": "1", "wl_var2": "2", var: "should_fail"}
 
         exp_set.set_application_context(application_context)
-        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError):
+        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError) as e:
             exp_set.set_workload_context(workload_context)
-            captured = capsys.readouterr()
-            assert "In workload basic.test_wl" in captured
-            assert f"{var}" in captured
-            assert "is reserved by ramble" in captured
+        captured = str(e.value)
+        assert "In workload basic.test_wl" in captured
+        assert f"{var}" in captured
+        assert "is reserved by ramble" in captured
 
 
 @pytest.mark.parametrize("var", ["env_path"])
-def test_reserved_keywords_error_in_experiment(mutable_mock_workspace_path, var, capsys):
+def test_reserved_keywords_error_in_experiment(mutable_mock_workspace_path, var):
     workspace("create", "test")
 
     assert "test" in workspace("list")
@@ -818,12 +814,12 @@ def test_reserved_keywords_error_in_experiment(mutable_mock_workspace_path, var,
 
         exp_set.set_application_context(application_context)
         exp_set.set_workload_context(workload_context)
-        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError):
+        with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError) as e:
             exp_set.set_experiment_context(experiment_context)
-            captured = capsys.readouterr()
-            assert "In experiment basic.test_wl.series1_{n_ranks}_{processes_per_node}" in captured
-            assert f"{var}" in captured
-            assert "is reserved by ramble" in captured
+        captured = str(e.value)
+        assert "In experiment basic.test_wl" in captured
+        assert f"{var}" in captured
+        assert "is reserved by ramble" in captured
 
 
 @pytest.mark.parametrize("var", ["batch_submit", "mpi_command"])
@@ -869,15 +865,9 @@ def test_missing_required_keyword_errors(mutable_mock_workspace_path, var, capsy
         exp_set.set_workload_context(workload_context)
         with pytest.raises(ramble.experiment_set.RambleVariableDefinitionError):
             exp_set.set_experiment_context(experiment_context)
-            captured = capsys.readouterr()
-            assert f'Required key "{var}" is not defined' in captured.err
-            assert (
-                "One or more required keys are not defined within an experiment." in captured.err
-            )
-            assert (
-                "In experiment basic.test_wl.series1_{n_ranks}_{processes_per_node}"
-                in captured.err
-            )
+        captured = capsys.readouterr()
+        assert f'Required key "{var}" is not defined' in captured.err
+        assert "in basic.test_wl.series1_{n_ranks}_{processes_per_node}" in captured.err
 
 
 def test_chained_experiments_populate_new_experiments(mutable_mock_workspace_path, capsys):
@@ -1003,7 +993,7 @@ def test_chained_experiment_has_correct_directory(mutable_mock_workspace_path, c
         assert chained_inst.variables["experiment_run_dir"] == expected_dir
 
 
-def test_chained_cycle_errors(mutable_mock_workspace_path, capsys):
+def test_chained_cycle_errors(mutable_mock_workspace_path):
     workspace("create", "test")
 
     assert "test" in workspace("list")
@@ -1048,13 +1038,11 @@ def test_chained_cycle_errors(mutable_mock_workspace_path, capsys):
         exp_set.set_workload_context(workload_context)
         exp_set.set_experiment_context(experiment1_context)
         exp_set.set_experiment_context(experiment2_context)
-        with pytest.raises(ChainCycleDetectedError):
+        with pytest.raises(ChainCycleDetectedError, match="Cycle detected in experiment chain"):
             exp_set.build_experiment_chains()
-            captured = capsys.readouterr
-            assert "Cycle detected in experiment chain" in captured
 
 
-def test_chained_invalid_order_errors(mutable_mock_workspace_path, capsys):
+def test_chained_invalid_order_errors(mutable_mock_workspace_path):
     workspace("create", "test")
 
     assert "test" in workspace("list")
@@ -1099,10 +1087,8 @@ def test_chained_invalid_order_errors(mutable_mock_workspace_path, capsys):
         exp_set.set_workload_context(workload_context)
         exp_set.set_experiment_context(experiment1_context)
         exp_set.set_experiment_context(experiment2_context)
-        with pytest.raises(InvalidChainError):
+        with pytest.raises(InvalidChainError, match="Invalid experiment chain defined:"):
             exp_set.build_experiment_chains()
-            captured = capsys.readouterr
-            assert "Invalid experiment chain defined:" in captured
 
 
 def test_modifiers_set_correctly(mutable_mock_workspace_path, mock_modifiers, capsys):
@@ -1356,8 +1342,8 @@ def test_zip_multi_use_var_errors(mutable_mock_workspace_path, capsys):
         exp_set.set_workload_context(workload_context)
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
-            captured = capsys.readouterr()
-            assert "Variable n_nodes is used across multiple zips" in captured
+        captured = capsys.readouterr().err
+        assert "An undefined variable n_nodes is defined in zip test_zip2" in captured
 
 
 def test_zip_non_list_var_errors(mutable_mock_workspace_path, capsys):
@@ -1384,7 +1370,7 @@ def test_zip_non_list_var_errors(mutable_mock_workspace_path, capsys):
 
         experiment_context = ramble.context.Context()
         experiment_context.context_name = "series1_{n_ranks}"
-        experiment_context.variables = {"n_nodes": ["2", "4"]}
+        experiment_context.variables = {"n_nodes": ["2", "4"], "exp_var1": ["1", "2"]}
         experiment_context.zips = {
             "test_zip": ["exp_var1", "processes_per_node"],
         }
@@ -1393,11 +1379,8 @@ def test_zip_non_list_var_errors(mutable_mock_workspace_path, capsys):
         exp_set.set_workload_context(workload_context)
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
-            captured = capsys.readouterr()
-            assert (
-                "Variable processes_per_node in zip test_zip does not refer to a vector"
-                in captured
-            )
+        captured = capsys.readouterr().err
+        assert "Variable processes_per_node in zip test_zip does not refer to a vector" in captured
 
 
 def test_zip_variable_lengths_errors(mutable_mock_workspace_path, capsys):
@@ -1435,10 +1418,10 @@ def test_zip_variable_lengths_errors(mutable_mock_workspace_path, capsys):
         exp_set.set_workload_context(workload_context)
         with pytest.raises(SystemExit):
             exp_set.set_experiment_context(experiment_context)
-            captured = capsys.readouterr()
-            assert "Length mismatch in zip test_zip in experiment series1_{n_ranks}" in captured
-            assert "Variable processes_per_node has length 1" in captured
-            assert "Variable n_nodes has length 2" in captured
+        captured = capsys.readouterr().err
+        assert "Variable processes_per_node in zip" in captured
+        assert "has a length of 1" in captured
+        assert "differs from the current max of 2" in captured
 
 
 def test_vector_experiment_with_explicit_excludes(mutable_mock_workspace_path):

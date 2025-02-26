@@ -25,7 +25,9 @@ workspace = RambleCommand("workspace")
 
 
 def test_unsetup_workspace_cannot_analyze(
-    mutable_config, mutable_mock_workspace_path, mock_applications, capsys
+    mutable_config,
+    mutable_mock_workspace_path,
+    mock_applications,
 ):
     test_config = """
 ramble:
@@ -70,5 +72,7 @@ ramble:
         assert not os.path.exists(os.path.join(ws.experiment_dir, "zlib"))
 
         with pytest.raises(RambleCommandError):
-            output = workspace("analyze", global_args=["-w", workspace_name])
-            assert "Make sure your workspace is fully setup" in output
+            workspace("analyze", global_args=["-w", workspace_name])
+        analyze_log = os.path.join(ws.log_dir, "analyze.latest.out")
+        with open(analyze_log) as f:
+            assert "Make sure your workspace is setup" in f.read()

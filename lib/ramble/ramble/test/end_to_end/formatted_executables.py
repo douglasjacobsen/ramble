@@ -135,6 +135,7 @@ ramble:
 
         ws._re_read()
 
-        with pytest.raises(FormattedExecutableError):
-            output = workspace("setup", "--dry-run", global_args=["-w", workspace_name])
-            assert "Formatted executable var_exec_name defined" in output
+        with pytest.raises(
+            FormattedExecutableError, match="Formatted executable var_exec_name defined"
+        ):
+            workspace("setup", "--dry-run", global_args=["-w", workspace_name])
