@@ -23,6 +23,7 @@ _STATUS_MAP = {
     "CANCELLED": "CANCELLED",
     "CANCELLED+": "CANCELLED",
     "FAILED": "FAILED",
+    "TIMEOUT": "TIMEOUT",
 }
 
 
