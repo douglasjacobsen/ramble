@@ -476,9 +476,8 @@ def test_multiple_groupby(mutable_mock_workspace_path, tmpdir_factory, capsys):
     with PdfPages(pdf_path) as pdf_report:
         with pytest.raises(SystemExit):
             plot.generate_plot_data(pdf_report)
-
-            captured = capsys.readouterr()
-            assert "Error: Attempting to plot non-unique data." in captured
+        captured = capsys.readouterr().err
+        assert "Error: Attempting to plot non-unique data." in captured
 
     test_spec = ["fom_1", "n_nodes", "simplified_workload_namespace", "fom_origin"]
     plot = StrongScalingPlot(test_spec, False, report_dir_path, test_df, logx, logy, split_by)

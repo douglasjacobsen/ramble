@@ -113,7 +113,8 @@ ramble:
 
         config("add", "config:disable_passthrough:true")
 
-        with pytest.raises(RambleSyntaxError):
-            captured = workspace("setup", "--dry-run", global_args=["-w", workspace_name])
-
-            assert "Encountered a passthrough error while expanding {mpi_command}" in captured
+        with pytest.raises(
+            RambleSyntaxError,
+            match="Encountered a passthrough error while expanding {mpi_command}",
+        ):
+            workspace("setup", "--dry-run", global_args=["-w", workspace_name])

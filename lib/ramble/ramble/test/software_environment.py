@@ -226,7 +226,7 @@ def test_undefined_package_errors(request, mutable_mock_workspace_path):
         env_expander = ramble.expander.Expander(variables, None)
 
         with pytest.raises(ramble.software_environments.RambleSoftwareEnvironmentError) as pkg_err:
-            _ = software_environments.render_environment(
+            software_environments.render_environment(
                 "all-basic-environment", env_expander, _get_package_manager()
             )
 
@@ -277,7 +277,7 @@ def test_invalid_packages_error(request, mutable_mock_workspace_path):
             }
             env_expander = ramble.expander.Expander(variables, None)
 
-            _ = software_environments.render_environment(
+            software_environments.render_environment(
                 "all-basic-environment", env_expander, _get_package_manager()
             )
         assert "Package basic-package defined multiple times" in str(pkg_err)
@@ -321,7 +321,7 @@ def test_invalid_environment_error(request, mutable_mock_workspace_path):
         env_expander = ramble.expander.Expander(variables, None)
 
         with pytest.raises(ramble.software_environments.RambleSoftwareEnvironmentError) as env_err:
-            _ = software_environments.render_environment(
+            software_environments.render_environment(
                 "all-basic-environment", env_expander, _get_package_manager()
             )
 
@@ -351,12 +351,10 @@ def test_undefined_compiler_errors(request, mutable_mock_workspace_path):
         env_expander = ramble.expander.Expander(variables, None)
 
         with pytest.raises(
-            ramble.software_environments.RambleSoftwareEnvironmentError
-        ) as comp_err:
-            _ = software_environments.render_environment(
-                "basic", env_expander, _get_package_manager()
-            )
-        assert "Compiler foo_comp used, but not defined" in str(comp_err)
+            ramble.software_environments.RambleSoftwareEnvironmentError,
+            match="Compiler foo_comp used, but not defined",
+        ):
+            software_environments.render_environment("basic", env_expander, _get_package_manager())
 
 
 def test_compiler_in_environment_warns(request, mutable_mock_workspace_path, capsys):

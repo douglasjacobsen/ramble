@@ -63,9 +63,11 @@ def test_gromacs_dry_run_mock_mods(
         ws1._re_read()
 
         if modifier_mode != "disabled" and mock_modifier in expected_failures:
-            with pytest.raises(expected_failures[mock_modifier]["error"]) as err:
+            with pytest.raises(
+                expected_failures[mock_modifier]["error"],
+                match=expected_failures[mock_modifier]["msg"],
+            ):
                 workspace("concretize", global_args=["-D", ws1.root])
-                assert expected_failures[mock_modifier]["msg"] in err
         else:
             workspace("concretize", global_args=["-D", ws1.root])
             workspace("setup", "--dry-run", global_args=["-D", ws1.root])

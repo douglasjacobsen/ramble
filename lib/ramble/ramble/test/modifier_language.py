@@ -150,12 +150,13 @@ def test_variable_modification_invalid_method(mod_class):
     var_mod_method = "invalid"
     var_mod_mode = "invalid_method_mode"
 
-    with pytest.raises(DirectiveError) as err:
+    with pytest.raises(
+        DirectiveError, match="variable_modification directive given an invalid method"
+    ):
         mod_inst = mod_class("/not/a/path")
         mod_inst.variable_modification(
             var_mod_name, var_mod_mod, var_mod_method, mode=var_mod_mode
         )
-        assert "variable_modification directive given an invalid method" in err
 
 
 @pytest.mark.parametrize("mod_class", mod_types)
@@ -164,11 +165,9 @@ def test_variable_modification_missing_mode(mod_class):
     var_mod_mod = "missing_mode_mod"
     var_mod_method = "set"
 
-    with pytest.raises(DirectiveError) as err:
+    with pytest.raises(DirectiveError, match="mode or modes to be defined"):
         mod_inst = mod_class("/not/a/path")
         mod_inst.variable_modification(var_mod_name, var_mod_mod, var_mod_method)
-        assert "variable_modification directive requires:" in err
-        assert "mode or modes to be defined." in err
 
 
 def add_software_spec(mod_inst, spec_num=1):

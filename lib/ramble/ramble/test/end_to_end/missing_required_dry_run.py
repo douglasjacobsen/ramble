@@ -72,6 +72,7 @@ ramble:
         ws._re_read()
 
         with pytest.raises(RambleCommandError):
-            captured = workspace("setup", "--dry-run", global_args=["-w", workspace_name])
-
-            assert "Software spec wrf is not defined in environment wrfv3" in captured
+            workspace("setup", "--dry-run", global_args=["-w", workspace_name])
+        setup_log = os.path.join(ws.log_dir, "setup.latest.out")
+        with open(setup_log) as f:
+            assert "Software spec wrf is not defined in environment wrfv3" in f.read()
