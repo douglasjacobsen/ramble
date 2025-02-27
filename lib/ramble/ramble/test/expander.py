@@ -94,6 +94,7 @@ def exp_dict():
         ("maybe(env_name, foo)", "spack_foo.bar", set(), 1),
         ("maybe(not_a_var, foo)", "foo", set(), 1),
         ("maybe(not_a_var)", "", set(), 1),
+        ("2.1.a", "2.1.a", set(), 1),
     ],
 )
 def test_expansions(input, output, no_expand_vars, passes):
