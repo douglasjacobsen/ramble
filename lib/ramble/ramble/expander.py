@@ -40,6 +40,13 @@ def _safe_str_node_check(node):
     return hasattr(ast, "Str") and isinstance(node, ast.Str)
 
 
+def _maybe(expander, var_name, default=""):
+    try:
+        return expander.expand_var_name(var_name, allow_passthrough=False)
+    except RambleSyntaxError:
+        return default
+
+
 supported_math_operators = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -72,6 +79,11 @@ supported_scalar_function_pointers = {
     "randint": random.randint,
     "simplify_str": spack.util.naming.simplify_name,
     "re_search": _re_search,
+}
+
+# Functions that need to be supplied with the expander
+supported_scalar_function_with_self_arg_pointers = {
+    "maybe": _maybe,
 }
 
 
@@ -794,6 +806,9 @@ class Expander:
             return list(func(*args, **kwargs))
         elif node.func.id == "replace":
             return str(args[0]).replace(*args[1:], **kwargs)
+        elif node.func.id in supported_scalar_function_with_self_arg_pointers.keys():
+            func = supported_scalar_function_with_self_arg_pointers[node.func.id]
+            return func(self, *args, **kwargs)
         else:
             raise MathEvaluationError(
                 f"Undefined function {node.func.id} used.\n" "returning unexapanded string"

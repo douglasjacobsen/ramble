@@ -175,6 +175,7 @@ Supported functions are:
 * ``randrange`` (from `random.randrange`)
 * ``randint`` (from `random.randint`)
 * ``re_search(regex, str)`` (determine if ``str`` contains pattern ``regex``, based on ``re.search``)
+* ``maybe(var_name, default="")`` (returns the expanded ``var_name`` if it is defined, otherwise returns ``default``)
 
 String slicing is supported:
 
