@@ -783,7 +783,9 @@ class Expander:
         elif isinstance(node.value, ast.Name):
             base = self._ast_name(node.value)
         else:
-            self.__raise_syntax_error(node)
+            self.__dbg_syntax_error(
+                " Unknown attribute syntax used.\nreturning unexpanded string", node
+            )
 
         val = f"{base}.{node.attr}"
         return val
