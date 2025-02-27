@@ -79,6 +79,7 @@ experiment_status = Enum(
         "SUCCESS",
         "FAILED",
         "CANCELLED",
+        "TIMEOUT",
     ],
 )
 
