@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,18 +6,21 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
+from collections import defaultdict
 import enum
+import itertools
 import graphlib
 
 import ramble.error
 import ramble.util.graph
+from ramble.util.naming import NS_SEPARATOR
 
 from ramble.util.logger import logger
 
 
-class AttributeGraph(object):
+class AttributeGraph:
 
-    node_type = 'object'
+    node_type = "object"
 
     def __init__(self, obj_inst):
         self._obj_inst = obj_inst
@@ -32,7 +35,7 @@ class AttributeGraph(object):
             self._sorted = None
             self._prepared = False
 
-    def update_graph(self, node, dep_nodes=[], internal_order=False):
+    def update_graph(self, node, dep_nodes=None, internal_order=False):
         """Update the graph with a new node and / or new dependencies.
 
         Given a node, and list of dependencies, define new edges in the
@@ -40,12 +43,14 @@ class AttributeGraph(object):
 
         Args:
             node (GraphNode): Node to inject or modify
-            dep_nodes (list(GraphNode)): List of nodes that are dependencies
+            dep_nodes (list(GraphNode) | None): List of nodes that are dependencies
             internal_order (Boolean): True to process internal dependencies,
                                       False to skip
 
         """
 
+        if dep_nodes is None:
+            dep_nodes = []
         self._make_editable()
         self.add_node(node)
         self.define_edges(node, dep_nodes, internal_order=internal_order)
@@ -65,7 +70,7 @@ class AttributeGraph(object):
         if node not in self.adj_list:
             self.adj_list[node] = set()
 
-    def define_edges(self, node, dep_nodes=[], internal_order=False):
+    def define_edges(self, node, dep_nodes=None, internal_order=False):
         """Define graph edges
 
         Process dependencies, and internal orderings (inside the node object)
@@ -73,11 +78,13 @@ class AttributeGraph(object):
 
         Args:
             node (GraphNode): Node to inject or modify
-            dep_nodes (list(GraphNode)): List of nodes that are dependencies
+            dep_nodes (list(GraphNode) | None): List of nodes that are dependencies
             internal_order (Boolean): True to process internal dependencies,
                                      False to skip
         """
 
+        if dep_nodes is None:
+            dep_nodes = []
         for dep in dep_nodes:
             if dep.key not in self.node_definitions:
                 self.node_definitions[dep.key] = dep
@@ -103,7 +110,14 @@ class AttributeGraph(object):
             node (GraphNode): Each node in the graph
         """
         if not self._prepared:
-            sorter = graphlib.TopologicalSorter(self.adj_list)
+            try:
+                sorter = graphlib.TopologicalSorter(self.adj_list)
+            except AttributeError:
+                logger.die(
+                    "graphlib.TopologicalSorter is not found."
+                    "Ensure requirements.txt are installed (including backports, where needed)."
+                )
+
             try:
                 self._sorted = tuple(sorter.static_order())
             except graphlib.CycleError as e:
@@ -111,13 +125,13 @@ class AttributeGraph(object):
                     exp_name = self._obj_inst.expander.experiment_namespace
                 except AttributeError:
                     exp_name = self._obj_inst.name
-                raise GraphCycleError(f'In experiment {exp_name} a cycle was detected '
-                                      f'when processing the {self.node_type} graph.\n'
-                                      + str(e))
+                raise GraphCycleError(
+                    f"In experiment {exp_name} a cycle was detected "
+                    f"when processing the {self.node_type} graph.\n" + str(e)
+                )
             self._prepared = True
 
-        for node in self._sorted:
-            yield node
+        yield from self._sorted
 
     def get_node(self, key):
         """Given a key, return the node containing this key
@@ -137,7 +151,7 @@ class AttributeGraph(object):
 
 class PhaseGraph(AttributeGraph):
 
-    node_type = 'phase'
+    node_type = "phase"
 
     def __init__(self, phase_definitions, obj_inst):
         """Construct a phase graph for a pipeline
@@ -160,7 +174,7 @@ class PhaseGraph(AttributeGraph):
                 phase_node.obj_inst = obj_inst
 
             if phase_node.attribute is None:
-                phase_func = getattr(obj_inst, f'_{phase_node.key}')
+                phase_func = getattr(obj_inst, f"_{phase_node.key}")
                 phase_node.set_attribute(phase_func)
 
             self.add_node(phase_node)
@@ -183,13 +197,12 @@ class PhaseGraph(AttributeGraph):
         if func_obj is None:
             func_obj = self._obj_inst
 
-        phase_func = getattr(func_obj, f'_{node.key}')
+        phase_func = getattr(func_obj, f"_{node.key}")
         node.set_attribute(phase_func)
 
         super().add_node(node)
 
-    def update_graph(self, phase_name, dependencies=[],
-                     internal_order=False, obj_inst=None):
+    def update_graph(self, phase_name, dependencies=None, internal_order=False, obj_inst=None):
         """Update the graph with a new phase and / or new dependencies.
 
         Given a phase name, and list of dependencies, define new edges in the
@@ -197,11 +210,13 @@ class PhaseGraph(AttributeGraph):
 
         Args:
             phase_name (str): Name of the phase to inject or modify
-            dependencies (list(str)): List of phase names to inject dependencies on
+            dependencies (list(str) | None): List of phase names to inject dependencies on
             internal_order (Boolean): True to process internal dependencies,
                                       False to skip
             obj_inst (object): Application or modifier instance to extract phase function from
         """
+        if dependencies is None:
+            dependencies = []
         if self._prepared:
             del self._sorted
             self._sorted = None
@@ -228,8 +243,8 @@ class PhaseGraph(AttributeGraph):
 class ExecutableGraph(AttributeGraph):
     """Graph that handles command executables and builtins"""
 
-    node_type = 'command executable'
-    supported_injection_orders = enum.Enum('supported_injection_orders', ['before', 'after'])
+    node_type = "command executable"
+    supported_injection_orders = enum.Enum("supported_injection_orders", ["before", "after"])
 
     def __init__(self, exec_order, executables, builtin_objects, builtin_groups, obj_inst):
         """Construct a new ExecutableGraph
@@ -252,7 +267,9 @@ class ExecutableGraph(AttributeGraph):
             obj_inst (object): Object instance to extract attributes from (when necessary)
         """
         super().__init__(obj_inst)
-        self._builtin_dependencies = {}
+        self._builtin_dependencies = defaultdict(list)
+        # Mapping from shorter_name -> fully qualified names
+        self._builtin_aliases = defaultdict(list)
 
         # Define nodes for executable
         for exec_name, cmd_exec in executables.items():
@@ -264,12 +281,17 @@ class ExecutableGraph(AttributeGraph):
         # Define nodes for builtins
         for builtin_obj, builtins in zip(builtin_objects, builtin_groups):
             for builtin, blt_conf in builtins.items():
-                self._builtin_dependencies[builtin] = blt_conf['depends_on'].copy()
-                blt_func = getattr(builtin_obj, blt_conf['name'])
-                exec_node = ramble.util.graph.GraphNode(builtin,
-                                                        attribute=blt_func,
-                                                        obj_inst=builtin_obj)
+                self._builtin_dependencies[builtin] = blt_conf["depends_on"].copy()
+                blt_func = getattr(builtin_obj, blt_conf["name"])
+                exec_node = ramble.util.graph.GraphNode(
+                    builtin, attribute=blt_func, obj_inst=builtin_obj
+                )
                 self.node_definitions[builtin] = exec_node
+                self._build_builtin_aliases(builtin)
+            for builtin, blt_conf in builtins.items():
+                dependents = blt_conf["dependents"].copy()
+                for dependent in dependents:
+                    self._builtin_dependencies[dependent].append(builtin)
 
         dep_exec = None
         for exec_name in exec_order:
@@ -292,18 +314,21 @@ class ExecutableGraph(AttributeGraph):
         # Add (missing) required builtins
         for builtins in builtin_groups:
             for builtin, blt_conf in builtins.items():
-                if blt_conf['required'] and self.get_node(builtin) is None:
+                if blt_conf["required"] and self.get_node(builtin) is None:
                     blt_node = self.node_definitions[builtin]
                     super().update_graph(blt_node)
 
-                    if blt_conf['injection_method'] == 'prepend':
+                    # TODO: This should include `depends_on` as well.
+                    relative = bool(blt_conf["dependents"])
+
+                    if not relative and blt_conf["injection_method"] == "prepend":
                         if head_node is not None:
                             super().update_graph(head_node, [blt_node])
 
                         if tail_prepend_builtin is not None:
                             super().update_graph(blt_node, [tail_prepend_builtin])
                         tail_prepend_builtin = blt_node
-                    elif blt_conf['injection_method'] == 'append':
+                    elif not relative and blt_conf["injection_method"] == "append":
                         if tail_node is not None:
                             super().update_graph(blt_node, [tail_node])
 
@@ -311,15 +336,22 @@ class ExecutableGraph(AttributeGraph):
                             super().update_graph(blt_node, [tail_append_builtin])
                         tail_append_builtin = blt_node
 
-                    if blt_conf['depends_on']:
+                    if blt_conf["depends_on"]:
                         deps = []
-                        for dep in blt_conf['depends_on']:
-                            dep_node = self.node_definitions[dep]
+                        for dep in blt_conf["depends_on"]:
+                            dep_node = self._resolve_builtin_node(dep)
                             super().update_graph(dep_node)
                             deps.append(dep_node)
 
                         exec_node = self.node_definitions[builtin]
                         super().update_graph(exec_node, deps)
+
+                    if blt_conf["dependents"]:
+                        exec_node = self.node_definitions[builtin]
+                        super().update_graph(exec_node)
+                        for dependent in blt_conf["dependents"]:
+                            dependent_node = self._resolve_builtin_node(dependent)
+                            super().update_graph(dependent_node, [exec_node])
 
     def inject_executable(self, exec_name, injection_order, relative):
         """Inject an executable into the graph
@@ -348,17 +380,21 @@ class ExecutableGraph(AttributeGraph):
         order = self.supported_injection_orders.after
         if injection_order is not None:
             if not hasattr(self.supported_injection_orders, injection_order):
-                logger.die('In experiment '
-                           f'"{exp_name}" '
-                           f'injection order of executable "{exec_name}" is set to an '
-                           f'invalid value of "{injection_order}".\n'
-                           f'Valid values are {self.supported_injection_orders}.')
+                logger.die(
+                    "In experiment "
+                    f'"{exp_name}" '
+                    f'injection order of executable "{exec_name}" is set to an '
+                    f'invalid value of "{injection_order}".\n'
+                    f"Valid values are {self.supported_injection_orders}."
+                )
             order = getattr(self.supported_injection_orders, injection_order)
 
         if exec_name not in self.node_definitions:
-            logger.die('In experiment '
-                       f'"{exp_name}" '
-                       f'attempting to inject a non existing executable "{exec_name}".')
+            logger.die(
+                "In experiment "
+                f'"{exp_name}" '
+                f'attempting to inject a non existing executable "{exec_name}".'
+            )
 
         if relative is not None:
             relative_error = False
@@ -370,10 +406,12 @@ class ExecutableGraph(AttributeGraph):
                 relative_error = True
 
             if relative_error:
-                logger.die('In experiment '
-                           f'"{exp_name}" '
-                           f'attempting to inject executable "{exec_name}" '
-                           f'relative to a non existing executable "{relative}".')
+                logger.die(
+                    "In experiment "
+                    f'"{exp_name}" '
+                    f'attempting to inject executable "{exec_name}" '
+                    f'relative to a non existing executable "{relative}".'
+                )
 
             relative_node = self.node_definitions[relative]
             order_index = cur_exec_order.index(relative_node)
@@ -405,6 +443,23 @@ class ExecutableGraph(AttributeGraph):
                 dep_nodes.append(dep_node)
             super().update_graph(exec_node, dep_nodes)
 
+    def _build_builtin_aliases(self, full_builtin_name):
+        ns_list_r = full_builtin_name.split(NS_SEPARATOR)[::-1][:-1]
+        for alias in itertools.accumulate(ns_list_r, lambda accu, ns: f"{ns}{NS_SEPARATOR}{accu}"):
+            self._builtin_aliases[alias].append(full_builtin_name)
+
+    def _resolve_builtin_node(self, builtin_name):
+        if builtin_name in self.node_definitions:
+            return self.node_definitions[builtin_name]
+        full_names = self._builtin_aliases.get(builtin_name, None)
+        if full_names is None:
+            raise GraphNodeNotFoundError(f"builtin {builtin_name} does not exist")
+        if len(full_names) > 1:
+            raise GraphNodeAmbiguousError(
+                f"builtin {builtin_name} matches more than one node ({full_names})"
+            )
+        return self.node_definitions[full_names[0]]
+
 
 class GraphError(ramble.error.RambleError):
     """
@@ -415,4 +470,16 @@ class GraphError(ramble.error.RambleError):
 class GraphCycleError(GraphError):
     """
     Exception raised when a cycle is detected in a graph
+    """
+
+
+class GraphNodeAmbiguousError(GraphError):
+    """
+    Exception raised when the given name can be resolved to non-unique nodes
+    """
+
+
+class GraphNodeNotFoundError(GraphError):
+    """
+    Exception raised when the given name cannot be resolved to a node
     """

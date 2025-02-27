@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -13,20 +13,22 @@ import pytest
 import ramble.workspace
 import ramble.config
 import ramble.software_environments
-from ramble.main import RambleCommand, RambleCommandError
+from ramble.main import RambleCommand
+from ramble.error import RambleCommandError
 
 
 # everything here uses the mock_workspace_path
-pytestmark = pytest.mark.usefixtures('mutable_config',
-                                     'mutable_mock_workspace_path')
+pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_path")
 
-workspace = RambleCommand('workspace')
+workspace = RambleCommand("workspace")
 
 
 def test_missing_required_dry_run(mutable_config, mutable_mock_workspace_path):
-    """Tests tty.die at end of ramble.application_types.spack._create_spack_env"""
+    """Tests tty.die at end of ramble.application_types.spack._create_software_env"""
     test_config = """
 ramble:
+  variants:
+    package_manager: spack
   variables:
     mpi_command: 'mpirun -n {n_ranks} -ppn {processes_per_node}'
     batch_submit: 'batch_submit {execute_experiment}'
@@ -41,16 +43,16 @@ ramble:
             eight_node:
               variables:
                 n_nodes: '8'
-  spack:
+  software:
     packages:
       gcc8:
-        spack_spec: gcc@8.2.0 target=x86_64
+        pkg_spec: gcc@8.2.0 target=x86_64
         compiler_spec: gcc@8.2.0
       impi2018:
-        spack_spec: intel-mpi@2018.4.274 target=x86_64
+        pkg_spec: intel-mpi@2018.4.274 target=x86_64
         compiler: gcc8
       wrfv3:
-        spack_spec: my_wrf@3.9.1.1 build_type=dm+sm compile_type=em_real nesting=basic ~pnetcdf
+        pkg_spec: my_wrf@3.9.1.1 build_type=dm+sm compile_type=em_real nesting=basic ~pnetcdf
         compiler: gcc8
     environments:
       wrfv3:
@@ -59,19 +61,17 @@ ramble:
         - wrfv3
 """
 
-    workspace_name = 'test_missing_required_dry_run'
+    workspace_name = "test_missing_required_dry_run"
     with ramble.workspace.create(workspace_name) as ws:
         ws.write()
 
         config_path = os.path.join(ws.config_dir, ramble.workspace.config_file_name)
 
-        with open(config_path, 'w+') as f:
+        with open(config_path, "w+") as f:
             f.write(test_config)
         ws._re_read()
 
         with pytest.raises(RambleCommandError):
-            captured = workspace('setup',
-                                 '--dry-run',
-                                 global_args=['-w', workspace_name])
+            captured = workspace("setup", "--dry-run", global_args=["-w", workspace_name])
 
             assert "Software spec wrf is not defined in environment wrfv3" in captured

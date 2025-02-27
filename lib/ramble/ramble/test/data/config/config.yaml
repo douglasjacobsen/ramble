@@ -5,5 +5,7 @@ config:
         flags: --reuse
       concretize:
         flags: --reuse
+      env_view:
+        link_type: symlink
     include:
       - test_include: include.yaml

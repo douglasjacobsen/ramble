@@ -1,4 +1,5 @@
-# Copyright 2022-2024 The Ramble Authors
+#!/bin/bash -e
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -145,6 +146,23 @@ _ramble_shell_wrapper() {
                             eval $(command ramble $_rmb_flags workspace deactivate --sh)
                         fi
                         ;;
+                    create)
+                        _a=" $@"
+                        if [ "${_a#* -a}" != "$_a" ] || \
+                           [ "${_a#* --activate}" != "$_a" ];
+                        then
+                            # With -a, the command writes only the activation command
+                            # into stdout (`ramble workspace activate <ws>`.)
+                            # And the eval routes that command back to the wrapper to
+                            # inject shell args, etc.
+                            _activate_cmd="$(command ramble $_rmb_flags workspace create "$@")"
+                            eval $_activate_cmd
+                            _workspace="$(echo $_activate_cmd | awk '{print $NF}')"
+                            echo "==> Created and activated workspace in $_workspace"
+                        else
+                            command ramble $_rmb_flags workspace create "$@"
+                        fi
+                        ;;
                     *)
                         command ramble $_rmb_flags workspace $_rmb_arg "$@"
                         ;;
@@ -289,6 +307,14 @@ if [ "$_rmb_shell" = bash ]; then
     export -f ramble
     export -f _ramble_shell_wrapper
 fi
+
+# Identify and lock the python interpreter
+for cmd in "${RAMBLE_PYTHON:-}" python3 python python2; do
+    if command -v > /dev/null "$cmd"; then
+        export RAMBLE_PYTHON="$(command -v "$cmd")"
+        break
+    fi
+done
 
 # Add programmable tab completion for Bash
 #

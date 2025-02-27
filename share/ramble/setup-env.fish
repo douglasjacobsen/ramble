@@ -6,7 +6,7 @@
 
 #################################################################################
 #
-# This file is part of RAmble and sets up the ramble environment for the friendly
+# This file is part of Ramble and sets up the ramble environment for the friendly
 # interactive shell (fish). This includes module support, and it also puts ramble
 # in your path. The script also checks that at least module support exists, and
 # provides suggestions if it doesn't. Source it like this:
@@ -359,6 +359,20 @@ function check_workspace_deactivate_flags -d "check ramble workspace subcommand 
 end
 
 
+function check_workspace_create_with_activate_flags -d "check create for activate flags"
+    set -l _a "$argv"
+
+    if test -n "$_a"
+        if match_flag $_a "-a"
+            return 0
+        end
+        if match_flag $_a "--activate"
+            return 0
+        end
+    end
+
+    return 1
+end
 
 
 #
@@ -470,6 +484,23 @@ function ramble_runner -d "Runner function for the `ramble` wrapper"
                                 end
                                 return 1
                             end
+                        end
+
+                    case "create"
+                        set -l _a (stream_args $__rmb_remaining_args)
+
+                        if check_workspace_create_with_activate_flags $_a
+                            set -l rmb_workspace_cmd "command ramble $rmb_flags workspace create $__rmb_remaining_args"
+                            capture_all $rmb_workspace_cmd __rmb_stat __rmb_stdout __rmb_stderr
+                            if test -n "$__rmb_stderr"
+                                echo -s \n$__rmb_stderr 1>&2  # current fish bug: handle stderr manually
+                            end
+                            set -l activate_cmd $__rmb_stdout
+                            eval $activate_cmd
+                            set -l ws (echo $activate_cmd | awk '{print $NF}')
+                            echo "==> Created and activated workspace in $ws"
+                        else
+                            command ramble workspace create $_a
                         end
 
                     case "*"
@@ -603,6 +634,17 @@ end
 # Figure out where this file is. Below code only needs to work in fish
 #
 set -l rmb_source_file (status -f)  # name of current file
+
+#
+# Identify and lock the python interpreter
+#
+for cmd in "$RAMBLE_PYTHON" python3 python python2
+    set -l _rmb_python (command -v "$cmd")
+    if test $status -eq 0
+        set -x RAMBLE_PYTHON $_rmb_python
+        break
+    end
+end
 
 
 

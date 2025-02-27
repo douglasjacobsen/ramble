@@ -1,4 +1,4 @@
-.. Copyright 2022-2024 The Ramble Authors
+.. Copyright 2022-2025 The Ramble Authors
 
    Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
    https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -128,16 +128,16 @@ available variables with the following command:
 
 .. code-block:: console
 
-    $ ramble info gromacs
+    $ ramble info --attrs workloads -v -p "water*" gromacs
 
-
-Focusing on the relevant workloads, you see the following information:
+Which should contain the following information:
 
 .. code-block:: console
 
     Workload: water_gmx50
-        Executables: ['builtin::env_vars', 'builtin::spack_source', 'builtin::spack_activate', 'pre-process', 'execute-gen']
+        Executables: ['pre-process', 'execute-gen']
         Inputs: ['water_gmx50_bare']
+        Tags: []
         Variables:
             size:
                 Description: Workload size
@@ -151,8 +151,9 @@ Focusing on the relevant workloads, you see the following information:
                 Description: Input path for water GMX50
                 Default: {water_gmx50_bare}/{size}
     Workload: water_bare
-        Executables: ['builtin::env_vars', 'builtin::spack_source', 'builtin::spack_activate', 'pre-process', 'execute-gen']
+        Executables: ['pre-process', 'execute-gen']
         Inputs: ['water_bare_hbonds']
+        Tags: []
         Variables:
             size:
                 Description: Workload size

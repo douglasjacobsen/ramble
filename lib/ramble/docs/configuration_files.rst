@@ -1,4 +1,4 @@
-.. Copyright 2022-2024 The Ramble Authors
+.. Copyright 2022-2025 The Ramble Authors
 
    Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
    https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -18,7 +18,7 @@ This document describes each config section and its purpose. This document
 does not cover the :ref:`workspace configuration file<workspace-config>`, which has its own document.
 
 Ramble's configuration logic closely follows
-`Spack's configuration logic <https://spack.readthedocs.io/en/latest/configuration.html>`.
+`Spack's configuration logic <https://spack.readthedocs.io/en/latest/configuration.html>`_.
 
 -----------------------
 Configuration Sections:
@@ -36,9 +36,10 @@ Currently, Ramble supports the following configuration sections:
 * :ref:`modifier_repos <modifier-repos-config>`
 * :ref:`modifiers <modifiers-config>`
 * :ref:`repos <repos-config>`
-* :ref:`spack <spack-config>`
+* :ref:`software <software-config>`
 * :ref:`success_criteria <success-criteria-config>`
 * :ref:`variables <variables-config>`
+* :ref:`variants <variants-config>`
 
 Each of these config sections has a defined schema contained in
 ``lib/ramble/ramble/schemas``.
@@ -70,15 +71,24 @@ highest) Ramble contains the following scopes:
 5. **custom**: Stored in a custom directory, specified by ``--config-scope``.
    If multiple scopes are listed on the command line, they are ordered from lowest
    to highest precedence. Settings here override all previously defined scoped.
-6. **workspace configs dir**: Stored in ``$(workspace_root)/configs``
-   generally as a ``<config_section>.yaml`` file (i.e. ``variables.yaml``). These
-   settings apply to a specific workspace, and override all previous configuration
-   scopes.
+6. **included files in workspace configuration file**: Paths referred to in the
+   file from #7 above. For more information see the
+   :ref:`documentation for including external configuration files<workspace_including_external_files>`.
 7. **workspace configuration file**: Stored in
    ``$(workspace_root)/configs/ramble.yaml``. Configuration scopes defined within
    this config file override all previously defined configuration scopes.
-8. **command line**: Configuration options defined on the command line take
+8. **workspace configs dir**: Stored in ``$(workspace_root)/configs``
+   generally as a ``<config_section>.yaml`` file (i.e. ``variables.yaml``). These
+   settings apply to a specific workspace, and override all previous configuration
+   scopes.
+9. **command line**: Configuration options defined on the command line take
    precedence over all other scopes.
+10. **application / workload / experiment scope sections**: Several
+    configuration sections can be defined within the ``application``,
+    ``workload``, and ``experiment`` portions of the ``applications``
+    configuration section. These will override all other scopes. See the
+    :ref:`application section documentation<application-config>` for more
+    details.
 
 Each configuration directory may contain several configuration files, such as
 ``config.yaml``, ``variables.yaml``, or ``modifiers.yaml``. When configurations
@@ -97,7 +107,7 @@ this command with an active workspace will include configuration sections
 defined within a workspace scope.
 
 Ramble's merging logic closely follows `Spack's configuration scope logic
-<https://spack.readthedocs.io/en/latest/configuration.html#configuration-scopes>`.
+<https://spack.readthedocs.io/en/latest/configuration.html#configuration-scopes>`_.
 
 .. _application-config:
 
@@ -131,6 +141,7 @@ In the above ``[optional_definitions]`` can include any of:
 * :ref:`modifiers <modifiers-config>`
 * :ref:`success_criteria <success-criteria-config>`
 * :ref:`variables <variables-config>`
+* :ref:`variants <variants-config>`
 
 Each of these will be described in their own section below.
 
@@ -165,11 +176,34 @@ The current default configuration is as follows:
           flags: ''
         global
           flags: ''
+        env_view:
+          link_type: 'symlink'
       input_cache: '$ramble/var/ramble/cache'
       workspace_dirs: '$ramble/var/ramble/workspaces'
       upload:
         type: 'BigQuery'
         uri: ''
+
+
+.. _spack-config-option:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spack
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``spack`` config options within the config configuration section can be used to
+customize Spack's behavior. The ``install``, ``concretize``, ``buildcache``,
+and ``env_create`` sections can be used to customize the flags passed to these
+Spack commands (with ``env_create`` being equivalent to ``spack env create``).
+
+The ``global`` section is used to define flags that should be passed to
+``spack`` directly, as in:
+``spack {flags} {subcommand}...``
+
+The ``env_view`` section is used to customize the `spack environment views
+<https://spack.readthedocs.io/en/latest/environments.html#environment-views>`_
+that Ramble creates. Currently, the only accepted option within this section is
+``link_type`` which can take any value supported via Spack.
 
 .. _upload-config-option:
 
@@ -287,15 +321,46 @@ The format of this config section is as follows:
 .. code-block:: yaml
 
   formatted_executables:
+    command_name:
+      [indentation: integer number of indentation spaces]
+      [prefix: prefix string]
+      [join_separator: string to use to join commands]
+      [commands: [list, of, commands]]
+
+In the above, the ``indentation`` attribute is an integer that will be used to
+inject spaces at the beginning of each line. The ``prefix`` attribute is used
+to define a prefix (after the indentation) to add to each line of the formatted
+executable. The ``join_separator`` attribute defines the string that will be
+used to join independent lines of the formatted executable. The ``commands``
+attribute is a list of strings that will be re-formatted using the definitions
+in the rest of the formatted executable definition. Each entry will be split
+across new line characters before reformatting.
+
+The default values for the attributes are:
+
+.. code-block:: yaml
+
+  formatted_executables:
+    command_name:
+      indentation: 0
+      prefix: ''
+      join_separator: '\n'
+      commands:
+      - '{unformatted_command}'
+
+A more complete exampe of using formatted executables can be seen below:
+
+.. code-block:: yaml
+
+  formatted_executables:
     new_command:
       indentation: 8
       prefix: '- '
       join_separator: '\n'
 
-
 The above example defines a new variable named ``new_command`` which will be a
 new-line (``\n``) demlimited list of executables, where each executable is
-prefixed with ``- `` and is indented 8 space characters.
+prefixed with ``'- '`` and is indented 8 space characters.
 
 The default configuration files define one formatted executable named
 ``command``. Its definition can be seen with:
@@ -448,6 +513,9 @@ experiments ramble generates. Its format is as follows:
       - executables to apply
       - modifier to
 
+**NOTE**: Every modifier has a ``disabled`` mode by default that can be set
+(only explicitly) to turn off all of the modifier's functionality.
+
 
 .. _repos-config:
 
@@ -464,23 +532,23 @@ be searched for when looking for application definitions. Its format is as follo
     - 'path/to/repo'
 
 
-.. _spack-config:
+.. _software-config:
 
 --------------
-Spack Section:
+Software Section:
 --------------
 
-The spack config section is used to define package definitions, and software
+The software config section is used to define package definitions, and software
 environments created from those packages. Its format is as follows:
 
 .. code-block:: yaml
 
-    spack:
+    software:
       [variables: {}]
       packages:
         <package_name>:
-          spack_spec: 'spack_spec_for_package'
-          compiler_spec: 'Compiler spec, if different from spack_spec' # Default: None
+          pkg_spec: 'pkg_spec_for_package'
+          compiler_spec: 'Compiler spec, if different from pkg_spec' # Default: None
           compiler: 'package_name_to_use_as_compiler' # Default: None
           [variables: {}]
           [matrix:]
@@ -495,37 +563,38 @@ environments created from those packages. Its format is as follows:
           [matrix:]
           [matrices:]
         <external_env_name>:
-          external_spack_env: 'name_or_path_to_spack_env'
+          external_env: 'name_or_path_to_spack_env'
 
-The packages dictionary houses ramble descriptions of spack packages that can
-be used to construct environments with. A package is defined as software that
-spack should install for the user. These have one required attribute, and two
-optional attributes. The ``spack_spec`` attribute is required to be defined,
-and should be the spec passed to ``spack install`` on the command line for the
-package. Optionally, a package can define a ``compiler_spec`` attribute, which
-will be the spec used when this package is used as a compiler for another
-package. Packages can also optionally define a ``compiler`` attribute, which
-is the name of another package that should be used as it's compiler.
+The packages dictionary houses ramble descriptions of software packages that
+can be used to construct environments with. A package is defined as software
+that the defined package manager should install for the user. These have one
+required attribute, and two optional attributes. The ``pkg_spec`` attribute is
+required to be defined, and should be the arguments passed to the package
+manager's ``install`` subcommand. Optionally, a package can define a
+``compiler_spec`` attribute, which will be the spec used when this package is
+used as a compiler for another package. Packages can also optionally define a
+``compiler`` attribute, which is the name of another package that should be
+used as it's compiler.
 
-The environments dictionary contains descriptions of spack environments that
+The environments dictionary contains descriptions of groups of packages that
 Ramble might generate based on the requested experiments. Environments are
 defined as a list of packages (in the aforementioned packages dictionary) that
-should be bundled into a spack environment.
+should be bundled into a shared environment within the package manager.
 
-Below is an annotated example of the spack dictionary.
+Below is an annotated example of the software dictionary.
 
 .. code-block:: yaml
 
-    spack:
+    software:
       packages:
         gcc9: # Abstract name to refer to this package
-          spack_spec: gcc@9.3.0 target=x86_64 # Spack spec for this package
+          pkg_spec: gcc@9.3.0 target=x86_64 # Spack spec for this package
           compiler_spec: gcc@9.3.0 # Spack compiler spec for this package
         impi2021:
-          spack_spec: intel-oneapi-mpi@2021.11.0 target=x86_64
+          pkg_spec: intel-oneapi-mpi@2021.11.0 target=x86_64
           compiler: gcc9 # Other package name to use as compiler for this package
         gromacs:
-          spack_spec: gromacs@2022.4
+          pkg_spec: gromacs@2022.4
           compiler: gcc9
       environments:
         gromacs:
@@ -533,9 +602,21 @@ Below is an annotated example of the spack dictionary.
           - impi2021
           - gromacs
 
-Packages and environments defined inside the ``spack`` config section are
+Packages and environments defined inside the ``software`` config section are
 merely templates. They will be rendered into explicit environments and packages
 by each individual experiment.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Package Manager Specific Packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When selecting package managers within Ramble experiments, the default spec a
+package manager will use is contained in the ``pkg_spec`` attribute. If
+multiple package managers will use the same package definition, specs for each
+can be defined using the ``<package_manager>_pkg_spec`` syntax. This syntax can
+be used on the ``compiler`` and ``compiler_spec`` attributes as well, if the
+package manager supports selecting a specific compiler.
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 External Spack Environment Support:
@@ -552,12 +633,12 @@ This section shows how this feature can be used.
 
 .. code-block:: yaml
 
-    spack:
+    software:
       environments:
         gromacs:
-          external_spack_env: name_or_path_to_spack_env
+          external_env: name_or_path_to_spack_env
 
-In the above example, the ``external_spack_env`` keyword refers an external
+In the above example, the ``external_env`` keyword refers an external
 Spack environment. This can be the name of a named Spack environment, or the
 path to a directory which contains a Spack environment. Ramble will copy the
 ``spack.yaml`` file from this environment, instead of generating its own.
@@ -611,4 +692,30 @@ format is as follows:
       cross_reference_var: 'var in <app>.<workload>.<exp>'
 
 Variables can be defined as lists, scalars, or can refer to a variable defined in
-another fully qualified experiment (through the ``cross_ref_var`` syntax).
+another fully qualified experiment (through the syntax shown in ``cross_reference_var``).
+
+For more information on variable expansion rules, see:
+:ref:`workspace variable dictionary definitions<variable-dictionaries>`.
+
+.. _variants-config:
+
+----------------
+Variants Section
+----------------
+
+The variants config section is used to customize variants to the experiment creation.
+These can include application defined variants, or higher level Ramble provided
+variants. Currently, the only supported variants is ``package_manager`` which
+allows an experiment to define the package manager it should use.
+The format of this section is as follows:
+
+.. code-block:: yaml
+
+    variants:
+      package_manager: <pkg_man_name> or null or None
+
+Variants are expanded following the same logic to expand variables (so a
+variant could be lazily expanded based on an experiment's variable definitions).
+
+The default value for ``package_manager`` is ``null`` which disables the use of
+a package manager.

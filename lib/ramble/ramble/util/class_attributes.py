@@ -1,10 +1,11 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
 # <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
+
 
 def convert_class_attributes(obj):
     """Convert class attributes defined from directives to instance attributes
@@ -15,7 +16,7 @@ def convert_class_attributes(obj):
         obj (Object): Input object instance to convert attributes in
     """
 
-    if hasattr(obj, '_directive_names'):
+    if hasattr(obj, "_directive_names"):
         dir_set = dir(obj)
         var_set = vars(obj)
         for attr in obj._directive_names:

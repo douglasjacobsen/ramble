@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -59,6 +59,18 @@ set _ramble_source_file = $RAMBLE_ROOT/share/ramble/setup-env.csh
 set _ramble_share_dir = $RAMBLE_ROOT/share/ramble
 alias ramble          'set _rmb_args = (\!*); source $_ramble_share_dir/csh/ramble.csh'
 alias _ramble_pathadd 'set _pa_args = (\!*) && source $_ramble_share_dir/csh/pathadd.csh'
+
+# Identify and lock the python interpreter
+if (! $?RAMBLE_PYTHON) then
+    setenv RAMBLE_PYTHON ""
+endif
+foreach cmd ("$RAMBLE_PYTHON" python3 python python2)
+    command -v "$cmd" >& /dev/null
+    if ($status == 0) then
+        setenv RAMBLE_PYTHON `command -v "$cmd"`
+        break
+    endif
+end
 
 # Set variables needed by this script
 _ramble_pathadd PATH "$RAMBLE_ROOT/bin"

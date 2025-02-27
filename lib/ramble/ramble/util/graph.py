@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -7,7 +7,7 @@
 # except according to those terms.
 
 
-class GraphNode(object):
+class GraphNode:
     """Class representing a node of a graph, where the node can have an
     attribute attached to it.
 
@@ -15,6 +15,7 @@ class GraphNode(object):
     the graph returned, and be able to refer to the attribute of the original
     node easily.
     """
+
     def __init__(self, key, attribute=None, obj_inst=None):
         """Construct a graph node
 
@@ -60,7 +61,7 @@ class GraphNode(object):
         Returns:
             str: Text representation of the node
         """
-        return f'{self.key}'
+        return f"{self.key}"
 
     def __str__(self):
         """Return a string representation of the node
@@ -68,7 +69,7 @@ class GraphNode(object):
         Returns:
             str: Text representation of the node
         """
-        return f'{self.key}'
+        return f"{self.key}"
 
     def __hash__(self):
         """Hash a node based on it's key

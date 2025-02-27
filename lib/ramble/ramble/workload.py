@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,15 +6,25 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
-from typing import List
+from typing import List, Optional
+import copy
+
 import ramble.util.colors as rucolor
 
 
-class WorkloadVariable(object):
+class WorkloadVariable:
     """Class representing a variable definition"""
 
-    def __init__(self, name: str, default=None, description: str = None,
-                 values=None, expandable: bool = True, **kwargs):
+    def __init__(
+        self,
+        name: str,
+        default=None,
+        description: str = None,
+        values=None,
+        expandable: bool = True,
+        track_used: bool = True,
+        **kwargs,
+    ):
         """Constructor for a new variable
 
         Args:
@@ -23,12 +33,20 @@ class WorkloadVariable(object):
             description (str): Description of variable
             values: List of suggested values for variable
             expandable (bool): True if variable can be expanded, False otherwise
+            track_used (bool): True if variable should be considered used,
+                            False to ignore it for vectorizing experiments
         """
         self.name = name
         self.default = default
         self.description = description
         self.values = values.copy() if isinstance(values, list) else [values]
         self.expandable = expandable
+        self.track_used = track_used
+
+    def __str__(self):
+        if not hasattr(self, "_str_indent"):
+            self._str_indent = 0
+        return self.as_str(n_indent=self._str_indent)
 
     def as_str(self, n_indent: int = 0):
         """String representation of this variable
@@ -39,15 +57,15 @@ class WorkloadVariable(object):
         Returns:
             (str): Representation of this variable
         """
-        indentation = ' ' * n_indent
+        indentation = " " * n_indent
 
-        print_attrs = ['Description', 'Default', 'Values']
+        print_attrs = ["Description", "Default", "Values"]
 
-        out_str  = rucolor.nested_2(f'{indentation}{self.name}:\n')
+        out_str = rucolor.nested_2(f"{indentation}{self.name}:\n")
         for print_attr in print_attrs:
             name = print_attr
-            if print_attr == 'Values':
-                name = 'Suggested Values'
+            if print_attr == "Values":
+                name = "Suggested Values"
             attr_name = print_attr.lower()
 
             attr_val = getattr(self, attr_name, None)
@@ -55,8 +73,11 @@ class WorkloadVariable(object):
                 out_str += f'{indentation}    {name}: {str(attr_val).replace("@", "@@")}\n'
         return out_str
 
+    def copy(self):
+        return copy.deepcopy(self)
 
-class WorkloadEnvironmentVariable(object):
+
+class WorkloadEnvironmentVariable:
     """Class representing an environment variable in a workload"""
 
     def __init__(self, name: str, value=None, description: str = None):
@@ -80,11 +101,11 @@ class WorkloadEnvironmentVariable(object):
         Returns:
             (str): String representing this environment variable
         """
-        indentation = ' ' * n_indent
+        indentation = " " * n_indent
 
-        print_attrs = ['Description', 'Value']
+        print_attrs = ["Description", "Value"]
 
-        out_str  = rucolor.nested_2(f'{indentation}{self.name}:\n')
+        out_str = rucolor.nested_2(f"{indentation}{self.name}:\n")
         for name in print_attrs:
             attr_name = name.lower()
             attr_val = getattr(self, attr_name, None)
@@ -92,25 +113,38 @@ class WorkloadEnvironmentVariable(object):
                 out_str += f'{indentation}    {name}: {attr_val.replace("@", "@@")}\n'
         return out_str
 
+    def copy(self):
+        return copy.deepcopy(self)
 
-class Workload(object):
+
+class Workload:
     """Class representing a single workload"""
 
-    def __init__(self, name: str, executables: List[str],
-                 inputs: List[str] = [], tags: List[str] = []):
+    def __init__(
+        self,
+        name: str,
+        executables: List[str],
+        inputs: Optional[List[str]] = None,
+        tags: Optional[List[str]] = None,
+    ):
         """Constructor for a workload
 
         Args:
             name (str): Name of this workload
             executables (list(str)): List of executable names for this workload
-            inputs (list(str)): List of input names for this workload
-            tags (list(str)): List of tags for this workload
+            inputs (list(str) | None): List of input names for this workload
+            tags (list(str) | None): List of tags for this workload
         """
+        if inputs is None:
+            inputs = []
+        if tags is None:
+            tags = []
+
         self.name = name
         self.variables = {}
         self.environment_variables = {}
 
-        attr_names = ['executables', 'inputs', 'tags']
+        attr_names = ["executables", "inputs", "tags"]
         attr_vals = [executables, inputs, tags]
 
         for attr, vals in zip(attr_names, attr_vals):
@@ -122,6 +156,11 @@ class Workload(object):
                     attr_val.append(vals)
                 setattr(self, attr, attr_val)
 
+    def __str__(self):
+        if not hasattr(self, "_str_indent"):
+            self._str_indent = 0
+        return self.as_str(n_indent=self._str_indent)
+
     def as_str(self, n_indent: int = 0):
         """String representation of this workload
 
@@ -131,27 +170,25 @@ class Workload(object):
         Returns:
             (str): Representation of this workload
         """
-        attrs = [('Executables', 'executables'),
-                 ('Inputs', 'inputs'),
-                 ('Tags', 'tags')]
+        attrs = [("Executables", "executables"), ("Inputs", "inputs"), ("Tags", "tags")]
 
-        indentation = ' ' * n_indent
+        indentation = " " * n_indent
 
-        out_str  = rucolor.section_title(f'{indentation}Workload: ')
-        out_str += f'{self.name}\n'
+        out_str = rucolor.section_title(f"{indentation}Workload: ")
+        out_str += f"{self.name}\n"
         for attr in attrs:
-            out_str += rucolor.nested_1(f'{indentation}    {attr[0]}: ')
+            out_str += rucolor.nested_1(f"{indentation}    {attr[0]}: ")
             attr_val = getattr(self, attr[1], [])
-            out_str += f'{attr_val}\n'
+            out_str += f"{attr_val}\n"
 
         if self.variables:
-            out_str += rucolor.nested_1(f'{indentation}    Variables:\n')
-            for name, var in self.variables.items():
+            out_str += rucolor.nested_1(f"{indentation}    Variables:\n")
+            for var in self.variables.values():
                 out_str += var.as_str(n_indent + 4)
 
         if self.environment_variables:
-            out_str += rucolor.nested_1(f'{indentation}    Environment Variables:\n')
-            for name, env_var in self.environment_variables.items():
+            out_str += rucolor.nested_1(f"{indentation}    Environment Variables:\n")
+            for env_var in self.environment_variables.values():
                 out_str += env_var.as_str(n_indent + 4)
 
         return out_str

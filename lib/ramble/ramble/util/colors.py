@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -6,17 +6,19 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
-config_color = '@*Y'
-header_color = '@*b'
-level1_color = '@*g'
-level2_color = '@*r'
-level3_color = '@*c'
-level4_color = '@*m'
-plain_format = '@.'
+config_color = "@*Y"
+header_color = "@*b"
+level1_color = "@*g"
+level2_color = "@*r"
+level3_color = "@*c"
+level4_color = "@*m"
+plain_format = "@."
 
 
 def level_func(level):
-    if level <= 0:
+    if level < 0:
+        return str
+    elif level == 0:
         return section_title
     elif level == 1:
         return nested_1

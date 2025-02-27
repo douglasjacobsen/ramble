@@ -1,0 +1,76 @@
+[tool.black]
+line-length = 99
+target-version = ["py36", "py37", "py38", "py39", "py310", "py311", "py312", "py313"]
+include = '''
+    \.pyi?$
+'''
+force-exclude = '''
+/(
+    \.git
+  | etc
+  | share
+  | var
+  | lib/ramble/external
+  | lib/ramble/spack
+  | lib/ramble/llnl
+  | __pycache__
+)/
+'''
+
+[tool.coverage.run]
+parallel = true
+data_file = "./tests-coverage/.coverage"
+include = [
+  "**/bin/ramble",
+  "**/bin/ramble-python",
+  "**/lib/ramble/ramble/**",
+  "**/lib/ramble/ramble/schema/**",
+  "**/lib/ramble/ramble/cmd/**",
+]
+omit = [
+    "**/spack/lib/**",
+    "**/spack/var/**",
+    "lib/ramble/spack/**",
+    "lib/ramble/external/**",
+    "lib/ramble/llnl/**",
+    "share/**",
+]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    'pragma: no cover',
+
+    # Don't complain about missing debug-only code:
+    'def __repr__',
+    'if self\.debug',
+
+    # Don't complain if tests don't hit defensive assertion code:
+    'raise AssertionError',
+    'raise NotImplementedError',
+
+    # Don't complain if non-runnable code isn't run:
+    'if 0:',
+    'if False:',
+    'if __name__ == .__main__.:',
+]
+ignore_errors = true
+include = [
+  "**/bin/ramble",
+  "**/bin/ramble-python",
+  "**/lib/ramble/ramble/**",
+  "**/lib/ramble/ramble/schema/**",
+  "**/lib/ramble/ramble/cmd/**",
+]
+omit = [
+    "**/spack/lib/**",
+    "**/spack/var/**",
+    "lib/ramble/spack/**",
+    "lib/ramble/external/**",
+    "lib/ramble/llnl/**",
+    "share/**",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"

@@ -1,4 +1,4 @@
-.. Copyright 2022-2024 The Ramble Authors
+.. Copyright 2022-2025 The Ramble Authors
 
    Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
    https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -97,11 +97,10 @@ similar to the following, which uses a mirror of wrfv3 as an example:
             └── wrf-3.9.1.1.tar.gz -> ../_source-cache/archive/a0/a04f5c425bedd262413ec88192a0f0896572cc38549de85ca120863c43df047a.tar.gz
 
 The various parts of this directory structure are defined as:
-* ``inputs/``: Contains the Ramble input file mirror
-* ``software``: Contains the Spack software tarball/zipfile mirror
-* ``input/_input-cache/archive``: Contains files with names corresponding to the sha256 sums of the associated input files
-* ``software/_source-cache/archive``: Contains files with names corresponding to the sha256 sums of the associated source tarballs and patch
-  files.
+  * ``inputs/``: Contains the Ramble input file mirror
+  * ``software``: Contains the Spack software tarball/zipfile mirror
+  * ``input/_input-cache/archive``: Contains files with names corresponding to the sha256 sums of the associated input files
+  * ``software/_source-cache/archive``: Contains files with names corresponding to the sha256 sums of the associated source tarballs and patch files.
 
 You can run ``ramble workspace mirror -d MIRROR_PATH``, using the same MIRROR_PATH, from several
 different workspaces, in order to populate the local mirror with inputs and source files from

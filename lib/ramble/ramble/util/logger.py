@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Ramble Authors
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -14,13 +14,14 @@ from contextlib import contextmanager
 from pathlib import Path
 
 
-class Logger(object):
+class Logger:
     """Logger class
 
     This class providers additional functionality on top of LLNL's tty utility.
     Namely, this class provides a stack of log files, and allows errors to be
     printed to all log files instead of only one.
     """
+
     def __init__(self):
         """Construct a a logger instance
 
@@ -45,7 +46,7 @@ class Logger(object):
         """
         if isinstance(path, str) and self.enabled:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
-            stream = llnl.util.tty.log.Unbuffered(open(path, 'a+'))
+            stream = llnl.util.tty.log.Unbuffered(open(path, "a+"))
             self.log_stack.append((path, stream))
 
     def remove_log(self):
@@ -77,7 +78,7 @@ class Logger(object):
             return self.log_stack[-1][1]
         return None
 
-    def _stream_kwargs(self, default_kwargs={}, index=None):
+    def _stream_kwargs(self, default_kwargs=None, index=None):
         """Construct keyword arguments for a stream
 
         Build keyword arguments of the form: {'stream': <log_stream>} to allow
@@ -96,6 +97,8 @@ class Logger(object):
         Returns:
             kwargs: Constructed kwargs with defaults applied
         """
+        if default_kwargs is None:
+            default_kwargs = {}
         kwargs = {}
         stream_index = None
         if index is not None:
@@ -103,8 +106,8 @@ class Logger(object):
                 stream_index = index
             else:
                 tty.die(
-                    f'Error: Requested stream index of {index} is outside of '
-                    f'the stream range of 0 - {len(self.log_stack)}'
+                    f"Error: Requested stream index of {index} is outside of "
+                    f"the stream range of 0 - {len(self.log_stack)}"
                 )
 
         else:
@@ -112,7 +115,7 @@ class Logger(object):
                 stream_index = len(self.log_stack) - 1
 
         if stream_index is not None:
-            kwargs['stream'] = self.log_stack[stream_index][1]
+            kwargs["stream"] = self.log_stack[stream_index][1]
 
         kwargs.update(default_kwargs)
 
@@ -121,8 +124,8 @@ class Logger(object):
     @contextmanager
     def configure_colors(self, **kwargs):
         old_value = llnl.util.tty.color.get_color_when()
-        if 'stream' in kwargs:
-            llnl.util.tty.color.set_color_when('never')
+        if "stream" in kwargs:
+            llnl.util.tty.color.set_color_when("never")
         yield
         llnl.util.tty.color.set_color_when(old_value)
 
@@ -133,7 +136,7 @@ class Logger(object):
         print). Perform this action for all logs and the default log (to
         screen).
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(default_kwargs=kwargs, index=idx)
             with self.configure_colors(**st_kwargs):
                 tty.info(*args, **st_kwargs)
@@ -177,7 +180,7 @@ class Logger(object):
         print). Perform this action for the active log only.
         """
         st_kwargs = self._stream_kwargs(default_kwargs=kwargs)
-        if 'stream' in st_kwargs:
+        if "stream" in st_kwargs:
             with self.configure_colors(**st_kwargs):
                 tty.warn(*args, **st_kwargs)
 
@@ -200,7 +203,7 @@ class Logger(object):
         print). Perform this action all logs, and the default stream (print to
         screen).
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(index=idx, default_kwargs=kwargs)
             with self.configure_colors(**st_kwargs):
                 tty.error(*args, **st_kwargs)
@@ -214,7 +217,7 @@ class Logger(object):
         print). Perform this action all logs. After all logs are printed to,
         terminate execution (and error) using tty.die.
         """
-        for idx, log in enumerate(self.log_stack):
+        for idx, _ in enumerate(self.log_stack):
             st_kwargs = self._stream_kwargs(index=idx, default_kwargs=kwargs)
             with self.configure_colors(**st_kwargs):
                 tty.error(*args, **st_kwargs)

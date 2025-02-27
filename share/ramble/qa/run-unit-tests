@@ -1,5 +1,5 @@
-#!/bin/sh
-# Copyright 2022-2024 The Ramble Authors
+#!/bin/bash -e
+# Copyright 2022-2025 The Ramble Authors
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -11,7 +11,7 @@
 
 #
 # Description:
-#     Runs Spack unit tests.
+#     Runs Ramble unit tests.
 #
 # Usage:
 #     run-unit-tests [test ...]
@@ -33,11 +33,11 @@ if [ $? != 0 ]; then
     ERROR=1
 fi
 
-# Move to root directory of Spack
+# Move to root directory of Ramble
 # Allows script to be run from anywhere
 cd "$RAMBLE_ROOT"
 
-# Run spack help to cover command import
+# Run ramble help to cover command import
 bin/ramble -h
 if [ $? != 0 ]; then
     ERROR=1
@@ -47,20 +47,32 @@ if [ $? != 0 ]; then
     ERROR=1
 fi
 
-# Profile and print top 20 lines for a simple call to spack spec
-#ramble -p --lines 20 spec mpileaks%gcc ^elfutils@0.170
+export UNIT_TEST_COVERAGE_ADDOPTS=""
+if [[ "$UNIT_TEST_COVERAGE" == "true" ]]; then
+  export UNIT_TEST_COVERAGE_ADDOPTS="--cov --cov-report= --cov-config=pyproject.toml"
+fi
+
+export PYTEST_ADDOPTS=""
+
+N_PROCS=${N_PROCS:-auto}
+# Check if xdist is available
+if python -m pytest -VV 2>&1 | grep xdist; then
+  export PYTEST_ADDOPTS="$PYTEST_ADDOPTS -n $N_PROCS"
+fi
 
 #-----------------------------------------------------------
 # Run unit tests with code coverage
 #-----------------------------------------------------------
-if [ -z $LONG ]; then
-    $coverage_run $(which ramble) unit-test -x --verbose -m "not long"
+
+if [[ "$LONG" == "true" ]]; then
+  $(which ramble) unit-test ${PYTEST_ADDOPTS} -x --verbose ${UNIT_TEST_COVERAGE_ADDOPTS}
 else
-    $coverage_run $(which ramble) unit-test -x --verbose
+  $(which ramble) unit-test ${PYTEST_ADDOPTS} -x --verbose ${UNIT_TEST_COVERAGE_ADDOPTS} -m "not long"
 fi
 if [ $? != 0 ]; then
     ERROR=1
 fi
+
 
 if [ $ERROR == 1 ]; then
     exit 1
