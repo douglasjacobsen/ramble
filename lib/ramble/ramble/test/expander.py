@@ -91,6 +91,9 @@ def exp_dict():
         ("{test_dict['test_key2']}", "test_val2", set(), 1),
         ("{test_dict['missing_key']}", "{test_dict['missing_key']}", set(), 1),
         ("{test_dict[None]}", "{test_dict[None]}", set(), 1),
+        ("maybe(env_name, foo)", "spack_foo.bar", set(), 1),
+        ("maybe(not_a_var, foo)", "foo", set(), 1),
+        ("maybe(not_a_var)", "", set(), 1),
     ],
 )
 def test_expansions(input, output, no_expand_vars, passes):
