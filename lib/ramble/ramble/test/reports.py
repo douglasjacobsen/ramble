@@ -19,10 +19,12 @@
 # Possible to test that a specific chart was correctly generated? Not sure...
 import pytest
 
-from ramble.reports import *
+from ramble.util import foms
+import ramble.reports
 
 from matplotlib.backends.backend_pdf import PdfPages
 import os
+import pandas as pd
 
 
 single_experiments = [
@@ -272,10 +274,10 @@ def create_test_exp(
 @pytest.mark.parametrize(
     "values",
     [
-        (StrongScalingPlot, "fom_1", 42.0, 42.0, 42.0, 28.0, 28.0, 21.0, False),
-        (StrongScalingPlot, "fom_1", 42.0, 1.0, 1.0, 28.0, 28.0 / 42.0, 2.0, True),
-        (WeakScalingPlot, "fom_2", 50, 50, None, 55, 55.0, None, False),
-        (WeakScalingPlot, "fom_2", 50.0, 1.0, None, 55.0, 1.1, None, True),
+        (ramble.reports.StrongScalingPlot, "fom_1", 42.0, 42.0, 42.0, 28.0, 28.0, 21.0, False),
+        (ramble.reports.StrongScalingPlot, "fom_1", 42.0, 1.0, 1.0, 28.0, 28.0 / 42.0, 2.0, True),
+        (ramble.reports.WeakScalingPlot, "fom_2", 50, 50, None, 55, 55.0, None, False),
+        (ramble.reports.WeakScalingPlot, "fom_2", 50.0, 1.0, None, 55.0, 1.1, None, True),
     ],
 )
 def test_scaling_plots(mutable_mock_workspace_path, tmpdir_factory, values):
@@ -303,8 +305,8 @@ def test_scaling_plots(mutable_mock_workspace_path, tmpdir_factory, values):
             "",
             "dummy_app",
             "application",
-            FomType.MEASURE,
-            BetterDirection.INDETERMINATE,
+            foms.FomType.MEASURE,
+            foms.BetterDirection.INDETERMINATE,
             nfv1,
             ideal1,
             normalized=normalize,
@@ -324,8 +326,8 @@ def test_scaling_plots(mutable_mock_workspace_path, tmpdir_factory, values):
             "",
             "dummy_app",
             "application",
-            FomType.MEASURE,
-            BetterDirection.INDETERMINATE,
+            foms.FomType.MEASURE,
+            foms.BetterDirection.INDETERMINATE,
             nfv2,
             ideal2,
             normalized=normalize,
@@ -346,7 +348,7 @@ def test_scaling_plots(mutable_mock_workspace_path, tmpdir_factory, values):
     split_by = "simplified_workload_namespace"
 
     where_query = None
-    results_df = prepare_data(results, where_query)
+    results_df = ramble.reports.prepare_data(results, where_query)
     plot = plot_type(test_spec, normalize, report_dir_path, results_df, logx, logy, split_by)
 
     with PdfPages(pdf_path) as pdf_report:
@@ -362,7 +364,7 @@ def test_scaling_plots(mutable_mock_workspace_path, tmpdir_factory, values):
 
 def test_repeat_import(mutable_mock_workspace_path):
     where_query = None
-    results_df = prepare_data(repeat_results, where_query)
+    results_df = ramble.reports.prepare_data(repeat_results, where_query)
 
     # DF contains only summary exp and not individual repeats
     assert "repeat_exp_1" in results_df.values
@@ -372,8 +374,8 @@ def test_repeat_import(mutable_mock_workspace_path):
     # Summary FOMs are present in DF, types converted to objects
     row_mean = results_df.query("fom_origin_type == 'summary::mean'")
     assert row_mean["fom_value"].values == [29.0]
-    assert row_mean["fom_type"].values == [FomType.TIME]
-    assert row_mean["better_direction"].values == [BetterDirection.LOWER]
+    assert row_mean["fom_type"].values == [foms.FomType.TIME]
+    assert row_mean["better_direction"].values == [foms.BetterDirection.LOWER]
 
     single_exp_rows = results_df.query("name == 'single_exp_1' and fom_name == 'fom_1'")
     assert single_exp_rows["fom_value"].values == [42.0]
@@ -388,9 +390,9 @@ def test_fom_plot(mutable_mock_workspace_path, tmpdir_factory):
     for exp in results["experiments"]:
         exp.update({"simplified_experiment_namespace": "test_exp"})
 
-    results_df = prepare_data(results, where_query)
+    results_df = ramble.reports.prepare_data(results, where_query)
 
-    plot = FomPlot(None, False, report_dir_path, results_df, False, False, None)
+    plot = ramble.reports.FomPlot(None, False, report_dir_path, results_df, False, False, None)
     with PdfPages(pdf_path) as pdf_report:
         plot.generate_plot_data(pdf_report)
 
@@ -404,10 +406,12 @@ def test_compare_plot(mutable_mock_workspace_path, tmpdir_factory):
     pdf_path = os.path.join(report_dir_path, f"{report_name}.pdf")
 
     where_query = None
-    results_df = prepare_data(results, where_query)
+    results_df = ramble.reports.prepare_data(results, where_query)
 
     spec = ["fom_1", "n_nodes"]
-    plot = ComparisonPlot(spec, False, report_dir_path, results_df, False, False, None)
+    plot = ramble.reports.ComparisonPlot(
+        spec, False, report_dir_path, results_df, False, False, None
+    )
     with PdfPages(pdf_path) as pdf_report:
         plot.generate_plot_data(pdf_report)
 
@@ -417,7 +421,7 @@ def test_compare_plot(mutable_mock_workspace_path, tmpdir_factory):
 
 def test_where_query(mutable_mock_workspace_path):
     where_query = 'fom_name == "fom_1"'
-    results_df = prepare_data(results, where_query)
+    results_df = ramble.reports.prepare_data(results, where_query)
     filtered_foms = results_df["fom_name"].tolist()
 
     assert "fom_1" in filtered_foms
@@ -457,8 +461,8 @@ def test_multiple_groupby(mutable_mock_workspace_path, tmpdir_factory, capsys):
                 units="",
                 origin=test_app,
                 origin_type="application",
-                fom_type=FomType.MEASURE,
-                better_direction=BetterDirection.INDETERMINATE,
+                fom_type=foms.FomType.MEASURE,
+                better_direction=foms.BetterDirection.INDETERMINATE,
                 fv=fom_value,
                 ifv=None,
                 normalized=False,
@@ -471,7 +475,9 @@ def test_multiple_groupby(mutable_mock_workspace_path, tmpdir_factory, capsys):
     logx = False
     logy = False
     split_by = "simplified_workload_namespace"
-    plot = StrongScalingPlot(test_spec, False, report_dir_path, test_df, logx, logy, split_by)
+    plot = ramble.reports.StrongScalingPlot(
+        test_spec, False, report_dir_path, test_df, logx, logy, split_by
+    )
 
     with PdfPages(pdf_path) as pdf_report:
         with pytest.raises(SystemExit):
@@ -480,7 +486,9 @@ def test_multiple_groupby(mutable_mock_workspace_path, tmpdir_factory, capsys):
         assert "Error: Attempting to plot non-unique data." in captured
 
     test_spec = ["fom_1", "n_nodes", "simplified_workload_namespace", "fom_origin"]
-    plot = StrongScalingPlot(test_spec, False, report_dir_path, test_df, logx, logy, split_by)
+    plot = ramble.reports.StrongScalingPlot(
+        test_spec, False, report_dir_path, test_df, logx, logy, split_by
+    )
     with PdfPages(pdf_path) as pdf_report:
         plot.generate_plot_data(pdf_report)
 
