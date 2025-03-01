@@ -26,11 +26,11 @@ level = "long"
 
 
 def is_object(f):
-    """Whether flake8 should consider a file as a core file or an object (application or modifier).
+    """Whether flake8 should consider a file as a core file or an object.
 
     We run flake8 with different exceptions for the core and for
-    applications, since we allow `from ramble import *` and poking globals
-    into applications.
+    objects, since we allow `from ramble import *` and poking globals
+    into objects.
     """
     return f.startswith("var/ramble/repos/") or "docs/tutorial/examples" in f
 
@@ -373,8 +373,8 @@ def run_flake8(flake8_cmd, file_list, args):
     try:
         print_tool_header("flake8", file_list)
 
-        # run flake8 on the temporary tree, once for core, once for apps
-        primary_file_list, application_file_list = _split_file_list(file_list)
+        # run flake8 on the temporary tree, once for core, once for objects
+        primary_file_list, object_file_list = _split_file_list(file_list)
 
         # filter files into a temporary directory with exemptions added.
         # TODO: DRY this duplication
@@ -385,11 +385,11 @@ def run_flake8(flake8_cmd, file_list, args):
             dest_path = os.path.join(primary_dest_dir, filename)
             filter_file(src_path, dest_path, args.output)
 
-        application_dest_dir = os.path.join(temp, "application")
-        mkdirp(application_dest_dir)
-        for filename in application_file_list:
+        object_dest_dir = os.path.join(temp, "object")
+        mkdirp(object_dest_dir)
+        for filename in object_file_list:
             src_path = os.path.join(ramble.paths.prefix, filename)
-            dest_path = os.path.join(application_dest_dir, filename)
+            dest_path = os.path.join(object_dest_dir, filename)
             filter_file(src_path, dest_path, args.output)
 
         returncode = 0
@@ -415,11 +415,11 @@ def run_flake8(flake8_cmd, file_list, args):
                 )
                 returncode |= flake8_cmd.returncode
 
-        if application_file_list:
-            f = ".flake8_applications"
-            shutil.copy(f, application_dest_dir)
+        if object_file_list:
+            f = ".flake8_objects"
+            shutil.copy(f, object_dest_dir)
 
-            with working_dir(application_dest_dir):
+            with working_dir(object_dest_dir):
                 output += flake8_cmd(
                     "--format",
                     "pylint",
@@ -452,7 +452,7 @@ def run_black(black_cmd, file_list, args):
     output = ""
     returncode = 0
 
-    # Operate on primary and object (apps and mods) files spearately with varying configs.
+    # Operate on primary and object files spearately with varying configs.
     if primary_files:
         output += black_cmd(
             *(common_args + tuple(primary_files)), fail_on_error=False, output=str, error=str
