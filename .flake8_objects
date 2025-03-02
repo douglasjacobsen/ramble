@@ -16,9 +16,7 @@
 # F4: Import
 # - F405: `name` may be undefined, or undefined from star imports: `module`
 #
-# F8: Name
-# - F821: undefined name `name`
-#
 [flake8]
-ignore = E129,E203,E221,E241,E272,E731,E501,W503,W504,W605,F405,F821,F999,N801,N813,N814
-max-line-length = 79
+ignore = E203,E501,W503,W504,F405
+# TODO: this is not currently enforced given E501 being excluded, should enable it
+max-line-length = 99
