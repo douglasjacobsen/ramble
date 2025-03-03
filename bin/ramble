@@ -17,10 +17,10 @@
 # prefer python3, then python, then python2
 ## prefer RAMBLE_PYTHON environment variable, python3, python, then python2
 RAMBLE_PREFERRED_PYTHONS="python3 python python2 /usr/libexec/platform-python"
-for cmd in "${RAMBLE_PYTHON:-}" ${RAMBLE_PREFERRED_PYTHONS}; do
+for cmd in "${_RAMBLE_PYTHON}" "${RAMBLE_PYTHON:-}" ${RAMBLE_PREFERRED_PYTHONS}; do
     if command -v > /dev/null "$cmd"; then
-        export RAMBLE_PYTHON="$(command -v "$cmd")"
-        exec "${RAMBLE_PYTHON}" "$0" "$@"
+        export _RAMBLE_PYTHON="$(command -v "$cmd")"
+        exec "${_RAMBLE_PYTHON}" "$0" "$@"
     fi
 done
 

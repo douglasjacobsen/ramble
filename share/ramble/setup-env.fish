@@ -638,10 +638,20 @@ set -l rmb_source_file (status -f)  # name of current file
 #
 # Identify and lock the python interpreter
 #
+if test -n "$RAMBLE_PYTHON"
+  echo "The RAMBLE_PYTHON environment variable is set to $RAMBLE_PYTHON"
+  echo "Will pin the python binary ramble uses to this value".
+
+  if test -n "$_RAMBLE_PYTHON" -a  "$RAMBLE_PYTHON" !=  "$_RAMBLE_PYTHON"
+    echo "WARNING: Ramble was previously pinned to use $_RAMBLE_PYTHON"
+    echo "         If this is not what you want, set the correct python"
+    echo "         in RAMBLE_PYTHON and re-source this file"
+  end
+end
 for cmd in "$RAMBLE_PYTHON" python3 python python2
     set -l _rmb_python (command -v "$cmd")
     if test $status -eq 0
-        set -x RAMBLE_PYTHON $_rmb_python
+        set -x _RAMBLE_PYTHON $_rmb_python
         break
     end
 end
