@@ -1354,7 +1354,13 @@ class SpackRunner(CommandRunner):
             ).replace('"', "")
 
             if all_info:
-                for info in all_info.split("\n"):
+                for info_line in all_info.split("\n"):
+                    pkg_parts = info_line.split(" ")
+                    if len(pkg_parts) == 1:
+                        info = pkg_parts[0]
+                    else:
+                        info = " ".join(pkg_parts[1:])
+
                     info_dict = self._package_dict_from_str(info)
 
                     if info_dict:
