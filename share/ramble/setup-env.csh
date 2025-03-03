@@ -61,13 +61,25 @@ alias ramble          'set _rmb_args = (\!*); source $_ramble_share_dir/csh/ramb
 alias _ramble_pathadd 'set _pa_args = (\!*) && source $_ramble_share_dir/csh/pathadd.csh'
 
 # Identify and lock the python interpreter
+if ($?RAMBLE_PYTHON) then
+    echo "The RAMBLE_PYTHON environment variable is set to $RAMBLE_PYTHON"
+    echo "Will pin the python binary ramble uses to this value".
+endif
+
 if (! $?RAMBLE_PYTHON) then
     setenv RAMBLE_PYTHON ""
 endif
+
+if ($?_RAMBLE_PYTHON && "$RAMBLE_PYTHON" != "$_RAMBLE_PYTHON") then
+    echo "WARNING: Ramble was previously pinned to use $_RAMBLE_PYTHON"
+    echo "         If this is not what you want, set the correct python"
+    echo "         in RAMBLE_PYTHON and re-source this file"
+endif
+
 foreach cmd ("$RAMBLE_PYTHON" python3 python python2)
     command -v "$cmd" >& /dev/null
     if ($status == 0) then
-        setenv RAMBLE_PYTHON `command -v "$cmd"`
+        setenv _RAMBLE_PYTHON `command -v "$cmd"`
         break
     endif
 end
