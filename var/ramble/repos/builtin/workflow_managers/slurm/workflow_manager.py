@@ -11,6 +11,7 @@ import os
 from ramble.wmkit import *
 from ramble.application import experiment_status
 
+from ramble.util import shell_utils
 from spack.util.executable import ProcessError
 
 # Mapping from squeue/sacct status to Ramble status
@@ -25,14 +26,6 @@ _STATUS_MAP = {
     "FAILED": "FAILED",
     "TIMEOUT": "TIMEOUT",
 }
-
-
-def _declare_status_map():
-    """A utility to convert the `_STATUS_MAP` into a bash array"""
-    entries = ["declare -A status_map"]
-    for k, v in _STATUS_MAP.items():
-        entries.append(f'status_map["{k}"]="{v}"')
-    return "\n".join(entries)
 
 
 class Slurm(WorkflowManagerBase):
@@ -138,7 +131,11 @@ class Slurm(WorkflowManagerBase):
         name="batch_query",
         src_path="batch_query.tpl",
         dest_path="batch_query",
-        extra_vars={"declare_status_map": _declare_status_map()},
+        extra_vars={
+            "declare_status_map": shell_utils.gen_dict_definition(
+                var_name="status_map", dict=_STATUS_MAP
+            )
+        },
     )
 
     register_template(

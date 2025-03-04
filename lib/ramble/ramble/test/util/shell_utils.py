@@ -11,6 +11,7 @@ from ramble.util.shell_utils import (
     source_str,
     get_compatible_base_shell,
     cmd_sub_str,
+    gen_dict_definition,
     UnsupportedError,
 )
 
@@ -40,3 +41,19 @@ def test_cmd_sub_str():
 
     assert cmd_sub_str("fish", "uname -n") == "(uname -n)"
     assert cmd_sub_str("bash", "uname -n") == "`uname -n`"
+
+
+def test_gen_dict_definition_error():
+    with pytest.raises(UnsupportedError, match="only supported in bash"):
+        gen_dict_definition("foo", {"bar": "baz"}, shell="fish")
+
+
+@pytest.mark.parametrize(
+    "dict,expected_str",
+    [
+        ({}, ""),
+        ({"foo": "bar"}, 'declare -A map\nmap["foo"]="bar"'),
+    ],
+)
+def test_gen_dict_definition(dict, expected_str):
+    assert gen_dict_definition("map", dict, shell="bash") == expected_str
