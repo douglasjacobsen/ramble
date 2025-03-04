@@ -8,6 +8,8 @@
 
 import ramble.config
 
+import pytest
+
 
 # A crude assertion to check there's no conflicting value.
 # It supports only list and dict as containers, instead of
@@ -32,3 +34,15 @@ def test_default_configs_no_conflict(default_config):
     for k, v in defaults_in_mem.items():
         in_file_def = ramble.config.get(f"config:{k}")
         _assert_no_conflict_recurse(v, in_file_def)
+
+
+@pytest.mark.parametrize(
+    "config,expected_error",
+    [
+        (":config:wrong_leading", "Illegal leading"),
+        ("config::second::override", "Meaningless second override"),
+    ],
+)
+def test_process_config_path_error(config, expected_error):
+    with pytest.raises(ramble.config.ConfigError, match=expected_error):
+        ramble.config.process_config_path(config)

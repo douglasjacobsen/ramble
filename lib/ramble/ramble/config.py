@@ -1183,13 +1183,13 @@ def merge_yaml(dest, source):
 def process_config_path(path):
     result = []
     if path.startswith(":"):
-        raise syaml.rambleYAMLError(f"Illegal leading `:' in path `{path}'", "")
+        raise ConfigError(f"Illegal leading `:' in path `{path}'", "")
     seen_override_in_path = False
     while path:
         front, sep, path = path.partition(":")
         if (sep and not path) or path.startswith(":"):
             if seen_override_in_path:
-                raise syaml.RambleYAMLError(
+                raise ConfigError(
                     "Meaningless second override" " indicator `::' in path `{}'".format(path), ""
                 )
             path = path.lstrip(":")
