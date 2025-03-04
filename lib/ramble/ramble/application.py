@@ -1318,16 +1318,23 @@ class ApplicationBase(metaclass=ApplicationMeta):
                         mirror_paths=mirror_paths,
                     ) as stage:
                         stage.set_subdir(input_base)
-                        stage.fetch()
-                        if input_conf["fetcher"].digest:
-                            stage.check()
-                        stage.cache_local()
+                        try:
+                            stage.fetch()
+                            if input_conf["fetcher"].digest:
+                                stage.check()
+                            stage.cache_local()
 
-                        if input_conf["expand"]:
-                            try:
-                                stage.expand_archive()
-                            except spack.util.executable.ProcessError:
-                                pass
+                            if input_conf["expand"]:
+                                try:
+                                    stage.expand_archive()
+                                except spack.util.executable.ProcessError:
+                                    pass
+                        except ramble.fetch_strategy.FetchError as e:
+                            logger.all_msg(
+                                f"Failed fetching input {input_file} in application {self.name}"
+                            )
+                            logger.all_msg(f"Input url was: {input_conf['fetcher'].url}")
+                            logger.die(str(e))
 
                 workspace.add_to_cache(input_tuple)
             else:
