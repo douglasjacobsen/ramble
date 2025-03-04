@@ -2009,7 +2009,11 @@ ramble:
         if missing:
             msg = f"Detected {len(missing)} missing include path(s):"
             msg += "\n   {}".format("\n   ".join(missing))
-            logger.die(f"{msg}\nPlease correct and try again.")
+
+            msg = f"{msg}\nPlease correct."
+
+            logger.warn(msg)
+            raise RambleActiveWorkspaceError(msg)
 
         return scopes
 
