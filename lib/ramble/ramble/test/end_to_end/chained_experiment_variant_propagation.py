@@ -24,7 +24,7 @@ pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_p
 workspace = RambleCommand("workspace")
 
 
-def test_chained_experiment_variable_inheritance(request):
+def test_chained_experiment_variant_propagation(request):
     test_config = r"""
 ramble:
   variants:
@@ -158,4 +158,6 @@ ramble:
             assert chained_script in parent_script_data
 
             with open(chained_script) as f:
-                assert "mpirun -n 20 -ppn 10" in f.read()
+                data = f.read()
+                assert "spack env activate" in data
+                assert "mpirun -n 20 -ppn 10" in data

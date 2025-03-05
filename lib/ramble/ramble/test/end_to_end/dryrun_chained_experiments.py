@@ -150,7 +150,7 @@ ramble:
             chained_script = os.path.join(
                 parent_dir,
                 "chained_experiments",
-                f"{chain_idx}" + r".intel-mpi-benchmarks.collective.collective_chain",
+                rf"chain.{chain_idx}.intel-mpi-benchmarks.collective.collective_chain",
                 "execute_experiment",
             )
             assert os.path.exists(chained_script)
@@ -178,12 +178,12 @@ ramble:
                     expected_order.pop(0)
 
         # Ensure results contain chain information, and properly extract figures of merit
-        chain_exp_name = r"3.intel-mpi-benchmarks.collective.collective_chain"
+        chain_exp_name = r"chain.3.intel-mpi-benchmarks.collective.collective_chain"
         output_path_3 = os.path.join(
             parent_dir,
             "chained_experiments",
             chain_exp_name,
-            f"gromacs.water_bare.parent_test.chain.{chain_exp_name}.out",
+            f"gromacs.water_bare.parent_test.{chain_exp_name}.out",
         )
 
         with open(output_path_3, "w+") as f:

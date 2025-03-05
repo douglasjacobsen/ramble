@@ -68,8 +68,8 @@ ramble:
         ]
 
         expected_chained_experiments = [
-            "0.hostname.serial.used_template",
-            "1.hostname.serial.template_false",
+            "chain.0.hostname.serial.used_template",
+            "chain.1.hostname.serial.template_false",
         ]
 
         unexpected_experiments = ["unused_template", "used_template"]
