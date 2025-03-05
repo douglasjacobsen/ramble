@@ -25,6 +25,7 @@ class Eessi(EnvironmentModules):
     """
 
     name = "eessi"
+    _spec_prefix = "eessi"
 
     package_manager_variable(
         "eessi_version",

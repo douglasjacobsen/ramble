@@ -9,6 +9,7 @@
 from ramble.pkgmankit import *  # noqa: F403
 
 import os
+import re
 import llnl.util.filesystem as fs
 
 import ramble.util.hashing
@@ -30,6 +31,8 @@ class EnvironmentModules(PackageManagerBase):
     maintainers("douglasjacobsen")
 
     _spec_prefix = "environment_modules"
+
+    _list_file = ".environment_modules_list"
 
     register_phase(
         "write_module_commands",
@@ -101,30 +104,41 @@ class EnvironmentModules(PackageManagerBase):
         shell = ramble.config.get("config:shell")
         return [f"{source_str(shell)} " + "{env_path}/module_loads"]
 
+    register_builtin("module_list", required=True, depends_on=["module_load"])
+
+    def module_list(self):
+        list_file = "{experiment_run_dir}/" + self._list_file
+        return [
+            f"module list &> {list_file}",
+        ]
+
     def _add_software_to_results(self, workspace, app_inst=None):
-        app_context = self.app_inst.expander.expand_var_name(
-            self.keywords.env_name
+        list_file = app_inst.expander.expand_var(
+            f"{{experiment_run_dir}}/{self._list_file}"
         )
 
-        require_env = self.environment_required()
+        if app_inst.result is None:
+            return
 
-        software_envs = workspace.software_environments
-        software_env = software_envs.render_environment(
-            app_context, self.app_inst.expander, self, require=require_env
-        )
+        if not os.path.exists(list_file):
+            return
 
         if self._spec_prefix not in app_inst.result.software:
             app_inst.result.software[self._spec_prefix] = []
 
         package_list = app_inst.result.software[self._spec_prefix]
 
-        if software_env is not None:
-            for spec in software_envs.package_specs_for_environment(
-                software_env
-            ):
-                parts = spec.split("/")
-                name = parts[0]
-                version = "/".join(parts[1:]) if len(parts) > 1 else ""
-                package_list.append(
-                    {"name": name, "version": version, "variants": ""}
-                )
+        pkg_regex = re.compile(r"\S+$")
+
+        with open(list_file) as f:
+            packages = re.split(r"[0-9]*\)", f.read())
+            for spec in packages:
+                cleaned = spec.strip()
+                m = pkg_regex.match(cleaned)
+                if m:
+                    parts = cleaned.split("/")
+                    name = parts[0]
+                    version = "/".join(parts[1:]) if len(parts) > 1 else ""
+                    package_list.append(
+                        {"name": name, "version": version, "variants": ""}
+                    )
