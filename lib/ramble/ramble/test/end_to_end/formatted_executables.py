@@ -18,12 +18,14 @@ from ramble.main import RambleCommand
 
 
 # everything here uses the mock_workspace_path
-pytestmark = pytest.mark.usefixtures("mutable_config", "mutable_mock_workspace_path")
+pytestmark = pytest.mark.usefixtures(
+    "mutable_config", "mutable_mock_workspace_path", "mock_applications"
+)
 
 workspace = RambleCommand("workspace")
 
 
-def test_formatted_executables(mutable_config, mutable_mock_workspace_path, mock_applications):
+def test_formatted_executables():
     test_config = r"""
 ramble:
   variables:
@@ -97,9 +99,7 @@ ramble:
             assert "\n" + " " * 2 + "test_from_ws mpirun -n 16 -ppn 16 test" in data
 
 
-def test_redefined_executable_errors(
-    mutable_config, mutable_mock_workspace_path, mock_applications
-):
+def test_redefined_executable_errors():
     test_config = r"""
 ramble:
   variables:
@@ -135,7 +135,59 @@ ramble:
 
         ws._re_read()
 
-        with pytest.raises(
-            FormattedExecutableError, match="Formatted executable var_exec_name defined"
-        ):
-            workspace("setup", "--dry-run", global_args=["-w", workspace_name])
+        with pytest.raises(FormattedExecutableError):
+            output = workspace("setup", "--dry-run", global_args=["-w", workspace_name])
+            assert "Formatted executable var_exec_name defined" in output
+
+
+def test_object_formatted_executables(mock_modifiers, request):
+    mod_config = r"""
+modifiers:
+- name: formatted-exec-mod
+"""
+
+    template_suffix = r"""
+{mod_formatted_exec}
+"""
+    workspace_name = request.node.name
+
+    ws = ramble.workspace.create(workspace_name)
+    global_args = ["-w", workspace_name]
+
+    ws.write()
+
+    modifier_path = os.path.join(ws.config_dir, "modifiers.yaml")
+    exec_path = os.path.join(ws.config_dir, "execute_experiment.tpl")
+
+    with open(modifier_path, "w+") as f:
+        f.write(mod_config)
+
+    with open(exec_path, "a") as f:
+        f.write(template_suffix)
+
+    ws._re_read()
+
+    workspace(
+        "manage",
+        "experiments",
+        "basic",
+        "--wf",
+        "working_wl",
+        "-v",
+        "n_nodes=1",
+        "-v",
+        "n_ranks=1",
+        global_args=global_args,
+    )
+
+    ws._re_read()
+
+    workspace("setup", "--dry-run", global_args=global_args)
+
+    exec_path = os.path.join(
+        ws.experiment_dir, "basic", "working_wl", "generated", "execute_experiment"
+    )
+
+    with open(exec_path) as f:
+        data = f.read()
+        assert '    FROM_MOD echo "Test formatted exec"' in data
