@@ -229,6 +229,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
         new_copy.set_template(False)
         new_copy.repeats.set_repeats(False, 0)
         new_copy.set_chained_experiments(None)
+        if self.variants:
+            new_copy.set_variants(self.variants)
 
         return new_copy
 
