@@ -231,6 +231,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
         new_copy.set_template(False)
         new_copy.repeats.set_repeats(False, 0)
         new_copy.set_chained_experiments(None)
+        if self.variants:
+            new_copy.set_variants(self.variants)
 
         return new_copy
 
@@ -740,8 +742,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 if "order" in cur_exp_def:
                     order = cur_exp_def["order"]
 
-                chained_name = f"{chain_idx}.{cur_exp_name}"
-                new_name = f"{parent_namespace}.chain.{chained_name}"
+                chained_name = f"chain.{chain_idx}.{cur_exp_name}"
+                new_name = f"{parent_namespace}.{chained_name}"
 
                 new_run_dir = os.path.join(
                     parent_run_dir, namespace.chained_experiments, chained_name

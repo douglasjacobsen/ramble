@@ -981,7 +981,7 @@ def test_chained_experiment_has_correct_directory(mutable_mock_workspace_path, c
 
         parent_name = "basic.test_wl.series2_4"
         chained_name = "basic.test_wl.series2_4.chain.0.basic.test_wl.test1"
-        chained_dir = "0.basic.test_wl.test1"
+        chained_dir = "chain.0.basic.test_wl.test1"
         assert parent_name in exp_set.experiments
         assert chained_name in exp_set.chained_experiments
 
