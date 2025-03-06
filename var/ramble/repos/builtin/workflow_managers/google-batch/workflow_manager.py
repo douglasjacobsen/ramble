@@ -12,6 +12,7 @@ import yaml
 from ramble.wmkit import *
 from ramble.application import experiment_status
 
+from ramble.util import shell_utils
 from spack.util.executable import ProcessError
 
 # Mapping from batch status to Ramble status
@@ -25,14 +26,6 @@ _STATUS_MAP = {
     "SUCCEEDED": "COMPLETE",
     "DELETION_IN_PROGRESS": "CANCELLED",
 }
-
-
-def _declare_status_map():
-    """A utility to convert the `_STATUS_MAP` into a bash array"""
-    entries = ["declare -A status_map"]
-    for k, v in _STATUS_MAP.items():
-        entries.append(f'status_map["{k}"]="{v}"')
-    return "\n".join(entries)
 
 
 class GoogleBatch(WorkflowManagerBase):
@@ -185,7 +178,11 @@ class GoogleBatch(WorkflowManagerBase):
         name="batch_helpers",
         src_path="batch_helpers.tpl",
         dest_path="batch_helpers",
-        extra_vars={"declare_status_map": _declare_status_map()},
+        extra_vars={
+            "declare_status_map": shell_utils.gen_dict_definition(
+                var_name="status_map", dict=_STATUS_MAP
+            )
+        },
     )
 
     register_template(
@@ -198,7 +195,6 @@ class GoogleBatch(WorkflowManagerBase):
         name="batch_query",
         src_path="batch_query.tpl",
         dest_path="batch_query",
-        extra_vars={"declare_status_map": _declare_status_map()},
     )
 
     register_template(
