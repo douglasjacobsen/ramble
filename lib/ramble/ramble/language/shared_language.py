@@ -564,3 +564,27 @@ def formatted_executable(name: str, prefix: str, indentation: int, commands: lis
         }
 
     return _define_formatted_executable
+
+
+@shared_directive("validators")
+def register_validator(name: str, predicate: str, message: str, fail_on_invalid: bool = True):
+    """Directive to define a validator for the object.
+
+    Args:
+        name: The name of the validator.
+        predicate: The expression to be evaluated (expanded). If it expands to False,
+                   then the validation fails.
+        message: The message given when the validation fails. This can contain Ramble
+                 variables.
+        fail_on_invalid: When true, this fails the experiment setup, otherwise it logs
+                         a warning. The default is True.
+    """
+
+    def _define_validator(obj):
+        obj.validators[name] = {
+            "predicate": predicate,
+            "message": message,
+            "fail_on_invalid": fail_on_invalid,
+        }
+
+    return _define_validator

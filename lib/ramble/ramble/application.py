@@ -888,6 +888,23 @@ class ApplicationBase(metaclass=ApplicationMeta):
         # Validate the new modifiers variables exist
         # (note: the base ramble variables are checked earlier too)
         self.keywords.check_required_keys(self.variables)
+        self._check_object_validators()
+
+    def _check_object_validators(self):
+        expander = self.expander
+        for _, obj in self._objects():
+            for name, validator in obj.validators.items():
+                valid = expander.evaluate_predicate(validator["predicate"])
+                if not valid:
+                    msg = expander.expand_var(validator["message"])
+                    err_msg = (
+                        f"Validator '{name}' (defined in '{obj.name}') "
+                        f"fails with message: '{msg}'"
+                    )
+                    if validator["fail_on_invalid"]:
+                        raise ObjectValidationError(err_msg)
+                    else:
+                        logger.warn(err_msg)
 
     def _define_custom_executables(self):
         # Define custom executables
@@ -2498,3 +2515,7 @@ class InvalidChainError(ApplicationError):
     """
     Exception raised when a invalid chained experiment is defined
     """
+
+
+class ObjectValidationError(ApplicationError):
+    """Error when an object validator fails"""
