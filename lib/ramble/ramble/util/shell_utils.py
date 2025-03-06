@@ -69,5 +69,29 @@ def cmd_sub_str(shell, cmd: str):
     return f"`{cmd}`"
 
 
+def gen_dict_definition(var_name, dict, shell="bash"):
+    """
+    A utility for generating commands for defining a dict in a shell.
+    It currently supports bash only. It maps a python dict into an
+    associative array in bash.
+
+    Args:
+        var_name: the variable name for the generated dict in the shell.
+        dict: the input dict.
+        shell: the shell used. Currently this is bash-only.
+    Return:
+        The string of the generated shell commands.
+    """
+
+    if shell != "bash":
+        raise UnsupportedError("`define_dict` is only supported in bash")
+    if not var_name or not dict:
+        return ""
+    entries = [f"declare -A {var_name}"]
+    for k, v in dict.items():
+        entries.append(f'{var_name}["{k}"]="{v}"')
+    return "\n".join(entries)
+
+
 class UnsupportedError(RambleError):
     """Error when certain shell features are not supported."""
