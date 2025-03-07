@@ -88,6 +88,25 @@ class IntelMlc(ExecutableApplication):
         workload_group="all_workloads",
     )
 
+    register_validator(
+        name="single_node",
+        predicate="n_nodes == 1",
+        message=(
+            "The intel-mlc application is intended to be used on a single "
+            "node, but is configured with n_nodes = {n_nodes}"
+        ),
+        fail_on_invalid=False,
+    )
+
+    register_validator(
+        name="validate_thread_distribution",
+        predicate='"{thread_distribution}" in ["spread", "compact"]',
+        message=(
+            "Unsupported thread distribution method {thread_distribution} requested. "
+            "Options are 'spread' and 'compact'"
+        ),
+    )
+
     figure_of_merit(
         "All Read Bandwidth",
         fom_regex=r"ALL Reads\s*:\s+(?P<bw>[0-9\.]+)",
@@ -182,29 +201,18 @@ class IntelMlc(ExecutableApplication):
             spread_divisions = int(spread_divisions)
         except ValueError:
             logger.die(f" Spread divisions was: {spread_divisions}")
-        n_nodes = int(app_inst.expander.expand_var_name("n_nodes"))
         cpu_list = app_inst.expander.expand_var_name("cpu_list")
 
         if cpu_list != "{cpu_list}":
             return
 
-        if n_nodes > 1:
-            logger.warn(
-                f"The {self.name} application is intended to be used on a single "
-                f"node, but is configured with n_nodes = {n_nodes}"
-            )
-
         if thread_dist == "compact":
             thread_list = self._compact_thread_indices(
                 n_threads, ppn, spread_divisions
             )
-        elif thread_dist == "spread":
+        else:
             thread_list = self._spread_thread_indices(
                 n_threads, ppn, spread_divisions
-            )
-        else:
-            logger.die(
-                "Unsupported thread distribution method requested. Options are 'spread' and 'compact'"
             )
 
         thread_str = ",".join(thread_list)
