@@ -309,10 +309,10 @@ if [ "$_rmb_shell" = bash ]; then
 fi
 
 # Identify and lock the python interpreter
-if [ -n "$RAMBLE_PYTHON" ]; then
+if [ -n "${RAMBLE_PYTHON:-}" ]; then
   echo "The RAMBLE_PYTHON environment variable is set to $RAMBLE_PYTHON"
   echo "Will pin the python binary ramble uses to this value".
-  if [ -n "$_RAMBLE_PYTHON" ]; then
+  if [ -n "${_RAMBLE_PYTHON:-}" ]; then
     if [ "$RAMBLE_PYTHON" != "$_RAMBLE_PYTHON" ]; then
       echo "WARNING: Ramble was previously pinned to use $_RAMBLE_PYTHON"
       echo "         If this is not what you want, set the correct python"
