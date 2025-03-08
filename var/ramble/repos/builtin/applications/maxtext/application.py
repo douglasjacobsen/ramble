@@ -169,7 +169,7 @@ class Maxtext(ExecutableApplication):
 
     fom_regex = ""
     for fom_name, fom_group, fom_part_regex in fom_parts:
-        fom_regex += f"\s*{fom_name}:\s+(?P<{fom_group}>{fom_part_regex}),*"
+        fom_regex += rf"\s*{fom_name}:\s+(?P<{fom_group}>{fom_part_regex}),*"
 
     figure_of_merit_context("step", regex=fom_regex, output_format="{step}")
     figure_of_merit(
@@ -287,7 +287,7 @@ class Maxtext(ExecutableApplication):
 
         base_config = app_inst.expander.expand_var("{base_config}")
 
-        with open(base_config, "r") as conf:
+        with open(base_config) as conf:
             try:
                 config_data = yaml.safe_load(conf)
                 logger.debug(f"Loaded config as dict: \n{config_data}")
@@ -301,7 +301,7 @@ class Maxtext(ExecutableApplication):
 
         model_config_data = {}
         if os.path.exists(model_config):
-            with open(model_config, "r") as conf:
+            with open(model_config) as conf:
                 try:
                     model_config_data = yaml.safe_load(conf)
                     logger.debug(
