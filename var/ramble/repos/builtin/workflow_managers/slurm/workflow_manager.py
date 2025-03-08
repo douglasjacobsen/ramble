@@ -155,6 +155,12 @@ class Slurm(WorkflowManagerBase):
         src_path="{slurm_execute_template_path}",
     )
 
+    register_template(
+        name="batch_helpers",
+        src_path="batch_helpers.tpl",
+        dest_path="batch_helpers",
+    )
+
     def template_render_vars(self):
         vars = {}
         expander = self.app_inst.expander
