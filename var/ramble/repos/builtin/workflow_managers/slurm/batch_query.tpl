@@ -18,3 +18,10 @@ if [ ! -z "$status" ]; then
     fi
 fi
 echo "job {job_name} with id ${job_id} has status: $status"
+
+# Print also the nodelist, start and end times of the job
+echo "additional job info:"
+paste -d ":" \
+  <(echo "nodes start end" | xargs -n1) \
+  <(sacct -j "${job_id}" -o 'nodelist%80,start,end' -X -n | xargs -n1) \
+  | sed "s/^/  /"
