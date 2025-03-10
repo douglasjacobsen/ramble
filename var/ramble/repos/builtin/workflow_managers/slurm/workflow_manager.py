@@ -19,11 +19,16 @@ _STATUS_MAP = {
     "PD": "SUBMITTED",
     "R": "RUNNING",
     "CF": "SETUP",
+    # Regard completing as complete
     "CG": "COMPLETE",
+    "COMPLETING": "COMPLETE",
+    "CA": "COMPLETE",
     "COMPLETED": "COMPLETE",
     "CANCELLED": "CANCELLED",
     "CANCELLED+": "CANCELLED",
+    "F": "FAILED",
     "FAILED": "FAILED",
+    "TO": "TIMEOUT",
     "TIMEOUT": "TIMEOUT",
 }
 
