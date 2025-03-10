@@ -90,7 +90,7 @@ class IntelMlc(ExecutableApplication):
 
     register_validator(
         name="single_node",
-        predicate="n_nodes == 1",
+        predicate="{n_nodes} == 1",
         message=(
             "The intel-mlc application is intended to be used on a single "
             "node, but is configured with n_nodes = {n_nodes}"
