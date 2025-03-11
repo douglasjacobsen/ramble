@@ -251,7 +251,7 @@ class ExperimentSet:
         elif not n_nodes:
             variables[self.keywords.n_nodes] = 1
 
-        if not n_threads:
+        if n_threads is None:
             variables[self.keywords.n_threads] = 1
 
     def _prepare_experiment(self, exp_template_name, variables, context, repeats):
