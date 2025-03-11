@@ -653,7 +653,7 @@ class NcclEnv(BasicModifier):
     modifier_variable(
         "nccl_ib_merge_vfs",
         default="",
-        values=["0","1"],
+        values=["0", "1"],
         description="Enable NCCL to combine virtual functions into a single physical network device.",
         modes=["standard"],
     )
