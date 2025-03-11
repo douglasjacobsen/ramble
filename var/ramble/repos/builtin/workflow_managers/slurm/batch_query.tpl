@@ -22,10 +22,14 @@ saved="{experiment_run_dir}/.slurm_job_info"
 
 echo "job {job_name} with id ${job_id} has status: $status" | tee $saved
 
-# Print also the nodelist, start and end times of the job
-echo "additional job info:" | tee -a $saved
+# Print out various info about the job
+echo "job info:" | tee -a $saved
+echo "  job_id: ${job_id}" | tee -a $saved
+echo "  job_name: {job_name}" | tee -a $saved
+echo "  job_status: $status" | tee -a $saved
+
 paste -d ":" \
-  <(echo "nodes start end" | xargs -n1) \
+  <(echo "job_nodes job_start job_end" | xargs -n1) \
   <(sacct -j "${job_id}" -o 'nodelist%80,start,end' -X -n | xargs -n1) \
   | sed "s/^/  /" \
   | tee -a $saved

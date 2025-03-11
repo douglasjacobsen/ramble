@@ -12,7 +12,7 @@ from ramble.wmkit import *
 from ramble.application import experiment_status
 
 from ramble.util import shell_utils
-from spack.util.executable import ProcessError
+from spack.util.executable import Executable, ProcessError
 
 # Mapping from squeue/sacct status to Ramble status
 _STATUS_MAP = {
@@ -192,6 +192,18 @@ class Slurm(WorkflowManagerBase):
             "workflow_hostfile_cmd": self.runner.get_hostfile_cmd(),
         }
 
+    def _prepare_analysis(self, workspace):
+        if workspace.dry_run:
+            return
+        expander = self.app_inst.expander
+        query_script = expander.expand_var_name("batch_query")
+        query_cmd = Executable(query_script)
+        try:
+            query_cmd()
+        except ProcessError as e:
+            # Only log a warning as this is not considered a critical step
+            logger.warn(f"batch_query returns error {e}")
+
     def get_status(self, workspace):
         expander = self.app_inst.expander
         run_dir = expander.expand_var_name("experiment_run_dir")
@@ -213,6 +225,16 @@ class Slurm(WorkflowManagerBase):
                 "Enable debug mode (`ramble -d`) for more detailed error messages."
             )
         return status
+
+    # Extract some job-related FOMs
+    for fom in ["id", "status", "nodes", "start", "end"]:
+        figure_of_merit(
+            f"job-{fom}",
+            fom_regex=rf"\s*job_{fom}:\s*(?P<val>.*)",
+            group_name="val",
+            log_file="{experiment_run_dir}/.slurm_job_info",
+            fom_type=FomType.INFO,
+        )
 
 
 class SlurmRunner:

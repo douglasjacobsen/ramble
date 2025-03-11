@@ -105,6 +105,24 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
         """Define variables to be used in template rendering"""
         return {}
 
+    def run_phase_hook(self, workspace, pipeline, hook_name):
+        """Run a workflow manager hook.
+
+        This follows the idea of `run_phase_hook` from modifiers.
+
+        It allows a workflow manager to hook into phases defined by
+        the application.
+        """
+        if pipeline in self.phase_definitions:
+            if hook_name in self.phase_definitions[pipeline]:
+                return
+
+        hook_func_name = f"_{hook_name}"
+        if hasattr(self, hook_func_name):
+            phase_func = getattr(self, hook_func_name)
+
+            phase_func(workspace)
+
     def copy(self):
         """Deep copy a workflow manager instance"""
         new_copy = type(self)(self._file_path)
