@@ -635,6 +635,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
         start_time = time.time()
         for mod_inst in self._modifier_instances:
             mod_inst.run_phase_hook(workspace, pipeline, phase)
+        if self.workflow_manager is not None:
+            self.workflow_manager.run_phase_hook(workspace, pipeline, phase)
         phase_func = phase_node.attribute
         phase_func(workspace, app_inst=self)
         self._phase_times[phase] = time.time() - start_time
@@ -2200,6 +2202,19 @@ class ApplicationBase(metaclass=ApplicationMeta):
                         fom_definitions[fom][attr] = self.expander.expand_var(
                             fom_def[attr], mod_vars
                         )
+
+        if self.workflow_manager is not None:
+            fom_contexts.update(self.workflow_manager.figure_of_merit_contexts)
+            for fom, fom_def in self.workflow_manager.figures_of_merit.items():
+                fom_definitions[fom] = {
+                    "origin": f"{self.workflow_manager}",
+                    "origin_type": "workflow_manager",
+                }
+                for attr in fom_def.keys():
+                    if isinstance(fom_def[attr], (list, FomType)):
+                        fom_definitions[fom][attr] = fom_def[attr].copy()
+                    else:
+                        fom_definitions[fom][attr] = self.expander.expand_var(fom_def[attr])
 
         for fom, conf in fom_definitions.items():
             log_path = self.expander.expand_var(conf["log_file"])
