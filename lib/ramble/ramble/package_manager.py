@@ -9,7 +9,7 @@
 
 import os
 import re
-import six
+import io
 import fnmatch
 import textwrap
 from typing import List
@@ -132,7 +132,7 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
 
         doc = re.sub(r"\s+", " ", self.__doc__)
         lines = textwrap.wrap(doc, 72)
-        results = six.StringIO()
+        results = io.StringIO()
         for line in lines:
             results.write((" " * indent) + line + "\n")
         return results.getvalue()
