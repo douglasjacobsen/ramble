@@ -112,6 +112,18 @@ def _check_shell_support(app_inst):
     _check_match(app_inst.package_manager, shell)
 
 
+def _run_phase_hook(obj, workspace, pipeline, hook):
+    """Helper to enable an object run phase hooks defined in application"""
+    phase_defs = getattr(obj, "phase_definitions")
+    if pipeline in phase_defs and hook in phase_defs[pipeline]:
+        return
+
+    hook_func_name = f"_{hook}"
+    if hasattr(obj, hook_func_name):
+        phase_func = getattr(obj, hook_func_name)
+        phase_func(workspace)
+
+
 class ApplicationBase(metaclass=ApplicationMeta):
     name = None
     _builtin_name = NS_SEPARATOR.join(("builtin", "{name}"))
@@ -633,10 +645,11 @@ class ApplicationBase(metaclass=ApplicationMeta):
 
         logger.msg(f"  Executing phase {phase}")
         start_time = time.time()
+
         for mod_inst in self._modifier_instances:
-            mod_inst.run_phase_hook(workspace, pipeline, phase)
+            _run_phase_hook(mod_inst, workspace, pipeline, phase)
         if self.workflow_manager is not None:
-            self.workflow_manager.run_phase_hook(workspace, pipeline, phase)
+            _run_phase_hook(self.workflow_manager, workspace, pipeline, phase)
         phase_func = phase_node.attribute
         phase_func(workspace, app_inst=self)
         self._phase_times[phase] = time.time() - start_time
