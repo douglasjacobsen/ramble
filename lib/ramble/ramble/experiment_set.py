@@ -491,6 +491,39 @@ class ExperimentSet:
                 logger.debug(f"   Final name: {final_exp_namespace}")
 
                 if final_exp_namespace in rendered_experiments:
+                    left_vars = self.experiments[final_exp_namespace].variables
+                    right_vars = experiment_vars
+                    lkeys = set(left_vars.keys())
+                    rkeys = set(right_vars.keys())
+
+                    # Determine variables that are only in one of the two experiments
+                    left_unique_vars = lkeys - rkeys
+                    right_unique_vars = rkeys - lkeys
+                    common_vars = lkeys & rkeys
+
+                    logger.warn(f"Two experiments are defined with the name {final_exp_namespace}")
+
+                    # Print warnings about experiment differences
+                    if left_unique_vars:
+                        logger.warn("Variables unique to previously defined experiment:")
+                        for var in left_unique_vars:
+                            logger.warn(f"  - {var}")
+
+                    if right_unique_vars:
+                        logger.warn("Variables unique to newly defined experiment:")
+                        for var in right_unique_vars:
+                            logger.warn(f"  - {var}")
+
+                    print_header = True
+                    for var in common_vars:
+                        if left_vars[var] != right_vars[var]:
+                            if print_header:
+                                logger.warn("Variable differences between experiment definitions:")
+                                print_header = False
+
+                            diff = {"previous": left_vars[var], "new": right_vars[var]}
+                            logger.warn(f"  - {var}: {diff}")
+
                     logger.die(f"Experiment {final_exp_namespace} is not unique.")
 
                 try:
