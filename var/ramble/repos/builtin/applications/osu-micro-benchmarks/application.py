@@ -126,7 +126,8 @@ class OsuMicroBenchmarks(ExecutableApplication):
 
     workload_variable(
         "additional_args",
-        default="",
+        # By default capture tail stats
+        default="-z",
         description="Additional arguments for benchmark",
         workloads=all_workloads,
     )
