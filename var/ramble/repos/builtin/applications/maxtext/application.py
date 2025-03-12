@@ -14,6 +14,7 @@ import ruamel.yaml as yaml
 from ramble.appkit import *
 from ramble.expander import Expander
 import ramble.util.stats as stats
+from spack.util.path import canonicalize_path
 
 
 class Maxtext(ExecutableApplication):
@@ -285,7 +286,14 @@ class Maxtext(ExecutableApplication):
         Any variables defined in the base.yml that are not specified in this
         file as a workload_variable will pass through unaltered."""
 
-        base_config = app_inst.expander.expand_var("{base_config}")
+        base_config = get_file_path(
+            canonicalize_path(app_inst.expander.expand_var("{base_config}")),
+            workspace,
+        )
+
+        # Avoid problems with missing base config files
+        if not os.path.exists(base_config):
+            return
 
         with open(base_config) as conf:
             try:
@@ -297,7 +305,10 @@ class Maxtext(ExecutableApplication):
                 )
 
         # Update base config with secondary model config, if it exists
-        model_config = app_inst.expander.expand_var("{model_config}")
+        model_config = get_file_path(
+            canonicalize_path(app_inst.expander.expand_var("{model_config}")),
+            workspace,
+        )
 
         model_config_data = {}
         if os.path.exists(model_config):
@@ -350,7 +361,17 @@ class Maxtext(ExecutableApplication):
         """Reads JSON metrics_files output from MaxText and formats them in a new file
         to be processed as FOMs by Ramble."""
 
-        metrics_filename = app_inst.expander.expand_var_name("metrics_file")
+        metrics_filename = get_file_path(
+            canonicalize_path(
+                app_inst.expander.expand_var_name("metrics_file")
+            ),
+            workspace,
+        )
+
+        # Avoid issues with non-existent metrics files
+        if not os.path.exists(metrics_filename):
+            return
+
         workflow_node_id = app_inst.expander.expand_var_name(
             "workflow_node_id"
         )
