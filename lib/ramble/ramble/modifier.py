@@ -244,30 +244,6 @@ class ModifierBase(metaclass=ModifierMeta):
         else:
             return {}
 
-    def run_phase_hook(self, workspace, pipeline, hook_name):
-        """Run a modifier hook.
-
-        Hooks are internal functions named _{hook_name}.
-
-        This is a wrapper to extract the hook function, and execute it
-        properly.
-
-        Hooks are only executed if they are not defined as a phase from the
-        modifier.
-        """
-
-        run_hook = True
-        if pipeline in self.phase_definitions:
-            if hook_name in self.phase_definitions[pipeline]:
-                run_hook = False
-
-        if run_hook:
-            hook_func_name = f"_{hook_name}"
-            if hasattr(self, hook_func_name):
-                phase_func = getattr(self, hook_func_name)
-
-                phase_func(workspace)
-
     def artifact_inventory(self, workspace, app_inst=None):
         """Return an inventory of modifier artifacts
 
