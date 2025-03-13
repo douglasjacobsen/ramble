@@ -181,7 +181,7 @@ class GcpMetadata(BasicModifier):
             content = f.read()
         if ":" not in content:
             return
-        content = content.replace("\n", ", ")
+        content = content.strip().replace("\n", ", ")
         with open(
             self.expander.expand_var(
                 "{experiment_run_dir}/gcp-metadata.id_map.log"
