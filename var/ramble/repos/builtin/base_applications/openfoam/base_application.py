@@ -80,6 +80,26 @@ class Openfoam(ExecutableApplication):
         ],
     )
 
+    workload(
+        "motorbike_100m",
+        executables=[
+            "clean",
+            "get_inputs",
+            "configure_mesh",
+            "surfaceFeatures",
+            "blockMesh",
+            "decomposePar1",
+            "snappyHexMesh",
+            "configure_simplefoam",
+            "redistributePar",
+            "decomposePar2",
+            "patchSummary",
+            "potentialFoam",
+            "checkMesh",
+            "simpleFoam",
+        ],
+    )
+
     workload_variable(
         "input_path",
         default="$FOAM_TUTORIALS/incompressible/simpleFoam/motorBike",
@@ -152,6 +172,12 @@ class Openfoam(ExecutableApplication):
         default="(130 52 52)",
         description="Mesh size for simulation",
         workload="motorbike_42m",
+    )
+    workload_variable(
+        "mesh_size",
+        default="(180 72 72)",
+        description="Mesh size for simulation",
+        workload="motorbike_100m",
     )
     workload_variable(
         "max_local_cells",
