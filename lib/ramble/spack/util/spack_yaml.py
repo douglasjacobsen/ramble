@@ -186,6 +186,8 @@ class OrderedLineDumper(RoundTripDumper):
     def represent_str(self, data):
         if hasattr(data, 'override') and data.override:
             data = data + ':'
+        if len(data.splitlines()) > 1:
+            return super(OrderedLineDumper, self).represent_scalar('tag:yaml.org,2002:str', data, style='|')
         return super(OrderedLineDumper, self).represent_str(data)
 
 
