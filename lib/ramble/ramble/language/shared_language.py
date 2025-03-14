@@ -546,7 +546,9 @@ def register_template(
 
 
 @shared_directive("formatted_executables")
-def formatted_executable(name: str, prefix: str, indentation: int, commands: list):
+def formatted_executable(
+    name: str, prefix: str, indentation: int, join_separator: str, commands: list
+):
     """Define a new formatted execution for this object
 
     Args:
@@ -560,6 +562,7 @@ def formatted_executable(name: str, prefix: str, indentation: int, commands: lis
         obj.formatted_executables[name] = {
             "prefix": prefix,
             "indentation": indentation,
+            "join_separator": join_separator,
             "commands": commands.copy(),
         }
 
