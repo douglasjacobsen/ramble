@@ -646,10 +646,8 @@ class ApplicationBase(metaclass=ApplicationMeta):
         logger.msg(f"  Executing phase {phase}")
         start_time = time.time()
 
-        for mod_inst in self._modifier_instances:
-            _run_phase_hook(mod_inst, workspace, pipeline, phase)
-        if self.workflow_manager is not None:
-            _run_phase_hook(self.workflow_manager, workspace, pipeline, phase)
+        for _, obj in self._objects(exclude_types=[ramble.repository.ObjectTypes.applications]):
+            _run_phase_hook(obj, workspace, pipeline, phase)
         phase_func = phase_node.attribute
         phase_func(workspace, app_inst=self)
         self._phase_times[phase] = time.time() - start_time
@@ -2487,22 +2485,34 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 for name in render_vars.keys():
                     self.keywords.update_keys({name: var_attr})
 
-    def _objects(self):
+    def _objects(self, exclude_types=None):
         """Return a tuple for each object instance associated with the app_inst.
 
         The tuple format is (obj_type, obj_inst). This is used to iterate over
         all associated objects with the given app_inst.
+
+        Args:
+          exclude_types (list(obj_type) | None): object types to exclude
         """
-        yield (ramble.repository.ObjectTypes.applications, self)
+        if exclude_types is None:
+            exclude_types = set()
+        else:
+            exclude_types = set(exclude_types)
 
-        for mod_inst in self._modifier_instances:
-            yield (ramble.repository.ObjectTypes.modifiers, mod_inst)
+        if ramble.repository.ObjectTypes.applications not in exclude_types:
+            yield (ramble.repository.ObjectTypes.applications, self)
 
-        if self.package_manager is not None:
-            yield (ramble.repository.ObjectTypes.package_managers, self.package_manager)
+        if ramble.repository.ObjectTypes.modifiers not in exclude_types:
+            for mod_inst in self._modifier_instances:
+                yield (ramble.repository.ObjectTypes.modifiers, mod_inst)
 
-        if self.workflow_manager is not None:
-            yield (ramble.repository.ObjectTypes.workflow_managers, self.workflow_manager)
+        if ramble.repository.ObjectTypes.package_managers not in exclude_types:
+            if self.package_manager is not None:
+                yield (ramble.repository.ObjectTypes.package_managers, self.package_manager)
+
+        if ramble.repository.ObjectTypes.workflow_managers not in exclude_types:
+            if self.workflow_manager is not None:
+                yield (ramble.repository.ObjectTypes.workflow_managers, self.workflow_manager)
 
 
 class ApplicationError(RambleError):
