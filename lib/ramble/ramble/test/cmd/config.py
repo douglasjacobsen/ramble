@@ -704,6 +704,46 @@ ramble:  # comment
     assert output == expected
 
 
+def test_config_add_to_workspace_preserve_multiline_str(
+    mutable_empty_config, mutable_mock_workspace_path, tmpdir
+):
+    workspace = ramble.workspace.Workspace(str(tmpdir))
+    workspace.write()
+    filepath = ramble.workspace.config_file(workspace.root)
+    contents = """# comment
+ramble:  # comment
+  # comment
+  variables:
+    test_multi_line: |
+      my test
+      string with
+      multiple lines
+  applications:
+    hostname: # comment
+      workloads:
+        basic:
+          experiments:
+            test: # Single node
+              variables:
+                n_ranks: '1'
+                n_nodes: '1'
+                processes_per_node: '1'
+"""
+    with open(filepath, "w") as f:
+        f.write(contents)
+
+    with workspace:
+        config("add", "variables:foo:bar")
+        output = config("get")
+
+    expected = """    test_multi_line: |
+      my test
+      string with
+      multiple lines"""
+
+    assert expected in output
+
+
 def test_config_remove_from_workspace(mutable_empty_config, mutable_mock_workspace_path):
     import io
 
