@@ -6,6 +6,8 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
+import re
+
 from ramble.modkit import *  # noqa: F403
 
 
@@ -51,7 +53,10 @@ class IntelAps(BasicModifier):
         modes=["mpi"],
     )
     variable_modification(
-        "aps_flags", "-c mpi -r {aps_log_dir}", method="set", modes=["mpi"]
+        "aps_flags",
+        "-c mpi -r {aps_log_dir} --stat-level {aps_stat_level}",
+        method="set",
+        modes=["mpi"],
     )
     variable_modification(
         "mpi_command", "aps {aps_flags} ", method="append", modes=["mpi"]
@@ -61,6 +66,23 @@ class IntelAps(BasicModifier):
         "aps_stat_level",
         default="1",
         description="Used to define the APS_STAT_LEVEL env variable",
+        mode="mpi",
+    )
+
+    modifier_variable(
+        "external_aps_env_var",
+        default="",
+        description=(
+            "If set, the env_var will be assigned the aps command."
+            "This is useful for injecting the aps command to some ISV apps."
+        ),
+        mode="mpi",
+    )
+
+    modifier_variable(
+        "apply_aps_exe_regex",
+        default="",
+        description="apply aps to executables that match with the regex",
         mode="mpi",
     )
 
@@ -101,18 +123,27 @@ class IntelAps(BasicModifier):
 
         pre_exec = []
         post_exec = []
-        if executable.mpi:
+
+        exe_regex = self.expander.expand_var_name("apply_aps_exe_regex")
+        applicable = exe_regex and re.match(exe_regex, executable_name)
+        if applicable or executable.mpi:
+            env_var_name = self.expander.expand_var_name(
+                "external_aps_env_var"
+            )
+            pre_cmds = [
+                "export APS_STAT_LEVEL={aps_stat_level}",
+                "spack load intel-oneapi-vtune",
+                # Clean up previous aps logs to avoid the potential
+                # of out-dated reports.
+                "rm -rf {aps_log_dir}",
+                f"rm -f {{experiment_run_dir}}/{_REPORT_PREFIX}*",
+            ]
+            if env_var_name:
+                pre_cmds.append(f"export {env_var_name}='aps {{aps_flags}}'")
             pre_exec.append(
                 CommandExecutable(
                     f"load-aps-{executable_name}",
-                    template=[
-                        "export APS_STAT_LEVEL={aps_stat_level}",
-                        "spack load intel-oneapi-vtune",
-                        # Clean up previous aps logs to avoid the potential
-                        # of out-dated reports.
-                        "rm -rf {aps_log_dir}",
-                        f"rm -f {{experiment_run_dir}}/{_REPORT_PREFIX}*",
-                    ],
+                    template=pre_cmds,
                 )
             )
             post_exec.append(
