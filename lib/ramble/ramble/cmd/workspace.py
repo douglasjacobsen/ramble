@@ -9,6 +9,7 @@
 import os
 import sys
 import tempfile
+import argparse
 
 import llnl.util.tty as tty
 import llnl.util.tty.color as color
@@ -855,7 +856,7 @@ def workspace_edit_setup_parser(subparser):
 
     subparser.add_argument(
         "-c",
-        "--config_only",
+        "--config-only",
         dest="config_only",
         action="store_true",
         help="Only open config files",
@@ -864,7 +865,7 @@ def workspace_edit_setup_parser(subparser):
 
     subparser.add_argument(
         "-t",
-        "--template_only",
+        "--template-only",
         dest="template_only",
         action="store_true",
         help="Only open template files",
@@ -873,7 +874,7 @@ def workspace_edit_setup_parser(subparser):
 
     subparser.add_argument(
         "-l",
-        "--license_only",
+        "--license-only",
         dest="license_only",
         action="store_true",
         help="Only open license config files",
@@ -892,8 +893,14 @@ def workspace_edit_setup_parser(subparser):
         "-p", "--print-file", action="store_true", help="print the file name that would be edited"
     )
 
+    subparser.add_argument(
+        "editor_args",
+        nargs=argparse.REMAINDER,
+        help="Arguments to pass into editor, following the list of files",
+    )
 
-def workspace_edit(args):
+
+def workspace_edit(args, unknown_args):
     ramble_ws = ramble.cmd.find_workspace_path(args)
 
     if not ramble_ws:
@@ -933,6 +940,9 @@ def workspace_edit(args):
             print(f)
     else:
         try:
+            if unknown_args:
+                logger.debug(f"Passing {unknown_args} to editor...")
+            edit_files += unknown_args or []
             editor(*edit_files)
         except TypeError:
             logger.die("No valid editor was found.")
@@ -1281,7 +1291,6 @@ def workspace_manage_software_setup_parser(subparser):
 
 def workspace_manage_software(args):
     """Execute workspace manage software command"""
-
     ws = ramble.cmd.find_workspace(args)
 
     if ws is None:
@@ -1410,7 +1419,6 @@ def workspace_experiment_logs_setup_parser(subparser):
 
 def workspace_experiment_logs(args):
     """Print log information for workspace"""
-
     current_pipeline = ramble.pipeline.pipelines.logs
     ws = ramble.cmd.require_active_workspace(cmd_name="workspace concretize")
 
@@ -1473,10 +1481,16 @@ def setup_parser(subparser):
         setup_parser_cmd(subsubparser)
 
 
-def workspace(parser, args):
+def workspace(parser, args, unknown_args):
     """Look for a function called workspace_<name> and call it."""
     action = subcommand_functions[args.workspace_command]
-    action(args)
+    if unknown_args:
+        arguments.validate_unknown_args(action, unknown_args)
+
+    if arguments.allows_unknown_args(action):
+        action(args, unknown_args)
+    else:
+        action(args)
 
 
 manage_subcommand_functions = {}

@@ -8,10 +8,12 @@
 
 
 import argparse
+import inspect
 
 from spack.util.pattern import Args
+from ramble.util.logger import logger
 
-__all__ = ["add_common_arguments"]
+__all__ = ["add_common_arguments", "allows_unknown_args", "validate_unknown_args"]
 
 #: dictionary of argument-generating functions, keyed by name
 _arguments = {}
@@ -43,6 +45,27 @@ def add_common_arguments(parser, list_of_arguments):
 
         x = _arguments[argument]()
         parser.add_argument(*x.flags, **x.kwargs)
+
+
+def allows_unknown_args(command):
+    """Implements really simple argument injection for unknown arguments.
+
+    Commands may add an optional argument called "unknown args" to
+    indicate they can handle unknown args. This checks that the
+    command allows `unknown_args` as an input argument.
+    """
+    info = dict(inspect.getmembers(command))
+    varnames = info["__code__"].co_varnames
+    argcount = info["__code__"].co_argcount
+    return argcount >= 2 and "unknown_args" in varnames
+
+
+def validate_unknown_args(command, unknown_args):
+    """Validate command allows unknown arguments when they are passed in"""
+    if allows_unknown_args(command):
+        return
+    elif unknown_args:
+        logger.die(f'unrecognized arguments: {" ".join(unknown_args)}')
 
 
 @arg
