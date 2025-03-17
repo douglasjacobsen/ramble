@@ -300,9 +300,10 @@ def all_template_paths(path):
     templates = []
 
     config_path = os.path.join(path, workspace_config_path)
-    for f in os.listdir(config_path):
-        if f.endswith(workspace_template_extension):
-            templates.append(os.path.join(config_path, f))
+    for root, _, files in os.walk(config_path):
+        for f in files:
+            if f.endswith(workspace_template_extension):
+                templates.append(os.path.join(root, f))
 
     return templates
 
@@ -521,20 +522,26 @@ class Workspace:
             read_default_script = self.read_default_template
             ext_len = len(workspace_template_extension)
             if os.path.exists(self.config_dir):
-                for filename in os.listdir(self.config_dir):
-                    if filename.endswith(workspace_template_extension):
-                        read_default_script = False
-                        template_name = filename[0:-ext_len]
-                        template_path = os.path.join(self.config_dir, filename)
-                        if keywords.is_reserved(template_name):
-                            raise RambleInvalidTemplateNameError(
-                                f"Template file {filename} results in a "
-                                f"template name of {template_name}"
-                                + " which is reserved by ramble."
-                            )
+                for root, _, files in os.walk(self.config_dir):
+                    processed_root = root.replace(self.config_dir, "")
+                    if len(processed_root) > 1 and processed_root[0] == os.sep:
+                        processed_root = processed_root[1:]
+                    if len(processed_root) > 1:
+                        processed_root += os.sep
+                    for filename in files:
+                        if filename.endswith(workspace_template_extension):
+                            read_default_script = False
+                            template_name = processed_root + filename[0:-ext_len]
+                            template_path = os.path.join(root, filename)
+                            if keywords.is_reserved(template_name):
+                                raise RambleInvalidTemplateNameError(
+                                    f"Template file {filename} results in a "
+                                    f"template name of {template_name}"
+                                    + " which is reserved by ramble."
+                                )
 
-                        with open(template_path) as f:
-                            self._read_template(template_name, f.read())
+                            with open(template_path) as f:
+                                self._read_template(template_name, f.read())
 
                 if os.path.exists(self.auxiliary_software_dir):
                     for filename in os.listdir(self.auxiliary_software_dir):

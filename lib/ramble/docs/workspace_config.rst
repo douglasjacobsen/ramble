@@ -989,6 +989,11 @@ Ramble automatically generates definitions for the following variables:
   ``$workspace_root/configs`` have a variable generated that resolves to the
   absolute path to: ``{experiment_run_dir}/<template_name>`` where
   ``<template_name>`` is the filename of the template, without the extension.
+  If the template file is in a nested directory inside of
+  ``$workspace_root/configs`` the variable name will contain the path relative
+  to the ``configs`` directory. For example:
+  ``$workspace_root/configs/templates/foo.tpl`` would create a variable named
+  ``templates/foo``.
 * ``unformatted_command`` - A multi-line string with the command for running
   the experiment. Unformatted so it can be formatted for various experiments.
 * ``unformatted_command_without_logs`` - The same as ``unformatted_command`` but
