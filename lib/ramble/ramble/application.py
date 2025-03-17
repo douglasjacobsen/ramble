@@ -1458,6 +1458,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
             for template_name, template_conf in workspace.all_templates():
                 expand_path = os.path.join(experiment_run_dir, template_name)
                 logger.msg(f"Writing template {template_name} to {expand_path}")
+                fs.mkdirp(os.path.dirname(expand_path))
 
                 with open(expand_path, "w+") as f:
                     f.write(
