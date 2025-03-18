@@ -6,7 +6,8 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
-from typing import Optional
+import collections
+from typing import Optional, Any, Union, Callable
 
 import ramble.language.language_base
 import ramble.language.language_helpers
@@ -120,7 +121,9 @@ def figure_of_merit(
 
 
 @shared_directive("compilers")
-def define_compiler(name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*"):
+def define_compiler(
+    name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*", when=None
+):
     """Defines the compiler that will be used with this object
 
     Adds a new compiler spec to this object. Software specs should
@@ -136,23 +139,29 @@ def define_compiler(name, pkg_spec, compiler_spec=None, compiler=None, package_m
     """
 
     def _execute_define_compiler(obj):
+        when_list = ramble.language.language_helpers.build_when_list(
+            when, obj, name, "define_compiler"
+        )
+
         obj.compilers[name] = {
             "pkg_spec": pkg_spec,
             "compiler_spec": compiler_spec,
             "compiler": compiler,
             "package_manager": package_manager,
+            "when": when_list,
         }
 
     return _execute_define_compiler
 
 
 @shared_directive("software_specs")
-def software_spec(name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*"):
+def software_spec(
+    name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*", when=None
+):
     """Defines a new software spec needed for this object.
 
     Adds a new software spec (for spack to use) that this object
     needs to execute properly.
-
     Only adds specs to object that use spack.
 
     Specs can be described as an mpi spec, which means they
@@ -170,12 +179,17 @@ def software_spec(name, pkg_spec, compiler_spec=None, compiler=None, package_man
     """
 
     def _execute_software_spec(obj):
+        when_list = ramble.language.language_helpers.build_when_list(
+            when, obj, name, "software_spec"
+        )
+
         # Define the spec
         obj.software_specs[name] = {
             "pkg_spec": pkg_spec,
             "compiler_spec": compiler_spec,
             "compiler": compiler,
             "package_manager": package_manager,
+            "when": when_list,
         }
 
     return _execute_software_spec
@@ -591,3 +605,23 @@ def register_validator(name: str, predicate: str, message: str, fail_on_invalid:
         }
 
     return _define_validator
+
+
+@shared_directive(dicts=())
+def variant(
+    name: str,
+    default: Optional[Any] = None,
+    description: str = "",
+    values: Optional[Union[collections.abc.Sequence, Callable[[Any], bool]]] = None,
+):
+
+    def _define_variant(obj):
+        if isinstance(default, str):
+            obj.object_variants.add(f"{name}={default}")
+        elif isinstance(default, bool):
+            if default:
+                obj.object_variants.add(f"+{name}")
+            else:
+                obj.object_variants.add(f"~{name}")
+
+    return _define_variant

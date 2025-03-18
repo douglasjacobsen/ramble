@@ -26,6 +26,7 @@ import spack.util.naming
 
 class PackageManagerBase(metaclass=PackageManagerMeta):
     name = None
+    object_variants = set()
     _builtin_name = NS_SEPARATOR.join(("package_manager_builtin", "{obj_name}", "{name}"))
     _language_classes = [PackageManagerMeta, SharedMeta]
     _pipelines = [
@@ -68,6 +69,9 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
         self.keywords = None
 
         ramble.util.directives.define_directive_methods(self)
+
+        self.variant("package_manager", default=self.name)
+        self.variant("package_manager_prefix", default=self._spec_prefix)
 
     def copy(self):
         """Deep copy a package manager instance"""

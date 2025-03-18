@@ -22,6 +22,7 @@ from ramble.expander import ExpanderError
 
 class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
     name = None
+    object_variants = set()
     _builtin_name = NS_SEPARATOR.join(("workflow_manager_builtin", "{obj_name}", "{name}"))
     _language_classes = [WorkflowManagerMeta, SharedMeta]
     _pipelines = [
@@ -68,6 +69,8 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
         self._file_path = file_path
 
         ramble.util.directives.define_directive_methods(self)
+
+        self.variant("workflow_manager", default=self.name)
 
         self.app_inst = None
         self.runner = None

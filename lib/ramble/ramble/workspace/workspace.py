@@ -1390,6 +1390,7 @@ ramble:
 
         for _, app_inst, _ in experiment_set.all_experiments():
             app_inst.build_modifier_instances()
+            app_inst.add_expand_vars(self)
             env_name_str = app_inst.expander.expansion_str(ramble.keywords.keywords.env_name)
             env_name = app_inst.expander.expand_var(env_name_str)
 
@@ -1402,7 +1403,10 @@ ramble:
 
             for compiler_dict in compiler_dicts:
                 for comp, info in compiler_dict.items():
-                    if fnmatch.fnmatch(app_inst.package_manager.name, info["package_manager"]):
+                    keep_comp = False if info["when"] else True
+                    for when_clause in info["when"]:
+                        keep_comp = keep_comp or app_inst.expander.satisfies(when_clause)
+                    if keep_comp:
                         if comp not in packages_dict or force:
                             packages_dict[comp] = syaml.syaml_dict()
                             packages_dict[comp]["pkg_spec"] = info["pkg_spec"]
@@ -1446,7 +1450,10 @@ ramble:
 
             for software_dict in software_dicts:
                 for spec_name, info in software_dict.items():
-                    if fnmatch.fnmatch(app_inst.package_manager.name, info["package_manager"]):
+                    keep_pkg = False if info["when"] else True
+                    for when_clause in info["when"]:
+                        keep_pkg = keep_pkg or app_inst.expander.satisfies(when_clause)
+                    if keep_pkg:
                         logger.debug(f"    Found spec: {spec_name}")
                         if spec_name not in packages_dict or force:
                             packages_dict[spec_name] = syaml.syaml_dict()

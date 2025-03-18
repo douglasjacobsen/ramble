@@ -126,6 +126,7 @@ def _run_phase_hook(obj, workspace, pipeline, hook):
 
 class ApplicationBase(metaclass=ApplicationMeta):
     name = None
+    object_variants = set()
     _builtin_name = NS_SEPARATOR.join(("builtin", "{name}"))
     _builtin_required_key = "required"
     _inventory_file_name = "ramble_inventory.json"
@@ -580,6 +581,10 @@ class ApplicationBase(metaclass=ApplicationMeta):
             self.variables[var] = val
 
         self._command_list = []
+
+        # Remove variable definitions that should not be used
+        if "experiment_variants" in self.expander._used_variables:
+            self.expander._used_variables.remove("experiment_variants")
 
         return self.expander._used_variables
 
@@ -1244,6 +1249,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
         - spack_setup: set to an empty string, so spack applications can override this
         """
         if not self._vars_are_expanded:
+            self._define_experiment_variants()
             self._validate_experiment()
             self._executable_graph = self._get_executable_graph(self.expander.workload_name)
             self._set_default_experiment_variables()
@@ -1252,6 +1258,21 @@ class ApplicationBase(metaclass=ApplicationMeta):
             self._derive_variables_for_template_path(workspace)
             self._define_object_template_vars(workspace)
             self._vars_are_expanded = True
+
+    def _define_experiment_variants(self):
+        """Define the experiment_variants set variable
+
+        Construct a set representing all of this experiment's variants. Define
+        a variable within this experiment's expander that contains the variant
+        definitions.
+        """
+        variant_set = set()
+        for _, obj in self._objects():
+            if hasattr(obj, "object_variants"):
+                for var in obj.object_variants:
+                    expanded_var = self.expander.expand_var(var)
+                    variant_set.add(expanded_var)
+        self.define_variable("experiment_variants", variant_set)
 
     def _inputs_and_fetchers(self, workload=None):
         """Extract all inputs for a given workload
