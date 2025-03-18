@@ -357,7 +357,7 @@ class MultiProcessFd(object):
     @property
     def fd(self):
         if self._connection:
-            return self._connection._handle
+            return self._connection.fileno()
         else:
             return self._fd
 
@@ -366,22 +366,6 @@ class MultiProcessFd(object):
             self._connection.close()
         else:
             os.close(self._fd)
-
-
-def close_connection_and_file(multiprocess_fd, file):
-    # MultiprocessFd is intended to transmit a FD
-    # to a child process, this FD is then opened to a Python File object
-    # (using fdopen). In >= 3.8, MultiprocessFd encapsulates a
-    # multiprocessing.connection.Connection; Connection closes the FD
-    # when it is deleted, and prints a warning about duplicate closure if
-    # it is not explicitly closed. In < 3.8, MultiprocessFd encapsulates a
-    # simple FD; closing the FD here appears to conflict with
-    # closure of the File object (in < 3.8 that is). Therefore this needs
-    # to choose whether to close the File or the Connection.
-    if sys.version_info >= (3, 8):
-        multiprocess_fd.close()
-    else:
-        file.close()
 
 
 @contextmanager
@@ -923,10 +907,10 @@ def _writer_daemon(stdin_multiprocess_fd, read_multiprocess_fd, write_fd, echo,
         in_pipe = os.fdopen(read_multiprocess_fd.fd, 'r', 1)
     else:
         # Python 3.x before 3.7 does not open with UTF-8 encoding by default
-        in_pipe = os.fdopen(read_multiprocess_fd.fd, 'r', 1, encoding='utf-8')
+        in_pipe = os.fdopen(read_multiprocess_fd.fd, 'r', 1, encoding='utf-8', closefd=False)
 
     if stdin_multiprocess_fd:
-        stdin = os.fdopen(stdin_multiprocess_fd.fd)
+        stdin = os.fdopen(stdin_multiprocess_fd.fd, closefd=False)
     else:
         stdin = None
 
@@ -1016,9 +1000,9 @@ def _writer_daemon(stdin_multiprocess_fd, read_multiprocess_fd, write_fd, echo,
         if isinstance(log_file, io.StringIO):
             control_pipe.send(log_file.getvalue())
         log_file_wrapper.close()
-        close_connection_and_file(read_multiprocess_fd, in_pipe)
+        read_multiprocess_fd.close()
         if stdin_multiprocess_fd:
-            close_connection_and_file(stdin_multiprocess_fd, stdin)
+            stdin_multiprocess_fd.close()
 
         # send echo value back to the parent so it can be preserved.
         control_pipe.send(echo)
