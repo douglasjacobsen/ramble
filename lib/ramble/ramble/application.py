@@ -1812,10 +1812,14 @@ class ApplicationBase(metaclass=ApplicationMeta):
                                         "fom_type": fom_conf["fom_type"],
                                     }
 
+        success_summary = {}
+
         # Test all non-file based success criteria
         for criteria_obj in criteria_list.all_criteria():
+            success_summary[criteria_obj.name] = False
             if criteria_obj.file is None:
                 if criteria_obj.passed(app_inst=self, fom_values=fom_values):
+                    success_summary[criteria_obj.name] = True
                     criteria_obj.mark_found()
 
         success = False
@@ -1838,6 +1842,12 @@ class ApplicationBase(metaclass=ApplicationMeta):
         self.set_status(status)
 
         self._init_result()
+
+        for criteria_name, criteria_status in success_summary.items():
+            if criteria_status:
+                self.result.success[criteria_name] = "PASSED"
+            else:
+                self.result.success[criteria_name] = "FAILED"
 
         for context, fom_map in fom_values.items():
             context_map = {

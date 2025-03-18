@@ -12,6 +12,7 @@ from ramble.namespace import namespace
 _OUTPUT_MAPPING = {
     "name": "name",
     "status": "RAMBLE_STATUS",
+    namespace.success: "SUCCESS_CRITERIA",
     namespace.n_repeats: "N_REPEATS",
     "keys": "keys",
     "contexts": "CONTEXTS",
@@ -36,6 +37,7 @@ class ExperimentResult:
         self.tags = list(app_inst.experiment_tags)
         self.contexts = []
         self.software = {}
+        self.success = {}
 
         self.keys = {}
         for key in app_inst.keywords.keys:
