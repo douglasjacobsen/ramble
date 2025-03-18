@@ -13,7 +13,6 @@ after the system path is set up.
 """
 
 import argparse
-import inspect
 import io
 import operator
 import os
@@ -35,6 +34,7 @@ import llnl.util.tty.color as color
 from llnl.util.tty.log import log_output
 
 import ramble.cmd
+import ramble.cmd.common.arguments
 import ramble.config
 import ramble.workspace
 import ramble.workspace.shell
@@ -607,22 +607,9 @@ def setup_main_options(args):
     color.set_color_when(args.color)
 
 
-def allows_unknown_args(command):
-    """Implements really simple argument injection for unknown arguments.
-
-    Commands may add an optional argument called "unknown args" to
-    indicate they can handle unknown args, and we'll pass the unknown
-    args in.
-    """
-    info = dict(inspect.getmembers(command))
-    varnames = info["__code__"].co_varnames
-    argcount = info["__code__"].co_argcount
-    return argcount == 3 and varnames[2] == "unknown_args"
-
-
 def _invoke_command(command, parser, args, unknown_args):
     """Run a ramble command *without* setting ramble global options."""
-    if allows_unknown_args(command):
+    if ramble.cmd.common.arguments.allows_unknown_args(command):
         return_val = command(parser, args, unknown_args)
     else:
         if unknown_args:

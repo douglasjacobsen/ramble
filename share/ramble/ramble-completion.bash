@@ -683,7 +683,12 @@ _ramble_workspace_info() {
 }
 
 _ramble_workspace_edit() {
-    RAMBLE_COMPREPLY="-h --help -f --file -c --config_only -t --template_only -l --license_only --all -p --print-file"
+    if $list_options
+    then
+        RAMBLE_COMPREPLY="-h --help -f --file -c --config-only -t --template-only -l --license-only --all -p --print-file"
+    else
+        RAMBLE_COMREPLY=""
+    fi
 }
 
 _ramble_workspace_mirror() {
