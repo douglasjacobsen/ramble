@@ -6,6 +6,7 @@
 # option. This file may not be copied, modified, or distributed
 # except according to those terms.
 
+import contextlib
 import collections
 from typing import Optional, Any, Union, Callable
 
@@ -625,3 +626,21 @@ def variant(
                 obj.object_variants.add(f"~{name}")
 
     return _define_variant
+
+
+@contextlib.contextmanager
+def when(condition):
+    from ramble.language.language_base import DirectiveMeta
+
+    DirectiveMeta.push_to_context(condition)
+    yield
+    DirectiveMeta.pop_from_context()
+
+
+@contextlib.contextmanager
+def default_args(**kwargs):
+    from ramble.language.language_base import DirectiveMeta
+
+    DirectiveMeta.push_default_args(kwargs)
+    yield
+    DirectiveMeta.pop_default_args()
