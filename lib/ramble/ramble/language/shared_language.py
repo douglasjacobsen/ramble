@@ -10,6 +10,7 @@ import contextlib
 import collections
 from typing import Optional, Any, Union, Callable
 
+import ramble.variants
 import ramble.language.language_base
 import ramble.language.language_helpers
 import ramble.success_criteria
@@ -617,13 +618,17 @@ def variant(
 ):
 
     def _define_variant(obj):
-        if isinstance(default, str):
-            obj.object_variants.add(f"{name}={default}")
-        elif isinstance(default, bool):
-            if default:
-                obj.object_variants.add(f"+{name}")
-            else:
-                obj.object_variants.add(f"~{name}")
+        """Define a new variant in the input object
+
+        Args:
+            obj: Input ramble object to define variant inside.
+            name (str): Name of variant to define
+            default: Default value of the new variant
+            description (str): Description of the variant
+            values: Values for variant.
+        """
+        ramble.variants.validate_variant(name)
+        ramble.variants.define_variant(obj, name, default, description, values)
 
     return _define_variant
 

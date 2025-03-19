@@ -17,6 +17,7 @@ from typing import List
 from ramble.language.package_manager_language import PackageManagerMeta
 from ramble.language.shared_language import SharedMeta, register_phase
 from ramble.error import RambleError
+import ramble.variants
 import ramble.util.directives
 import ramble.util.class_attributes
 from ramble.util.naming import NS_SEPARATOR
@@ -70,8 +71,8 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
 
         ramble.util.directives.define_directive_methods(self)
 
-        self.variant("package_manager", default=self.name)
-        self.variant("package_manager_prefix", default=self._spec_prefix)
+        ramble.variants.define_variant(self, "package_manager", default=self.name)
+        ramble.variants.define_variant(self, "package_manager_prefix", default=self._spec_prefix)
 
     def copy(self):
         """Deep copy a package manager instance"""

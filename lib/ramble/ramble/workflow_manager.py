@@ -15,6 +15,7 @@ from ramble.language.workflow_manager_language import (
 )
 from ramble.language.shared_language import SharedMeta
 from ramble.util.naming import NS_SEPARATOR
+import ramble.variants
 import ramble.util.class_attributes
 import ramble.util.directives
 from ramble.expander import ExpanderError
@@ -70,7 +71,7 @@ class WorkflowManagerBase(metaclass=WorkflowManagerMeta):
 
         ramble.util.directives.define_directive_methods(self)
 
-        self.variant("workflow_manager", default=self.name)
+        ramble.variants.define_variant(self, "workflow_manager", default=self.name)
 
         self.app_inst = None
         self.runner = None
