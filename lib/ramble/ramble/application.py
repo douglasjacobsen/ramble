@@ -291,9 +291,10 @@ class ApplicationBase(metaclass=ApplicationMeta):
                         "\tramble list --type package_managers"
                     )
 
+        self._define_experiment_variants()
         if self.package_manager is not None:
             for pkgname, config in self.required_packages.items():
-                if fnmatch.fnmatch(self.package_manager.name, config["package_manager"]):
+                if self.expander.satisfies(config["when"]):
                     self.keywords.update_keys(
                         {
                             f"{pkgname}_path": {
@@ -1266,14 +1267,13 @@ class ApplicationBase(metaclass=ApplicationMeta):
         a variable within this experiment's expander that contains the variant
         definitions.
         """
-        variant_set = set()
+        variant_list = []
         for _, obj in self._objects():
             if hasattr(obj, "object_variants"):
                 for var in obj.object_variants:
                     expanded_var = self.expander.expand_var(var)
-                    variant_set.add(expanded_var)
-        logger.all_msg(f"Setting variants: {variant_set}")
-        self.define_variable("experiment_variants", variant_set)
+                    variant_list.append(expanded_var)
+        self.define_variable("experiment_variants", variant_list)
 
     def _inputs_and_fetchers(self, workload=None):
         """Extract all inputs for a given workload

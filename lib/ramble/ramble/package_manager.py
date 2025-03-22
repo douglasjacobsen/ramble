@@ -10,7 +10,6 @@
 import os
 import re
 import io
-import fnmatch
 import textwrap
 from typing import List
 
@@ -98,7 +97,7 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
         app_inst = self.app_inst
         if hasattr(app_inst, "software_specs"):
             for info in app_inst.software_specs.values():
-                if fnmatch.fnmatch(self.name, info["package_manager"]):
+                if self.app_inst.expander.satisfies(info["when"]):
                     return True
 
         return False
