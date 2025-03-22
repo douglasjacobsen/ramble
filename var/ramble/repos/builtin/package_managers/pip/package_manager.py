@@ -33,6 +33,8 @@ class Pip(PackageManagerBase):
 
     _spec_prefix = "pip"
 
+    package_manager_family("pip")
+
     archive_pattern(os.path.join("{env_path}", "requirements.txt"))
     archive_pattern(os.path.join("{env_path}", "requirements.lock"))
 

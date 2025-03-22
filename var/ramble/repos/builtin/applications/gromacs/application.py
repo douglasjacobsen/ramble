@@ -20,9 +20,9 @@ class Gromacs(ExecutableApplication):
 
     tags("molecular-dynamics")
 
-    with when("package_manager_prefix=spack"):
+    with when("package_manager_family=spack"):
         define_compiler(
-            "gcc9", pkg_spec="gcc@9.3.0", when=["package_manager_prefix=spack"]
+            "gcc9", pkg_spec="gcc@9.3.0", when=["package_manager_family=spack"]
         )
         with default_args(compiler="gcc9"):
             software_spec(
@@ -38,7 +38,7 @@ class Gromacs(ExecutableApplication):
     software_spec(
         "eessi_gromacs",
         pkg_spec="GROMACS/2024.1-foss-2023b",
-        when=["package_manager_prefix=eessi"],
+        when=["package_manager_family=eessi"],
     )
 
     executable(

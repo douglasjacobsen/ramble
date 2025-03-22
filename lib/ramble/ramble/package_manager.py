@@ -55,6 +55,7 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
     #: Do not include @ here in order not to unnecessarily ping the users.
     maintainers: List[str] = []
     tags: List[str] = []
+    families: List[str] = []
 
     def __init__(self, file_path):
         super().__init__()
@@ -70,9 +71,9 @@ class PackageManagerBase(metaclass=PackageManagerMeta):
         self.keywords = None
 
         ramble.util.directives.define_directive_methods(self)
-
         ramble.variants.define_variant(self, "package_manager", default=self.name)
-        ramble.variants.define_variant(self, "package_manager_prefix", default=self._spec_prefix)
+        for family in self.families:
+            ramble.variants.define_variant(self, "package_manager_family", default=family)
 
     def copy(self):
         """Deep copy a package manager instance"""

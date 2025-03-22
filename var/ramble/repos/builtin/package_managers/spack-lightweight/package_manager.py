@@ -38,6 +38,8 @@ class SpackLightweight(PackageManagerBase):
 
     _spec_prefix = "spack"
 
+    package_manager_family("spack")
+
     def __init__(self, file_path):
         super().__init__(file_path)
 

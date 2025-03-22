@@ -1272,6 +1272,7 @@ class ApplicationBase(metaclass=ApplicationMeta):
                 for var in obj.object_variants:
                     expanded_var = self.expander.expand_var(var)
                     variant_set.add(expanded_var)
+        logger.all_msg(f"Setting variants: {variant_set}")
         self.define_variable("experiment_variants", variant_set)
 
     def _inputs_and_fetchers(self, workload=None):
