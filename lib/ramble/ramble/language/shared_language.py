@@ -27,7 +27,7 @@ definition to modify the object, for example:
 
       class Gromacs(ExecutableApplication):
           # Required package directive
-          required_package("gromacs", package_manager="spack")
+          required_package("gromacs", when=["package_manager_family=spack"])
 
 In the above example, "required_package" is a ramble directive
 
@@ -124,7 +124,7 @@ def figure_of_merit(
 
 @shared_directive("compilers")
 def define_compiler(
-    name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*", when=None
+    name, pkg_spec, compiler_spec=None, compiler=None, package_manager=None, when=None
 ):
     """Defines the compiler that will be used with this object
 
@@ -145,11 +145,17 @@ def define_compiler(
             when, obj, name, "define_compiler"
         )
 
+        if package_manager is not None:
+            logger.warn(
+                "The `package_manager` argument of the define_compiler "
+                f"directive in object {obj.name} is depreacated. Please "
+                "transition this to use the `when` argument instead."
+            )
+
         obj.compilers[name] = {
             "pkg_spec": pkg_spec,
             "compiler_spec": compiler_spec,
             "compiler": compiler,
-            "package_manager": package_manager,
             "when": when_list,
         }
 
@@ -158,7 +164,7 @@ def define_compiler(
 
 @shared_directive("software_specs")
 def software_spec(
-    name, pkg_spec, compiler_spec=None, compiler=None, package_manager="*", when=None
+    name, pkg_spec, compiler_spec=None, compiler=None, package_manager=None, when=None
 ):
     """Defines a new software spec needed for this object.
 
@@ -185,12 +191,18 @@ def software_spec(
             when, obj, name, "software_spec"
         )
 
+        if package_manager is not None:
+            logger.warn(
+                "The `package_manager` argument of the define_compiler "
+                f"directive in object {obj.name} is depreacated. Please "
+                "transition this to use the `when` argument instead."
+            )
+
         # Define the spec
         obj.software_specs[name] = {
             "pkg_spec": pkg_spec,
             "compiler_spec": compiler_spec,
             "compiler": compiler,
-            "package_manager": package_manager,
             "when": when_list,
         }
 
@@ -198,7 +210,7 @@ def software_spec(
 
 
 @shared_directive("package_manager_configs")
-def package_manager_config(name, config, package_manager="*", **kwargs):
+def package_manager_config(name, config, package_manager=None, when=None, **kwargs):
     """Defines a config option to set within a package manager
 
     Define a new config which will be passed to a package manager. The
@@ -212,16 +224,27 @@ def package_manager_config(name, config, package_manager="*", **kwargs):
     """
 
     def _execute_package_manager_config(obj):
+        when_list = ramble.language.language_helpers.build_when_list(
+            when, obj, name, "package_manager_config"
+        )
+
+        if package_manager is not None:
+            logger.warn(
+                "The `package_manager` argument of the package_manager_config "
+                f"directive in object {obj.name} is depreacated. Please "
+                "transition this to use the `when` argument instead."
+            )
+
         obj.package_manager_configs[name] = {
             "config": config,
-            "package_manager": package_manager,
+            "when": when_list,
         }
 
     return _execute_package_manager_config
 
 
 @shared_directive("required_packages")
-def required_package(name, package_manager="*"):
+def required_package(name, package_manager=None, when=None):
     """Defines a new spack package that is required for this object
     to function properly.
 
@@ -231,9 +254,18 @@ def required_package(name, package_manager="*"):
     """
 
     def _execute_required_package(obj):
-        obj.required_packages[name] = {
-            "package_manager": package_manager,
-        }
+        when_list = ramble.language.language_helpers.build_when_list(
+            when, obj, name, "package_manager_config"
+        )
+
+        if package_manager is not None:
+            logger.warn(
+                "The `package_manager` argument of the required_package "
+                f"directive in object {obj.name} is depreacated. Please "
+                "transition this to use the `when` argument instead."
+            )
+
+        obj.required_packages[name] = {"when": when_list}
 
     return _execute_required_package
 

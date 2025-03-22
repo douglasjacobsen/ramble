@@ -12,7 +12,7 @@ import operator
 import math
 import random
 
-from typing import Dict
+from typing import Dict, List
 
 import ramble.error
 import ramble.keywords
@@ -650,7 +650,7 @@ class Expander:
                 f'a non-boolean string: "{evaluated}"'
             )
 
-    def satisfies(self, req, extra_vars=None, merge_used_stage: bool = True):
+    def satisfies(self, reqs: List = None, extra_vars=None, merge_used_stage: bool = True):
         """Determine an experiment's variants satisfy a query
 
         Args:
@@ -664,16 +664,17 @@ class Expander:
                      the input requirement.
         """
 
-        if " in {experiment_variants}" not in req:
-            req_test = "'" + req + "' in {experiment_variants}"
-        else:
-            req_test = req
-
-        return self.evaluate_predicate(
-            req_test,
-            extra_vars=extra_vars,
-            merge_used_stage=merge_used_stage,
-        )
+        satisfied = True
+        if reqs is not None:
+            for req in reqs:
+                if " in {experiment_variants}" not in req:
+                    req_test = "'" + req + "' in {experiment_variants}"
+                else:
+                    req_test = req
+                satisfied = satisfied and self.evaluate_predicate(
+                    req_test, extra_vars=extra_vars, merge_used_stage=merge_used_stage
+                )
+        return satisfied
 
     @staticmethod
     def expansion_str(in_str):

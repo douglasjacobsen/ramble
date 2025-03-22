@@ -1403,9 +1403,7 @@ ramble:
 
             for compiler_dict in compiler_dicts:
                 for comp, info in compiler_dict.items():
-                    keep_comp = False if info["when"] else True
-                    for when_clause in info["when"]:
-                        keep_comp = keep_comp or app_inst.expander.satisfies(when_clause)
+                    keep_comp = app_inst.expander.satisfies(info["when"])
                     if keep_comp:
                         if comp not in packages_dict or force:
                             packages_dict[comp] = syaml.syaml_dict()
@@ -1450,9 +1448,7 @@ ramble:
 
             for software_dict in software_dicts:
                 for spec_name, info in software_dict.items():
-                    keep_pkg = False if info["when"] else True
-                    for when_clause in info["when"]:
-                        keep_pkg = keep_pkg or app_inst.expander.satisfies(when_clause)
+                    keep_pkg = app_inst.expander.satisfies(info["when"])
                     if keep_pkg:
                         logger.debug(f"    Found spec: {spec_name}")
                         if spec_name not in packages_dict or force:
