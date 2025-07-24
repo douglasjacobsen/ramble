@@ -32,6 +32,7 @@ import ramble.schema.applications
 import ramble.schema.merged
 import ramble.schema.workspace
 import ramble.software_environments
+import ramble.spec
 import ramble.util.hashing
 import ramble.util.install_cache
 import ramble.util.lock as lk
@@ -893,7 +894,12 @@ ramble:
         app_dict = ramble.config.config.get_config(namespace.application)
 
         for application, contents in app_dict.items():
-            application_context = ramble.context.create_context_from_dict(application, contents)
+            app_spec = ramble.spec.Spec(application)
+            logger.all_msg(f"App type: {type(app_spec)}")
+            application_context = ramble.context.create_context_from_dict(
+                app_spec.fullname, contents
+            )
+            logger.all_msg(f" Version of spec: {app_spec.version}")
 
             yield contents, application_context
 
