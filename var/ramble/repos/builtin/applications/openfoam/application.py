@@ -37,18 +37,10 @@ class Openfoam(OpenfoamBase):
         redirect="{experiment_run_dir}/log.surfaceFeatures",
     )
 
-    executable(
-        "get_inputs",
-        template=[
-            "cp -Lr {input_path}/* {experiment_run_dir}/.",
-            "mkdir -p constant/triSurface",
-            "mkdir -p constant/geometry",
-            "cp {geometry_path} constant/triSurface/.",
-            "cp {geometry_path} constant/geometry/.",
-            "cp system/decomposeParDict.* system/decomposeParDict",
-            "ln -sf {experiment_run_dir}/0.orig {experiment_run_dir}/0",
-        ],
-        use_mpi=False,
+    stage_files(
+        name="stage_input",
+        src="{experiment_run_dir}/0.orig",
+        dst="{experiment_run_dir}/0",
     )
 
     workload_variable(

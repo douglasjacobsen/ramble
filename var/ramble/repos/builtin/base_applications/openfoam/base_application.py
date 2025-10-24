@@ -218,7 +218,7 @@ class Openfoam(ExecutableApplication):
     stage_files(
         name="stage_geometry", src="{geometry_path}", dst="constant/geometry/."
     )
-    stage_files(name="stage_U", src="0/U", dst="0/U.orig")
+    stage_files(name="stage_orig", src="0/U", dst="0/U.orig")
 
     executable(
         "configure_mesh",

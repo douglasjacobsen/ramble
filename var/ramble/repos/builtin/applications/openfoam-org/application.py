@@ -30,17 +30,10 @@ class OpenfoamOrg(OpenfoamBase):
 
         required_package("openfoam-org")
 
-    executable(
-        "get_inputs",
-        template=[
-            "cp -Lr {input_path}/* {experiment_run_dir}/.",
-            "mkdir -p constant/triSurface",
-            "mkdir -p constant/geometry",
-            "cp {geometry_path} constant/triSurface/.",
-            "cp {geometry_path} constant/geometry/.",
-            "ln -sf {experiment_run_dir}0/U.orig {experiment_run_dir}/0/U",
-        ],
-        use_mpi=False,
+    stage_files(
+        name="stage_input",
+        src="{experiment_run_dir}/0/U.orig",
+        dst="{experiment_run_dir}/0/U",
     )
 
     workload_variable(
