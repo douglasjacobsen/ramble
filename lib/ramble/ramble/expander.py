@@ -862,6 +862,17 @@ class Expander:
             unmodified (if unsuccessful)
 
         """
+        # If the string doesn't contain a backslash, we don't need to worry about
+        # "invalid escape sequence" warnings, so we can skip the context manager.
+        if "\\" not in in_str:
+            try:
+                math_ast = _ast_parse(in_str)
+                out_str = self.eval_math(math_ast.body)
+                return out_str
+            except (MathEvaluationError, RambleSyntaxError, SyntaxError):
+                # Fallthrough to the slower path with warning capture/logging logic
+                pass
+
         with warnings.catch_warnings(record=True) as wal:
             try:
                 math_ast = _ast_parse(in_str)
