@@ -308,6 +308,37 @@ def _print_figures_of_merit(obj, attr, verbose=False, pattern="*", format=suppor
                 _print_verbose_dict_attr(fom_dict, pattern=pattern, indentation=indentation)
 
 
+def _print_workloads(obj, attr, verbose=False, pattern="*", format=supported_formats.text):
+    """Print workloads
+
+    Workloads are stored in a nested dictionary.
+    """
+    internal_attr_name = _map_attr_name(attr)
+    internal_attr = getattr(obj, internal_attr_name)
+    print_attribute_header(attr, verbose)
+    indentation = " " * 4
+
+    if not verbose:
+        to_print = []
+        for workload_dict in internal_attr.values():
+            to_print.extend(list(workload_dict.keys()))
+
+        if isinstance(to_print, list):
+            _print_nonverbose_list_attr(to_print, pattern=pattern, format=format)
+        else:
+            color.cprint(f"    {str(to_print)}\n")
+    else:
+        for when, workload_dict in internal_attr.items():
+            if when:
+                color.cprint("When conditions:")
+                for condition in when:
+                    color.cprint(f"    {condition}")
+            else:
+                color.cprint("Unconditional:")
+
+            _print_verbose_dict_attr(workload_dict, pattern=pattern, indentation=indentation)
+
+
 def print_single_attribute(obj, attr, verbose=False, pattern="*", format=supported_formats.text):
     """Handle printing a single attribute
 
@@ -321,6 +352,9 @@ def print_single_attribute(obj, attr, verbose=False, pattern="*", format=support
         return
     elif attr == "figures_of_merit":
         _print_figures_of_merit(obj, attr, verbose, pattern, format=format)
+        return
+    elif attr == "workloads":
+        _print_workloads(obj, attr, verbose, pattern, format=format)
         return
     elif isinstance(internal_attr, dict):
         internal_attr = _unpack_when_set_if_needed(internal_attr)
