@@ -145,6 +145,12 @@ supported_scalar_function_pointers = {
 # Format Spec Regex:
 format_spec_regex = re.compile(r"(?P<kw>.*):(?P<format_spec>\S+)$")
 
+# Identifier Check Regex:
+_identifier_regex = re.compile(r"^[a-zA-Z_]\w*$")
+
+# Expansion Graph Scan Regex:
+_graph_scan_regex = re.compile(r"([\{\}\\\n])")
+
 # Functions that need to be supplied with the expander
 supported_scalar_function_with_self_arg_pointers = {
     "maybe": _maybe,
@@ -360,31 +366,46 @@ class ExpansionGraph:
 
         opened = []
         children = []
-        escaped = False
-        for i, c in enumerate(self.str):
-            if c == ExpansionDelimiter.left and not escaped:
-                opened.append(i)
-                children.append([])
-            elif c == ExpansionDelimiter.right and len(opened) > 0 and not escaped:
-                left_idx = opened.pop()
-                right_idx = i
 
-                cur_match = ExpansionNode(left_idx, right_idx)
-                cur_match.add_children(children.pop())
-                cur_match.contents = self.str[left_idx : right_idx + 1]  # Define contents
-                cur_match.root = self.root
+        last_idx = -2
+        last_was_active_escape = False
 
-                if len(opened) > 0:
-                    children[-1].append(cur_match)
-                else:
-                    self.root.add_children(cur_match)
-            elif c == "\n":  # Don't expand across new lines
-                opened = []
+        for match in _graph_scan_regex.finditer(self.str):
+            i = match.start()
+            c = match.group()
 
-            if c == ExpansionDelimiter.escape:
-                escaped = True
-            elif escaped:
-                escaped = False
+            is_escaped = False
+            if i == last_idx + 1 and last_was_active_escape:
+                is_escaped = True
+
+            last_was_active_escape = False  # Reset for this char
+
+            if is_escaped:
+                # Treated as literal
+                pass
+            else:
+                if c == ExpansionDelimiter.left:
+                    opened.append(i)
+                    children.append([])
+                elif c == ExpansionDelimiter.right and len(opened) > 0:
+                    left_idx = opened.pop()
+                    right_idx = i
+
+                    cur_match = ExpansionNode(left_idx, right_idx)
+                    cur_match.add_children(children.pop())
+                    cur_match.contents = self.str[left_idx : right_idx + 1]  # Define contents
+                    cur_match.root = self.root
+
+                    if len(opened) > 0:
+                        children[-1].append(cur_match)
+                    else:
+                        self.root.add_children(cur_match)
+                elif c == "\n":  # Don't expand across new lines
+                    opened = []
+                elif c == ExpansionDelimiter.escape:
+                    last_was_active_escape = True
+
+            last_idx = i
 
         if len(opened) > 0:
             self.root.add_children(children.pop())
@@ -866,23 +887,28 @@ class Expander:
         """
         self._math_str_stack.append(in_str)
         try:
-            with warnings.catch_warnings(record=True) as wal:
-                try:
+            try:
+                if "\\" in in_str:
+                    with warnings.catch_warnings(record=True) as wal:
+                        math_ast = _ast_parse(in_str)
+                        out_str = self.eval_math(math_ast.body)
+
+                        for warn in wal:
+                            if r"invalid escape sequence '\{'" not in str(warn.message):
+                                logger.warn(str(warn.message))
+                        return out_str
+                else:
                     math_ast = _ast_parse(in_str)
                     out_str = self.eval_math(math_ast.body)
                     return out_str
-                except MathEvaluationError as e:
-                    logger.debug(f'   Math input is: "{in_str}"')
-                    logger.debug(e)
-                except RambleSyntaxError as e:
-                    raise RambleSyntaxError(f'{str(e)} in "{in_str}"') from None
-                except SyntaxError as e:
-                    logger.debug(f"ast.parse hit the following syntax error on input: {in_str}")
-                    logger.debug(e)
-
-                for warn in wal:
-                    if r"invalid escape sequence '\{'" not in str(warn.message):
-                        logger.warn(str(warn.message))
+            except MathEvaluationError as e:
+                logger.debug(f'   Math input is: "{in_str}"')
+                logger.debug(e)
+            except RambleSyntaxError as e:
+                raise RambleSyntaxError(f'{str(e)} in "{in_str}"') from None
+            except SyntaxError as e:
+                logger.debug(f"ast.parse hit the following syntax error on input: {in_str}")
+                logger.debug(e)
 
             return in_str
         finally:
