@@ -168,6 +168,8 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
         self._active_workload = None
         self.no_expand_vars = None
         self.experiment_set = None
+        self.system = None
+        self.platform = None
         self.internals = {}
         self.is_template = False
         self.generated_experiments = []
@@ -381,6 +383,53 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
                 "No workloads satisfy the current `when` conditions: \n"
                 f"  {self.experiment_variants(allow_caching=False).as_set()}"
             )
+
+    def _set_system(self):
+        system_val = conversions.canonical_none(
+            self.experiment_variants(allow_caching=False).value("system")
+        )
+
+        if system_val is not None:
+            try:
+                system_type = ramble.repository.ObjectTypes.systems
+                self.system = ramble.repository.get(
+                    system_val, system_type
+                ).copy()
+            except ramble.repository.UnknownObjectError:
+                logger.die(
+                    f"{system_val} is not a valid system. "
+                    "Valid systems can be listed via:\n"
+                    "\tramble list --type systems"
+                )
+
+    def _set_platform(self):
+        platform_val = conversions.canonical_none(
+            self.experiment_variants(allow_caching=False).value("platform")
+        )
+
+        if platform_val is not None:
+            if self.system is None:
+                logger.die(
+                    f"Platform {platform_val} defined without a system. "
+                    "A system must be specified to use a platform."
+                )
+
+            if platform_val not in getattr(self.system, "platforms", {}):
+                logger.die(
+                    f"Platform {platform_val} is not a valid platform for system {self.system.name}."
+                )
+
+            try:
+                platform_type = ramble.repository.ObjectTypes.platforms
+                self.platform = ramble.repository.get(
+                    platform_val, platform_type
+                ).copy()
+            except ramble.repository.UnknownObjectError:
+                logger.die(
+                    f"{platform_val} is not a valid platform. "
+                    "Valid platforms can be listed via:\n"
+                    "\tramble list --type platforms"
+                )
 
     def _set_package_manager(self):
         pkgman = conversions.canonical_none(
@@ -625,6 +674,8 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
             self.object_variants.experiment_variant(name, expanded_value)
 
         # Set up remaining variants
+        self._set_system()
+        self._set_platform()
         self._set_package_manager()
         self._set_workflow_manager()
 
@@ -3648,6 +3699,20 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
 
         if ramble.repository.ObjectTypes.applications not in exclude_types:
             yield (ramble.repository.ObjectTypes.applications, self)
+
+        if ramble.repository.ObjectTypes.systems not in exclude_types:
+            if self.system is not None:
+                yield (
+                    ramble.repository.ObjectTypes.systems,
+                    self.system,
+                )
+
+        if ramble.repository.ObjectTypes.platforms not in exclude_types:
+            if self.platform is not None:
+                yield (
+                    ramble.repository.ObjectTypes.platforms,
+                    self.platform,
+                )
 
         if ramble.repository.ObjectTypes.package_managers not in exclude_types:
             if self.package_manager is not None:

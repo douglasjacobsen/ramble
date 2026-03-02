@@ -26,16 +26,20 @@ import ramble.schema.internals
 import ramble.schema.licenses
 import ramble.schema.mirrors
 import ramble.schema.modifier_repos
-import ramble.schema.modifiers
 import ramble.schema.package_manager_repos
 import ramble.schema.repos
+import ramble.schema.workflow_manager_repos
+import ramble.schema.modifiers
 import ramble.schema.software
 import ramble.schema.success_criteria
 import ramble.schema.tables
 import ramble.schema.variables
 import ramble.schema.variants
-import ramble.schema.workflow_manager_repos
 import ramble.schema.zips
+import ramble.schema.system_repos
+import ramble.schema.platform_repos
+import ramble.schema.base_system_repos
+import ramble.schema.base_platform_repos
 
 #: Properties for inclusion in other schemas
 properties = union_dicts(

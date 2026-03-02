@@ -61,6 +61,10 @@ ObjectTypes = Enum(
         "base_modifiers",
         "base_package_managers",
         "base_workflow_managers",
+        "systems",
+        "platforms",
+        "base_systems",
+        "base_platforms",
     ],
 )
 
@@ -143,6 +147,38 @@ type_definitions = {
         "accepted_configs": ["base_workflow_manager_repo.yaml", unified_config],
         "singular": "base workflow manager",
     },
+    ObjectTypes.systems: {
+        "file_name": "system.py",
+        "dir_name": "systems",
+        "abbrev": "sys",
+        "config_section": "system_repos",
+        "accepted_configs": ["system_repo.yaml", unified_config],
+        "singular": "system",
+    },
+    ObjectTypes.platforms: {
+        "file_name": "platform.py",
+        "dir_name": "platforms",
+        "abbrev": "plat",
+        "config_section": "platform_repos",
+        "accepted_configs": ["platform_repo.yaml", unified_config],
+        "singular": "platform",
+    },
+    ObjectTypes.base_systems: {
+        "file_name": "base_system.py",
+        "dir_name": "base_systems",
+        "abbrev": "base_sys",
+        "config_section": "base_system_repos",
+        "accepted_configs": ["base_system_repo.yaml", unified_config],
+        "singular": "base system",
+    },
+    ObjectTypes.base_platforms: {
+        "file_name": "base_platform.py",
+        "dir_name": "base_platforms",
+        "abbrev": "base_plat",
+        "config_section": "base_platform_repos",
+        "accepted_configs": ["base_platform_repo.yaml", unified_config],
+        "singular": "base platform",
+    },
 }
 
 
@@ -191,6 +227,26 @@ def _base_workflow_managers(repo_dirs=None):
     return _gen_path(repo_dirs=repo_dirs, obj_type=ObjectTypes.base_workflow_managers)
 
 
+def _systems(repo_dirs=None):
+    """Get the systems singleton RepoPath instance for Ramble."""
+    return _gen_path(repo_dirs=repo_dirs, obj_type=ObjectTypes.systems)
+
+
+def _platforms(repo_dirs=None):
+    """Get the platforms singleton RepoPath instance for Ramble."""
+    return _gen_path(repo_dirs=repo_dirs, obj_type=ObjectTypes.platforms)
+
+
+def _base_systems(repo_dirs=None):
+    """Get the base systems singleton RepoPath instance for Ramble."""
+    return _gen_path(repo_dirs=repo_dirs, obj_type=ObjectTypes.base_systems)
+
+
+def _base_platforms(repo_dirs=None):
+    """Get the base platforms singleton RepoPath instance for Ramble."""
+    return _gen_path(repo_dirs=repo_dirs, obj_type=ObjectTypes.base_platforms)
+
+
 paths = {
     ObjectTypes.applications: llnl.util.lang.Singleton(_apps),
     ObjectTypes.modifiers: llnl.util.lang.Singleton(_mods),
@@ -201,6 +257,10 @@ paths = {
     ObjectTypes.base_modifiers: llnl.util.lang.Singleton(_base_mods),
     ObjectTypes.base_package_managers: llnl.util.lang.Singleton(_base_package_managers),
     ObjectTypes.base_workflow_managers: llnl.util.lang.Singleton(_base_workflow_managers),
+    ObjectTypes.systems: llnl.util.lang.Singleton(_systems),
+    ObjectTypes.platforms: llnl.util.lang.Singleton(_platforms),
+    ObjectTypes.base_systems: llnl.util.lang.Singleton(_base_systems),
+    ObjectTypes.base_platforms: llnl.util.lang.Singleton(_base_platforms),
 }
 
 #####################################
