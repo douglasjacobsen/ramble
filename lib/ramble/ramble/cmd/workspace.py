@@ -307,7 +307,6 @@ def workspace_create(args):
 
 
 def _workspace_create_interactive(args):
-    import ramble.repository
 
     tty.msg("Welcome to the Ramble Workspace Wizard!")
 
@@ -2202,21 +2201,6 @@ def workspace_manage_setup_parser(subparser):
 
 
 def _workspace_create_gemini(args):
-    import json
-    import os
-    import urllib.error
-    import urllib.request
-
-    import ramble.repository
-    from ramble.namespace import namespace
-
-    import spack.util.spack_yaml as syaml
-
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        logger.die("GEMINI_API_KEY environment variable is required to use the --gemini flag.")
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
 
     tty.msg("Welcome to the Ramble Gemini Wizard! (Type 'quit' to exit)")
 
@@ -2243,6 +2227,29 @@ def _workspace_create_gemini(args):
         activate=args.activate,
     )
 
+    initial_prompt = "I have just created the workspace. How would you like to configure it?"
+    return _workspace_gemini_loop(ws, initial_prompt)
+
+
+def _workspace_gemini_loop(ws, initial_prompt):
+    import json
+    import os
+    import urllib.error
+    import urllib.request
+
+    import ramble.repository
+    from ramble.namespace import namespace
+
+    import spack.util.spack_yaml as syaml
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        logger.die("GEMINI_API_KEY environment variable is required to use the --gemini flag.")
+
+    base_url = "https://generativelanguage.googleapis.com/v1beta"
+    model = "gemini-2.5-flash"
+    url = f"{base_url}/models/{model}:generateContent?key={api_key}"
+
     app_repo = ramble.repository.paths[ramble.repository.ObjectTypes.applications]
     mod_repo = ramble.repository.paths[ramble.repository.ObjectTypes.modifiers]
     pkg_repo = ramble.repository.paths[ramble.repository.ObjectTypes.package_managers]
@@ -2266,22 +2273,27 @@ the following schema exactly:
     {{
       "action": "add_experiment",
       "application": "name of application",
-      "workload": "name of workload"
+      "workload": "name of workload",
+      "matrix": "optional list of variables for matrix (e.g. 'nodes,ranks')",
+      "package_manager": "optional name of package manager",
+      "workflow_manager": "optional name of workflow manager",
+      "experiment_name": "optional name (default: 'exp_{{nodes}}' if matrix is 'nodes')"
     }},
     {{
       "action": "set_variables",
-      "scope": "workspace or experiment string (e.g. application:workload:generated)",
+      "scope": "workspace, or experiment scope in the form "
+               "app:workload:exp (e.g. gromacs:gromacs:exp_{{nodes}})",
       "variables": {{"var1": "val1"}}
     }},
     {{
       "action": "set_variants",
-      "scope": "workspace or experiment string",
+      "scope": "workspace, or experiment scope in the form app:workload:exp",
       "variants": {{"package_manager": "spack-lightweight", "spack_install_compilers": false}}
     }},
     {{
       "action": "add_modifier",
       "name": "name of modifier",
-      "scope": "workspace or experiment string"
+      "scope": "workspace, or experiment scope in the form app:workload:exp"
     }},
     {{
       "action": "finish"
@@ -2303,7 +2315,6 @@ Once the user is completely done and happy, output {{"action": "finish"}} in the
 
     # We will send a pseudo "system status" message as the first user message,
     # then prompt the user for input.
-    initial_prompt = "I have just created the workspace. How would you like to configure it?"
     tty.msg(f"\nGemini: {initial_prompt}")
     chat_history.append(
         {
@@ -2353,6 +2364,12 @@ Once the user is completely done and happy, output {{"action": "finish"}} in the
                 action_type = act.get("action")
                 if action_type == "add_experiment":
                     tty.msg(f"  -> Adding experiment {act['application']} ({act['workload']})...")
+                    exp_name = act.get("experiment_name", "generated")
+                    matrix = act.get("matrix")
+                    if matrix and exp_name == "generated":
+                        # Automatically create unique names for matrixed experiments
+                        exp_name = "exp_{" + "}_{".join(matrix.split(",")) + "}"
+
                     with ws:
                         ws.add_experiments(
                             application=act["application"],
@@ -2361,41 +2378,59 @@ Once the user is completely done and happy, output {{"action": "finish"}} in the
                             include_default_variables=True,
                             variable_filters=["*"],
                             variable_definitions=[],
-                            experiment_name="generated",
-                            package_manager=None,
-                            workflow_manager=None,
+                            experiment_name=exp_name,
+                            package_manager=act.get("package_manager"),
+                            workflow_manager=act.get("workflow_manager"),
                             zips=[],
-                            matrix=None,
+                            matrix=matrix,
                             overwrite=True,
                         )
                 elif action_type == "set_variables":
                     tty.msg(f"  -> Setting variables in scope '{act['scope']}'...")
                     with ramble.workspace.Workspace(ws.path) as ws_reload:
                         with ws_reload.write_transaction():
-                            scope_dict = ws_reload._get_scope_section(act["scope"])
-                            if scope_dict is not None:
-                                if namespace.variables not in scope_dict:
-                                    scope_dict[namespace.variables] = syaml.syaml_dict()
-                                for k, v in act["variables"].items():
-                                    scope_dict[namespace.variables][k] = v
-                                ws_reload._write_config("workspace")
+                            try:
+                                scope_dict = ws_reload._get_scope_section(act["scope"])
+                                if scope_dict is not None:
+                                    if namespace.variables not in scope_dict:
+                                        scope_dict[namespace.variables] = syaml.syaml_dict()
+                                    for k, v in act["variables"].items():
+                                        scope_dict[namespace.variables][k] = v
+                                    ws_reload._write_config("workspace")
+                            except SystemExit:
+                                tty.msg(
+                                    f"     Warning: Could not find scope '{act['scope']}'. "
+                                    "Skipping."
+                                )
                 elif action_type == "set_variants":
                     tty.msg(f"  -> Setting variants in scope '{act['scope']}'...")
                     with ramble.workspace.Workspace(ws.path) as ws_reload:
                         with ws_reload.write_transaction():
-                            scope_dict = ws_reload._get_scope_section(act["scope"])
-                            if scope_dict is not None:
-                                if namespace.variants not in scope_dict:
-                                    scope_dict[namespace.variants] = syaml.syaml_dict()
-                                for k, v in act["variants"].items():
-                                    scope_dict[namespace.variants][k] = v
-                                ws_reload._write_config("workspace")
+                            try:
+                                scope_dict = ws_reload._get_scope_section(act["scope"])
+                                if scope_dict is not None:
+                                    if namespace.variants not in scope_dict:
+                                        scope_dict[namespace.variants] = syaml.syaml_dict()
+                                    for k, v in act["variants"].items():
+                                        scope_dict[namespace.variants][k] = v
+                                    ws_reload._write_config("workspace")
+                            except SystemExit:
+                                tty.msg(
+                                    f"     Warning: Could not find scope '{act['scope']}'. "
+                                    "Skipping."
+                                )
                 elif action_type == "add_modifier":
                     scp = act.get("scope", "workspace")
                     tty.msg(f"  -> Adding modifier '{act['name']}' to scope '{scp}'...")
                     with ramble.workspace.Workspace(ws.path) as ws_reload:
                         with ws_reload.write_transaction():
-                            ws_reload.add_modifier(name_pattern=act["name"], scope=scp)
+                            try:
+                                ws_reload.add_modifier(name_pattern=act["name"], scope=scp)
+                            except SystemExit:
+                                tty.msg(
+                                    f"     Warning: Could not find scope '{scp}'. " "Skipping."
+                                )
+
                 elif action_type == "finish":
                     tty.msg("\nGemini wizard finished. Workspace is ready!")
                     return ws

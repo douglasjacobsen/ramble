@@ -2240,11 +2240,23 @@ ramble:
             ]
 
             if len(scope_parts) >= 1:  # Extract application section
+                # Skip leading "application" or "applications" if it is not a valid
+                # application name.
+                if (
+                    scope_parts[0] == "application" or scope_parts[0] == "applications"
+                ) and scope_parts[0] not in base_section:
+                    scope_parts = scope_parts[1:]
+
+                if not scope_parts:
+                    return base_section
+
                 if scope_parts[0] not in base_section:
                     logger.die(f"No application matches requested scope {scope_parts[0]}")
                 base_section = base_section[scope_parts[0]]
 
             if len(scope_parts) >= 2:  # Extract workload section
+                if namespace.workload not in base_section:
+                    logger.die(f"No workloads defined in application {scope_parts[0]}")
                 if scope_parts[1] not in base_section[namespace.workload]:
                     logger.die(
                         f"No workload matches requested scope {scope_parts[1]} "
@@ -2253,11 +2265,16 @@ ramble:
                 base_section = base_section[namespace.workload][scope_parts[1]]
 
             if len(scope_parts) >= 3:  # Extract experiment section
+                if namespace.experiment not in base_section:
+                    logger.die(
+                        f"No experiments defined in application {scope_parts[0]} "
+                        f"and workload {scope_parts[1]}"
+                    )
                 joined_scope_part = ":".join(scope_parts[2:])
                 if joined_scope_part not in base_section[namespace.experiment]:
                     logger.die(
                         f"No experiment matches requested scope {joined_scope_part} "
-                        f"in application{scope_parts[0]} and workload {scope_parts[1]}"
+                        f"in application {scope_parts[0]} and workload {scope_parts[1]}"
                     )
 
                 base_section = base_section[namespace.experiment][joined_scope_part]
