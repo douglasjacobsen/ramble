@@ -255,6 +255,11 @@ def workspace_create_setup_parser(subparser):
         action="store_true",
         help="use interactive wizard to create workspace",
     )
+    subparser.add_argument(
+        "--gemini",
+        action="store_true",
+        help="use Gemini AI chat interface to edit or create workspace interactively",
+    )
     subparser.add_argument("-c", "--config", help="configuration file to create workspace with")
     subparser.add_argument(
         "-t", "--template_execute", help="execution template file to use when creating workspace"
@@ -281,11 +286,14 @@ def workspace_create_setup_parser(subparser):
 
 
 def workspace_create(args):
+    if args.gemini:
+        return _workspace_create_gemini(args)
+
     if args.interactive:
         return _workspace_create_interactive(args)
 
     if not args.create_workspace:
-        logger.die("ramble workspace create requires a workspace name or --interactive")
+        logger.die("ramble workspace create requires a workspace name, --interactive, or --gemini")
 
     _workspace_create(
         args.create_workspace,
@@ -2191,3 +2199,211 @@ def workspace_manage_setup_parser(subparser):
             description=setup_parser_cmd.__doc__,
         )
         setup_parser_cmd(subsubparser)
+
+
+def _workspace_create_gemini(args):
+    import json
+    import os
+    import urllib.error
+    import urllib.request
+
+    import ramble.repository
+    from ramble.namespace import namespace
+
+    import spack.util.spack_yaml as syaml
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        logger.die("GEMINI_API_KEY environment variable is required to use the --gemini flag.")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+
+    tty.msg("Welcome to the Ramble Gemini Wizard! (Type 'quit' to exit)")
+
+    name_or_path = args.create_workspace
+    while not name_or_path:
+        tty.msg("Enter a name or directory path for your new workspace: ", newline=False)
+        name_or_path = input().strip()
+
+    dir = args.dir
+    if not dir:
+        is_dir = tty.get_yes_or_no(
+            f"Create workspace as a standalone directory at '{name_or_path}'?", default=False
+        )
+        if is_dir:
+            dir = True
+
+    ws = _workspace_create(
+        name_or_path,
+        dir=dir,
+        config=args.config,
+        template_execute=args.template_execute,
+        software_dir=args.software_dir,
+        inputs_dir=args.inputs_dir,
+        activate=args.activate,
+    )
+
+    app_repo = ramble.repository.paths[ramble.repository.ObjectTypes.applications]
+    mod_repo = ramble.repository.paths[ramble.repository.ObjectTypes.modifiers]
+    pkg_repo = ramble.repository.paths[ramble.repository.ObjectTypes.package_managers]
+    wf_repo = ramble.repository.paths[ramble.repository.ObjectTypes.workflow_managers]
+
+    app_names = ", ".join(app_repo.all_object_names())
+    mod_names = ", ".join(mod_repo.all_object_names())
+    pkg_names = ", ".join(pkg_repo.all_object_names())
+    wf_names = ", ".join(wf_repo.all_object_names())
+
+    system_instruction = f"""
+You are the Ramble Workspace Wizard. You are an AI assistant that helps the user configure
+and edit a Ramble workspace.
+The user wants to iteratively edit the workspace.
+You can take actions by outputting JSON. Your output must ALWAYS be a valid JSON object matching
+the following schema exactly:
+
+{{
+  "message": "The message to show to the user, asking for clarification or next steps",
+  "actions": [
+    {{
+      "action": "add_experiment",
+      "application": "name of application",
+      "workload": "name of workload"
+    }},
+    {{
+      "action": "set_variables",
+      "scope": "workspace or experiment string (e.g. application:workload:generated)",
+      "variables": {{"var1": "val1"}}
+    }},
+    {{
+      "action": "set_variants",
+      "scope": "workspace or experiment string",
+      "variants": {{"package_manager": "spack-lightweight", "spack_install_compilers": false}}
+    }},
+    {{
+      "action": "add_modifier",
+      "name": "name of modifier",
+      "scope": "workspace or experiment string"
+    }},
+    {{
+      "action": "finish"
+    }}
+  ]
+}}
+
+Available Applications: {app_names}
+Available Modifiers: {mod_names}
+Available Package Managers: {pkg_names}
+Available Workflow Managers: {wf_names}
+
+If you do not want to take an action yet because you need more info from the user, set
+"actions": [].
+Once the user is completely done and happy, output {{"action": "finish"}} in the actions array.
+"""
+
+    chat_history = []
+
+    # We will send a pseudo "system status" message as the first user message,
+    # then prompt the user for input.
+    initial_prompt = "I have just created the workspace. How would you like to configure it?"
+    tty.msg(f"\nGemini: {initial_prompt}")
+    chat_history.append(
+        {
+            "role": "model",
+            "parts": [{"text": json.dumps({"message": initial_prompt, "actions": []})}],
+        }
+    )
+
+    while True:
+        user_input = input("\nYou: ").strip()
+        if user_input.lower() in ["quit", "exit"]:
+            break
+
+        yaml_path = os.path.join(ws.path, "configs", "ramble.yaml")
+        current_yaml = ""
+        if os.path.exists(yaml_path):
+            with open(yaml_path) as f:
+                current_yaml = f.read()
+
+        context_msg = f"User says: {user_input}\n\nCurrent ramble.yaml state:\n{current_yaml}"
+        chat_history.append({"role": "user", "parts": [{"text": context_msg}]})
+
+        data = {
+            "systemInstruction": {"parts": [{"text": system_instruction}]},
+            "contents": chat_history,
+            "generationConfig": {"responseMimeType": "application/json"},
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+
+        try:
+            response = urllib.request.urlopen(req)
+            result = json.loads(response.read().decode("utf-8"))
+            text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+            chat_history.append({"role": "model", "parts": [{"text": text}]})
+
+            parsed = json.loads(text)
+            tty.msg(f"\nGemini: {parsed.get('message', '')}")
+
+            actions = parsed.get("actions", [])
+            for act in actions:
+                action_type = act.get("action")
+                if action_type == "add_experiment":
+                    tty.msg(f"  -> Adding experiment {act['application']} ({act['workload']})...")
+                    with ws:
+                        ws.add_experiments(
+                            application=act["application"],
+                            workload_name_variable=None,
+                            workload_filters=[act["workload"]],
+                            include_default_variables=True,
+                            variable_filters=["*"],
+                            variable_definitions=[],
+                            experiment_name="generated",
+                            package_manager=None,
+                            workflow_manager=None,
+                            zips=[],
+                            matrix=None,
+                            overwrite=True,
+                        )
+                elif action_type == "set_variables":
+                    tty.msg(f"  -> Setting variables in scope '{act['scope']}'...")
+                    with ramble.workspace.Workspace(ws.path) as ws_reload:
+                        with ws_reload.write_transaction():
+                            scope_dict = ws_reload._get_scope_section(act["scope"])
+                            if scope_dict is not None:
+                                if namespace.variables not in scope_dict:
+                                    scope_dict[namespace.variables] = syaml.syaml_dict()
+                                for k, v in act["variables"].items():
+                                    scope_dict[namespace.variables][k] = v
+                                ws_reload._write_config("workspace")
+                elif action_type == "set_variants":
+                    tty.msg(f"  -> Setting variants in scope '{act['scope']}'...")
+                    with ramble.workspace.Workspace(ws.path) as ws_reload:
+                        with ws_reload.write_transaction():
+                            scope_dict = ws_reload._get_scope_section(act["scope"])
+                            if scope_dict is not None:
+                                if namespace.variants not in scope_dict:
+                                    scope_dict[namespace.variants] = syaml.syaml_dict()
+                                for k, v in act["variants"].items():
+                                    scope_dict[namespace.variants][k] = v
+                                ws_reload._write_config("workspace")
+                elif action_type == "add_modifier":
+                    scp = act.get("scope", "workspace")
+                    tty.msg(f"  -> Adding modifier '{act['name']}' to scope '{scp}'...")
+                    with ramble.workspace.Workspace(ws.path) as ws_reload:
+                        with ws_reload.write_transaction():
+                            ws_reload.add_modifier(name_pattern=act["name"], scope=scp)
+                elif action_type == "finish":
+                    tty.msg("\nGemini wizard finished. Workspace is ready!")
+                    return ws
+
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode("utf-8")
+            tty.msg(f"Error communicating with Gemini: HTTP {e.code} - {msg}")
+        except Exception as e:
+            tty.msg(f"Error communicating with Gemini: {e}")
+
+    return ws
