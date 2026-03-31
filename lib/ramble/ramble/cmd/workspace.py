@@ -32,6 +32,7 @@ from ramble.namespace import namespace
 from ramble.util.logger import logger
 
 import spack.util.environment
+import spack.util.spack_yaml as syaml
 import spack.util.string as string
 from spack.util.editor import editor
 
@@ -421,6 +422,12 @@ def _workspace_create_interactive(args):
                     f"Workflow manager '{user_input}' not found. Please try again or type 'list'."
                 )
 
+        global_variants = False
+        if package_manager or workflow_manager:
+            global_variants = tty.get_yes_or_no(
+                "Apply these variants globally to the entire workspace?", default=False
+            )
+
         tty.msg(f"Adding {app_name} with workload {workload_name} to workspace...")
 
         with ws:
@@ -432,8 +439,8 @@ def _workspace_create_interactive(args):
                 variable_filters=["*"],
                 variable_definitions=[],
                 experiment_name="generated",
-                package_manager=package_manager,
-                workflow_manager=workflow_manager,
+                package_manager=None if global_variants else package_manager,
+                workflow_manager=None if global_variants else workflow_manager,
                 zips=[],
                 matrix=None,
                 overwrite=True,
@@ -441,6 +448,16 @@ def _workspace_create_interactive(args):
 
         with ramble.workspace.Workspace(ws.path) as ws_reload:
             with ws_reload.write_transaction():
+                if global_variants:
+                    workspace_dict = ws_reload._get_scope_section("workspace")
+                    if namespace.variants not in workspace_dict:
+                        workspace_dict[namespace.variants] = syaml.syaml_dict()
+                    variants_dict = workspace_dict[namespace.variants]
+                    if package_manager:
+                        variants_dict[namespace.package_manager] = package_manager
+                    if workflow_manager:
+                        variants_dict[namespace.workflow_manager] = workflow_manager
+
                 exp_dict = ws_reload._get_scope_section(f"{app_name}:{workload_name}:generated")
                 if exp_dict and namespace.variables in exp_dict:
                     vars_dict = exp_dict[namespace.variables]
@@ -454,7 +471,11 @@ def _workspace_create_interactive(args):
                             tty.msg(f"  {var_name}: ", newline=False)
                             user_input = input().strip()
                             if user_input:
-                                vars_dict[var_name] = user_input
+                                try:
+                                    parsed_input = syaml.load(user_input)
+                                    vars_dict[var_name] = parsed_input
+                                except Exception:
+                                    vars_dict[var_name] = user_input
 
                         ws_reload._write_config("workspace")
 

@@ -1318,7 +1318,7 @@ ramble:
             workload_names = [ramble.expander.Expander.expansion_str(workload_name_variable)]
 
         obj_var_names = _get_all_obj_var_names(
-            workflow_manager, obj_type=ramble.repository.ObjectTypes.package_managers
+            package_manager, obj_type=ramble.repository.ObjectTypes.package_managers
         ) | _get_all_obj_var_names(
             workflow_manager, obj_type=ramble.repository.ObjectTypes.workflow_managers
         )

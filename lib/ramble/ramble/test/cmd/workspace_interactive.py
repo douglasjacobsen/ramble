@@ -84,6 +84,72 @@ def test_workspace_create_interactive_basic(mutable_mock_workspace_path):
     assert found_test_wl
 
 
+def test_workspace_create_interactive_vector_and_global_variants(mutable_mock_workspace_path):
+    ws_name = "test_ws_vector"
+
+    inputs = [
+        ws_name,
+        "basic",
+        "test_wl",
+        "spack-lightweight",
+        "user-managed",
+        "range(1, 5)",  # n_ranks as a vector string
+        "[1, 2]",  # n_nodes as a vector list
+        "val1",
+        "val2",
+    ]
+
+    input_idx = 0
+
+    def mock_input(*args, **kwargs):
+        nonlocal input_idx
+        if input_idx >= len(inputs):
+            return ""
+        val = inputs[input_idx]
+        input_idx += 1
+        return val
+
+    # 1. Standalone? No
+    # 2. Add app? Yes
+    # 3. Global variants? Yes
+    # 4. Add modifier? No
+    yes_no_responses = [False, True, True, False]
+    yes_no_idx = 0
+
+    def mock_yes_no(*args, **kwargs):
+        nonlocal yes_no_idx
+        if yes_no_idx >= len(yes_no_responses):
+            return False
+        val = yes_no_responses[yes_no_idx]
+        yes_no_idx += 1
+        return val
+
+    with patch("builtins.input", side_effect=mock_input):
+        with patch("llnl.util.tty.get_yes_or_no", side_effect=mock_yes_no):
+            workspace("create", "--interactive")
+
+    assert ramble.workspace.exists(ws_name)
+    ws = ramble.workspace.read(ws_name)
+
+    with ws:
+        workspace_dict = ws._get_workspace_dict()
+        ramble_dict = workspace_dict["ramble"]
+
+        # Verify global variants
+        assert "variants" in ramble_dict
+        assert ramble_dict["variants"]["package_manager"] == "spack-lightweight"
+        assert ramble_dict["variants"]["workflow_manager"] == "user-managed"
+
+        # Verify vector syntax
+        exp_dict = ws._get_scope_section("basic:test_wl:generated")
+        assert exp_dict["variables"]["n_ranks"] == "range(1, 5)"
+        assert isinstance(exp_dict["variables"]["n_nodes"], list)
+        assert exp_dict["variables"]["n_nodes"] == [1, 2]
+
+        # Verify experiment does NOT have local variants
+        assert "variants" not in exp_dict
+
+
 def test_workspace_create_interactive_search_and_modifier(mutable_mock_workspace_path):
     ws_name = "test_ws_mod"
 
@@ -135,10 +201,11 @@ def test_workspace_create_interactive_search_and_modifier(mutable_mock_workspace
 
     # 1. Standalone? No
     # 2. Add app? Yes
-    # 3. Add modifier? Yes
-    # 4. Global modifier? Yes
-    # 5. Add another modifier? No
-    yes_no_responses = [False, True, True, True, False]
+    # 3. Global variants? No
+    # 4. Add modifier? Yes
+    # 5. Global modifier? Yes
+    # 6. Add another modifier? No
+    yes_no_responses = [False, True, False, True, True, False]
     yes_no_idx = 0
 
     def mock_yes_no(*args, **kwargs):
