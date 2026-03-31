@@ -246,7 +246,13 @@ def workspace_deactivate(args):
 def workspace_create_setup_parser(subparser):
     """create a new workspace"""
     subparser.add_argument(
-        "create_workspace", metavar="wrkspc", help="name of workspace to create"
+        "create_workspace", metavar="wrkspc", nargs="?", help="name of workspace to create"
+    )
+    subparser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="use interactive wizard to create workspace",
     )
     subparser.add_argument("-c", "--config", help="configuration file to create workspace with")
     subparser.add_argument(
@@ -274,6 +280,12 @@ def workspace_create_setup_parser(subparser):
 
 
 def workspace_create(args):
+    if args.interactive:
+        return _workspace_create_interactive(args)
+
+    if not args.create_workspace:
+        logger.die("ramble workspace create requires a workspace name or --interactive")
+
     _workspace_create(
         args.create_workspace,
         args.dir,
@@ -283,6 +295,219 @@ def workspace_create(args):
         inputs_dir=args.inputs_dir,
         activate=args.activate,
     )
+
+
+def _workspace_create_interactive(args):
+    import ramble.repository
+
+    tty.msg("Welcome to the Ramble Workspace Wizard!")
+
+    name_or_path = args.create_workspace
+    while not name_or_path:
+        tty.msg("Enter a name or directory path for your new workspace: ", newline=False)
+        name_or_path = input().strip()
+
+    dir = args.dir
+    if not dir:
+        is_dir = tty.get_yes_or_no(
+            f"Create workspace as a standalone directory at '{name_or_path}'?", default=False
+        )
+        if is_dir:
+            dir = True
+
+    ws = _workspace_create(
+        name_or_path,
+        dir=dir,
+        config=args.config,
+        template_execute=args.template_execute,
+        software_dir=args.software_dir,
+        inputs_dir=args.inputs_dir,
+        activate=args.activate,
+    )
+
+    add_app = tty.get_yes_or_no(
+        "Would you like to configure an application in this workspace?", default=True
+    )
+    if add_app:
+        app_repo = ramble.repository.paths[ramble.repository.ObjectTypes.applications]
+        all_apps = app_repo.all_object_names()
+
+        app_name = ""
+        while not app_name:
+            tty.msg(
+                "Enter the application name (or 'list' to see all, 'search <tag>' to search): ",
+                newline=False,
+            )
+            user_input = input().strip()
+
+            if user_input == "list":
+                colify(all_apps, indent=4)
+            elif user_input.startswith("search "):
+                tag = user_input.split(" ", 1)[1]
+                tagged_apps = list(app_repo.objects_with_tags(tag))
+                if tagged_apps:
+                    colify(tagged_apps, indent=4)
+                else:
+                    tty.msg(f"No applications found with tag '{tag}'.")
+            elif user_input in all_apps:
+                app_name = user_input
+            elif user_input:
+                tty.msg(f"Application '{user_input}' not found. Please try again or type 'list'.")
+
+        app_inst = app_repo.get_obj_class(app_name)("")
+        workloads = set()
+        for wls in app_inst.workloads.values():
+            workloads.update(wls.keys())
+        workloads = sorted(list(workloads))
+
+        workload_name = ""
+        while not workload_name:
+            tty.msg(
+                f"Enter the workload name for {app_name} (or 'list' to see all): ", newline=False
+            )
+            user_input = input().strip()
+
+            if user_input == "list":
+                colify(workloads, indent=4)
+            elif user_input in workloads:
+                workload_name = user_input
+            elif user_input:
+                tty.msg(
+                    f"Workload '{user_input}' not found for application '{app_name}'. "
+                    "Please try again or type 'list'."
+                )
+
+        pkg_repo = ramble.repository.paths[ramble.repository.ObjectTypes.package_managers]
+        all_pkgs = pkg_repo.all_object_names()
+        package_manager = None
+        while True:
+            tty.msg(
+                "Enter the package manager to use (press Enter to skip, 'list' to see all): ",
+                newline=False,
+            )
+            user_input = input().strip()
+
+            if user_input == "":
+                break
+            elif user_input == "list":
+                colify(all_pkgs, indent=4)
+            elif user_input in all_pkgs:
+                package_manager = user_input
+                break
+            else:
+                tty.msg(
+                    f"Package manager '{user_input}' not found. Please try again or type 'list'."
+                )
+
+        wf_repo = ramble.repository.paths[ramble.repository.ObjectTypes.workflow_managers]
+        all_wfs = wf_repo.all_object_names()
+        workflow_manager = None
+        while True:
+            tty.msg(
+                "Enter the workflow manager to use (press Enter to skip, 'list' to see all): ",
+                newline=False,
+            )
+            user_input = input().strip()
+
+            if user_input == "":
+                break
+            elif user_input == "list":
+                colify(all_wfs, indent=4)
+            elif user_input in all_wfs:
+                workflow_manager = user_input
+                break
+            else:
+                tty.msg(
+                    f"Workflow manager '{user_input}' not found. Please try again or type 'list'."
+                )
+
+        tty.msg(f"Adding {app_name} with workload {workload_name} to workspace...")
+
+        with ws:
+            ws.add_experiments(
+                application=app_name,
+                workload_name_variable=None,
+                workload_filters=[workload_name],
+                include_default_variables=True,
+                variable_filters=["*"],
+                variable_definitions=[],
+                experiment_name="generated",
+                package_manager=package_manager,
+                workflow_manager=workflow_manager,
+                zips=[],
+                matrix=None,
+                overwrite=True,
+            )
+
+        with ramble.workspace.Workspace(ws.path) as ws_reload:
+            with ws_reload.write_transaction():
+                exp_dict = ws_reload._get_scope_section(f"{app_name}:{workload_name}:generated")
+                if exp_dict and namespace.variables in exp_dict:
+                    vars_dict = exp_dict[namespace.variables]
+                    missing_vars = [k for k, v in vars_dict.items() if v == "" or v is None]
+                    if missing_vars:
+                        tty.msg(
+                            "Please provide values for the following required variables "
+                            "(press Enter to skip):"
+                        )
+                        for var_name in missing_vars:
+                            tty.msg(f"  {var_name}: ", newline=False)
+                            user_input = input().strip()
+                            if user_input:
+                                vars_dict[var_name] = user_input
+
+                        ws_reload._write_config("workspace")
+
+        add_mod = tty.get_yes_or_no(
+            "Would you like to add a modifier to this workspace?", default=False
+        )
+        if add_mod:
+            mod_repo = ramble.repository.paths[ramble.repository.ObjectTypes.modifiers]
+            all_mods = mod_repo.all_object_names()
+            ws2 = ramble.workspace.Workspace(ws.path)
+
+            while add_mod:
+                mod_name = ""
+                while not mod_name:
+                    tty.msg(
+                        "Enter the modifier name (or 'list' to see all, "
+                        "'search <tag>' to search): ",
+                        newline=False,
+                    )
+                    user_input = input().strip()
+
+                    if user_input == "list":
+                        colify(all_mods, indent=4)
+                    elif user_input.startswith("search "):
+                        tag = user_input.split(" ", 1)[1]
+                        tagged_mods = list(mod_repo.objects_with_tags(tag))
+                        if tagged_mods:
+                            colify(tagged_mods, indent=4)
+                        else:
+                            tty.msg(f"No modifiers found with tag '{tag}'.")
+                    elif user_input in all_mods:
+                        mod_name = user_input
+                    elif user_input:
+                        tty.msg(
+                            f"Modifier '{user_input}' not found. Please try again or type 'list'."
+                        )
+
+                global_mod = tty.get_yes_or_no(
+                    f"Apply modifier '{mod_name}' globally to the entire workspace?", default=True
+                )
+                scope = "workspace" if global_mod else f"{app_name}:{workload_name}"
+
+                tty.msg(f"Adding modifier '{mod_name}' to scope '{scope}'...")
+
+                with ws2.write_transaction():
+                    ws2.add_modifier(name_pattern=mod_name, scope=scope)
+
+                ws2 = ramble.workspace.Workspace(ws.path)
+                add_mod = tty.get_yes_or_no(
+                    "Would you like to add another modifier?", default=False
+                )
+
+    return ws
 
 
 def _workspace_create(

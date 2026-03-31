@@ -1362,48 +1362,56 @@ ramble:
             # This is mutually exclusive with workload_name_variable
             if include_default_variables:
                 # At this point we should only have a valid workload name
-                workload = app_inst.workloads[workload_name]
-                if workload.variables:
+                workload = next(app_inst.get_workloads(workload_name), None)
+                if workload and workload.variables:
                     first_var = True
-                    for var in workload.variables.values():
-                        keep_var = False
-                        for var_filter in variable_filters:
-                            if fnmatch.fnmatch(var.name, var_filter):
-                                keep_var = True
-                                break
+                    for var_or_list in workload.variables.values():
+                        var_list = var_or_list if isinstance(var_or_list, list) else [var_or_list]
+                        for var in var_list:
+                            keep_var = False
+                            for var_filter in variable_filters:
+                                if fnmatch.fnmatch(var.name, var_filter):
+                                    keep_var = True
+                                    break
 
-                        if keep_var:
-                            vars_dict[var.name] = var.default
+                            if keep_var:
+                                vars_dict[var.name] = var.default
 
-                            # Add blank line before all variables except
-                            # the first
-                            if first_var:
-                                first_var = False
-                            else:
-                                yaml_add_comment_before_key(
-                                    vars_dict, var.name, "", column=17, start_char=""
-                                )
-                            if var.description:
-                                yaml_add_comment_before_key(
-                                    vars_dict, var.name, var.description, column=17
-                                )
-                            if len(var.values) > 1 or var.values[0] is not None:
-                                yaml_add_comment_before_key(
-                                    vars_dict,
-                                    var.name,
-                                    f"Suggested values: {var.values}",
-                                    column=17,
-                                )
+                                # Add blank line before all variables except
+                                # the first
+                                if first_var:
+                                    first_var = False
+                                else:
+                                    yaml_add_comment_before_key(
+                                        vars_dict, var.name, "", column=17, start_char=""
+                                    )
+                                if var.description:
+                                    yaml_add_comment_before_key(
+                                        vars_dict, var.name, var.description, column=17
+                                    )
+                                if len(var.values) > 1 or var.values[0] is not None:
+                                    yaml_add_comment_before_key(
+                                        vars_dict,
+                                        var.name,
+                                        f"Suggested values: {var.values}",
+                                        column=17,
+                                    )
 
-                if workload.environment_variables:
+                if workload and workload.environment_variables:
                     if namespace.env_var not in exps_dict[experiment_name]:
                         exp_dict[namespace.env_var] = syaml.syaml_dict()
                         exp_dict[namespace.env_var]["set"] = syaml.syaml_dict()
 
                     env_vars_dict = exp_dict[namespace.env_var]["set"]
 
-                    for env_var in workload.environment_variables.values():
-                        env_vars_dict[env_var.name] = env_var.value
+                    for env_var_or_list in workload.environment_variables.values():
+                        env_var_list = (
+                            env_var_or_list
+                            if isinstance(env_var_or_list, list)
+                            else [env_var_or_list]
+                        )
+                        for env_var in env_var_list:
+                            env_vars_dict[env_var.name] = env_var.value
 
             # Add any variables that are defined to the variables dict
             if var_def_dict:

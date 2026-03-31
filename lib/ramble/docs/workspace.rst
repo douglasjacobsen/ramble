@@ -61,6 +61,40 @@ in a specified directory. To create an anonymous workspace, use:
 
     $ ramble workspace create -d <path_to_workspace>
 
+----------------------------
+Interactive Workspace Wizard
+----------------------------
+
+For users who are new to Ramble or want a guided experience when setting up a
+new workspace, Ramble provides an interactive wizard. This wizard will prompt
+you for the necessary information to create a workspace, select an
+application, and define experiments.
+
+To start the interactive wizard, use:
+
+.. code-block:: console
+
+    $ ramble workspace create --interactive
+
+or the shorter version:
+
+.. code-block:: console
+
+    $ ramble workspace create -i
+
+The wizard will guide you through several steps:
+1. **Workspace Name/Path**: Provide a name for a managed workspace or a directory path for a standalone workspace.
+2. **Application Selection**: Choose an application from the available Ramble applications. You can use ``list`` to see all available applications or ``search <tag>`` to find applications by tag.
+3. **Workload Selection**: Choose a workload defined by the selected application. You can use ``list`` to see available workloads.
+4. **Package Manager Selection**: Optionally select a package manager (e.g., ``spack-lightweight``) to manage the software for your experiments.
+5. **Workflow Manager Selection**: Optionally select a workflow manager (e.g., ``slurm``) to handle job submission.
+6. **Required Variables**: The wizard will identify any required variables that do not have default values and prompt you to provide them.
+7. **Modifiers**: You can optionally add one or more modifiers to your experiments to alter their behavior or execution.
+
+Once completed, the wizard will create the workspace and populate it with the
+initial experiment configuration. You can then proceed to concretize, setup,
+and run your experiments as usual.
+
 .. _workspace-links:
 
 ^^^^^^^^^^^^^^^

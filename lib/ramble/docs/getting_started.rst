@@ -229,6 +229,16 @@ To create a new Ramble workspace, you can use:
 
     $ ramble workspace create [<name>] [-d <path>]
 
+For a guided experience, you can use the interactive wizard:
+
+.. code-block:: console
+
+    $ ramble workspace create --interactive
+
+The wizard will walk you through the process of naming your workspace,
+selecting an application and workload, and configuring any required variables
+or modifiers.
+
 Once a workspace is created, you can activate the workspace. This allows some
 subsequent commands to work without explicitly passing in a workspace. This
 is done through:
