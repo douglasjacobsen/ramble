@@ -423,7 +423,47 @@ def _workspace_create_interactive(args):
                 )
 
         global_variants = False
-        if package_manager or workflow_manager:
+        all_variants = {}
+        if hasattr(app_inst, "class_variants") and app_inst.class_variants:
+            all_variants.update(app_inst.class_variants)
+
+        if package_manager:
+            pkg_inst = pkg_repo.get_obj_class(package_manager)("")
+            if hasattr(pkg_inst, "class_variants") and pkg_inst.class_variants:
+                all_variants.update(pkg_inst.class_variants)
+
+        if workflow_manager:
+            wf_inst = wf_repo.get_obj_class(workflow_manager)("")
+            if hasattr(wf_inst, "class_variants") and wf_inst.class_variants:
+                all_variants.update(wf_inst.class_variants)
+
+        user_variants = {}
+        if all_variants:
+            tty.msg(
+                "The selected application, package manager, and workflow manager "
+                "define the following variants:"
+            )
+            for var_name, var_def in all_variants.items():
+                default_val = var_def.get("default", "None")
+                desc = var_def.get("description", "")
+                tty.msg(f"  {var_name}: {desc} (Default: {default_val})")
+
+            configure_variants = tty.get_yes_or_no(
+                "Would you like to configure any of these variants?", default=False
+            )
+
+            if configure_variants:
+                for var_name, var_def in all_variants.items():
+                    tty.msg(f"  {var_name} (press Enter to skip): ", newline=False)
+                    user_input = input().strip()
+                    if user_input:
+                        try:
+                            parsed_input = syaml.load(user_input)
+                            user_variants[var_name] = parsed_input
+                        except Exception:
+                            user_variants[var_name] = user_input
+
+        if package_manager or workflow_manager or user_variants:
             global_variants = tty.get_yes_or_no(
                 "Apply these variants globally to the entire workspace?", default=False
             )
@@ -457,8 +497,17 @@ def _workspace_create_interactive(args):
                         variants_dict[namespace.package_manager] = package_manager
                     if workflow_manager:
                         variants_dict[namespace.workflow_manager] = workflow_manager
+                    for k, v in user_variants.items():
+                        variants_dict[k] = v
 
                 exp_dict = ws_reload._get_scope_section(f"{app_name}:{workload_name}:generated")
+
+                if not global_variants and user_variants:
+                    if namespace.variants not in exp_dict:
+                        exp_dict[namespace.variants] = syaml.syaml_dict()
+                    for k, v in user_variants.items():
+                        exp_dict[namespace.variants][k] = v
+
                 if exp_dict and namespace.variables in exp_dict:
                     vars_dict = exp_dict[namespace.variables]
                     missing_vars = [k for k, v in vars_dict.items() if v == "" or v is None]
@@ -513,6 +562,30 @@ def _workspace_create_interactive(args):
                             f"Modifier '{user_input}' not found. Please try again or type 'list'."
                         )
 
+                mod_variants = {}
+                mod_inst = mod_repo.get_obj_class(mod_name)("")
+                if hasattr(mod_inst, "class_variants") and mod_inst.class_variants:
+                    tty.msg(f"Modifier '{mod_name}' defines the following variants:")
+                    for var_name, var_def in mod_inst.class_variants.items():
+                        default_val = var_def.get("default", "None")
+                        desc = var_def.get("description", "")
+                        tty.msg(f"  {var_name}: {desc} (Default: {default_val})")
+
+                    configure_variants = tty.get_yes_or_no(
+                        "Would you like to configure any of these variants?", default=False
+                    )
+
+                    if configure_variants:
+                        for var_name, var_def in mod_inst.class_variants.items():
+                            tty.msg(f"  {var_name} (press Enter to skip): ", newline=False)
+                            user_input = input().strip()
+                            if user_input:
+                                try:
+                                    parsed_input = syaml.load(user_input)
+                                    mod_variants[var_name] = parsed_input
+                                except Exception:
+                                    mod_variants[var_name] = user_input
+
                 global_mod = tty.get_yes_or_no(
                     f"Apply modifier '{mod_name}' globally to the entire workspace?", default=True
                 )
@@ -522,6 +595,14 @@ def _workspace_create_interactive(args):
 
                 with ws2.write_transaction():
                     ws2.add_modifier(name_pattern=mod_name, scope=scope)
+
+                    if mod_variants:
+                        scope_dict = ws2._get_scope_section(scope)
+                        if namespace.variants not in scope_dict:
+                            scope_dict[namespace.variants] = syaml.syaml_dict()
+                        for k, v in mod_variants.items():
+                            scope_dict[namespace.variants][k] = v
+                        ws2._write_config("workspace")
 
                 ws2 = ramble.workspace.Workspace(ws.path)
                 add_mod = tty.get_yes_or_no(

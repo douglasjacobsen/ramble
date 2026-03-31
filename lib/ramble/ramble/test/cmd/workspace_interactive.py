@@ -111,9 +111,10 @@ def test_workspace_create_interactive_vector_and_global_variants(mutable_mock_wo
 
     # 1. Standalone? No
     # 2. Add app? Yes
-    # 3. Global variants? Yes
-    # 4. Add modifier? No
-    yes_no_responses = [False, True, True, False]
+    # 3. Configure object variants? False
+    # 4. Global variants? Yes
+    # 5. Add modifier? No
+    yes_no_responses = [False, True, False, True, False]
     yes_no_idx = 0
 
     def mock_yes_no(*args, **kwargs):
@@ -201,11 +202,12 @@ def test_workspace_create_interactive_search_and_modifier(mutable_mock_workspace
 
     # 1. Standalone? No
     # 2. Add app? Yes
-    # 3. Global variants? No
-    # 4. Add modifier? Yes
-    # 5. Global modifier? Yes
-    # 6. Add another modifier? No
-    yes_no_responses = [False, True, False, True, True, False]
+    # 3. Configure object variants? False
+    # 4. Global variants? No
+    # 5. Add modifier? Yes
+    # 6. Global modifier? Yes
+    # 7. Add another modifier? No
+    yes_no_responses = [False, True, False, False, True, True, False]
     yes_no_idx = 0
 
     def mock_yes_no(*args, **kwargs):
@@ -231,6 +233,69 @@ def test_workspace_create_interactive_search_and_modifier(mutable_mock_workspace
                 if mod["name"] == "test-mod":
                     found_mod = True
         assert found_mod
+
+
+def test_workspace_create_interactive_configure_variants(mutable_mock_workspace_path):
+    ws_name = "test_ws_vars"
+
+    # app has no variants, but package manager (spack-lightweight) does.
+    # We will configure spack-lightweight variants.
+    # test-mod has no variants, so we can't test modifier variants easily
+    # without mocking a modifier that has variants.
+
+    inputs = [
+        ws_name,
+        "basic",
+        "test_wl",
+        "spack-lightweight",
+        "user-managed",
+        "False",  # input for spack_install_compilers
+        "True",  # input for spack_push_container_image_script
+        "1",  # n_ranks
+        "1",  # n_nodes
+        "val1",  # foo.bar
+        "val2",  # auto_env_var
+    ]
+
+    input_idx = 0
+
+    def mock_input(*args, **kwargs):
+        nonlocal input_idx
+        if input_idx >= len(inputs):
+            return ""
+        val = inputs[input_idx]
+        input_idx += 1
+        return val
+
+    # 1. Standalone? No
+    # 2. Add app? Yes
+    # 3. Configure object variants? Yes
+    # 4. Global variants? No (so they get attached to experiment)
+    # 5. Add modifier? No
+    yes_no_responses = [False, True, True, False, False]
+    yes_no_idx = 0
+
+    def mock_yes_no(*args, **kwargs):
+        nonlocal yes_no_idx
+        if yes_no_idx >= len(yes_no_responses):
+            return False
+        val = yes_no_responses[yes_no_idx]
+        yes_no_idx += 1
+        return val
+
+    with patch("builtins.input", side_effect=mock_input):
+        with patch("llnl.util.tty.get_yes_or_no", side_effect=mock_yes_no):
+            workspace("create", "--interactive")
+
+    assert ramble.workspace.exists(ws_name)
+    ws = ramble.workspace.read(ws_name)
+
+    with ws:
+        exp_dict = ws._get_scope_section("basic:test_wl:generated")
+        assert "variants" in exp_dict
+        # Verify the boolean parsing from syaml.load("False") -> False
+        assert exp_dict["variants"]["spack_install_compilers"] is False
+        assert exp_dict["variants"]["spack_push_container_image_script"] is True
 
 
 def test_workspace_create_interactive_standalone(tmpdir):
