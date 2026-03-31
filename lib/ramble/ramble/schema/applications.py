@@ -71,6 +71,19 @@ chained_experiment_def = {
     },
 }
 
+depends_on_def = {
+    "type": "array",
+    "default": [],
+    "items": {
+        "type": "object",
+        "default": {},
+        "properties": {
+            "name": {"type": "string"},
+            "require_success": {"type": "boolean", "default": True},
+        },
+    },
+}
+
 where_def = {
     "type": "array",
     "items": {"type": "string"},
@@ -107,6 +120,7 @@ sub_props = union_dicts(
     ramble.schema.variants.properties,
     ramble.schema.zips.properties,
     {
+        "depends_on": depends_on_def,
         "chained_experiments": chained_experiment_def,
         "template": {"type": "boolean"},
         "tags": tags_def,

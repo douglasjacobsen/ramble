@@ -229,6 +229,7 @@ class ExperimentSet:
         app_inst.set_required_variables()
         app_inst.set_internals(context.internals)
         app_inst.set_chained_experiments(context.chained_experiments)
+        app_inst.set_depends_on(context.depends_on)
         app_inst.set_env_variable_sets(context.env_variables)
         app_inst.set_template(context.is_template)
         app_inst.set_tags(context.tags)

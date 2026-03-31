@@ -30,6 +30,7 @@ class namespace:
     tags = "tags"
     n_repeats = "n_repeats"
     formatted_executables = "formatted_executables"
+    depends_on = "depends_on"
 
     # For chained experiments
     command = "command"

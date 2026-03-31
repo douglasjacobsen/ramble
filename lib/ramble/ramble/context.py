@@ -26,6 +26,7 @@ class Context:
         "env_variables": namespace.env_var,
         "internals": namespace.internals,
         "chained_experiments": namespace.chained_experiments,
+        "depends_on": namespace.depends_on,
         "modifiers": namespace.modifiers,
         "template": namespace.template,  # TODO: Make sure this is good
         "exclude": namespace.exclude,
@@ -51,6 +52,7 @@ class Context:
         self.templates = None
         self.formatted_executables = {}
         self.chained_experiments = []
+        self.depends_on = []
         self.modifiers = []
         self.context_name = None
         self.success_criteria = []
@@ -103,6 +105,10 @@ class Context:
         if in_context.chained_experiments:
             for chained_exp in in_context.chained_experiments:
                 self.chained_experiments.append(chained_exp.copy())
+        if in_context.depends_on:
+            for dep in in_context.depends_on:
+                self.depends_on.append(dep.copy())
+
         if in_context.modifiers:
             for modifier in in_context.modifiers:
                 self.modifiers.append(modifier.copy())
@@ -162,6 +168,7 @@ def create_context_from_dict(context_name, in_dict):
             'internals': {},
             'template': '',
             'chained_experiments': [],
+            'depends_on': [],
             'modifiers': [],
             'context_name': '',
             'exclude': {},
@@ -198,11 +205,17 @@ def create_context_from_dict(context_name, in_dict):
     if namespace.internals in in_dict:
         new_context.internals = in_dict[namespace.internals]
 
+    if namespace.depends_on in in_dict:
+        new_context.depends_on = in_dict[namespace.depends_on]
+
     if namespace.template in in_dict:
         new_context.templates = in_dict[namespace.template]
 
     if namespace.chained_experiments in in_dict:
         new_context.chained_experiments = in_dict[namespace.chained_experiments]
+
+    if namespace.depends_on in in_dict:
+        new_context.depends_on = in_dict[namespace.depends_on]
 
     if namespace.modifiers in in_dict:
         new_context.modifiers = in_dict[namespace.modifiers]

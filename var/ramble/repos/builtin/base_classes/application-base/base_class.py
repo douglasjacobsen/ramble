@@ -175,6 +175,7 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
         self._command_list = []
         self._command_list_without_logs = []
         self.chained_experiments = None
+        self.depends_on = None
         self.chain_order = []
         self.chain_prepend = []
         self.chain_append = []
@@ -262,6 +263,7 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
         new_clone.set_template(False)
         new_clone.repeats.set_repeats(False, 0)
         new_clone.set_chained_experiments(None)
+        new_clone.set_depends_on(None)
         new_clone.set_required_variables()
 
         return new_clone
@@ -714,6 +716,12 @@ class ApplicationBase(ObjectMixin, metaclass=ApplicationMeta):
         self.chained_experiments = None
         if chained_experiments:
             self.chained_experiments = chained_experiments.copy()
+
+    def set_depends_on(self, depends_on):
+        """Set dependencies for this instance"""
+        self.depends_on = None
+        if depends_on:
+            self.depends_on = depends_on.copy()
 
     def set_modifiers(self, modifiers):
         """Set modifiers for this instance"""

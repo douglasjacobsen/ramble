@@ -578,13 +578,16 @@ class ExecutePipeline(Pipeline):
         if not self.suppress_run_header:
             logger.all_msg("Running executors...")
 
-        for _, app_inst, _ in self._experiment_set.filtered_experiments(self.filters):
+        def _run_experiment(app_inst):
             if app_inst.is_template:
                 logger.debug(f"{app_inst.name} is a template. Skipping execution.")
-                continue
+                return
             if app_inst.repeats.is_repeat_base:
                 logger.debug(f"{app_inst.name} is a repeat base. Skipping execution.")
-                continue
+                return
+
+            if getattr(app_inst, '_is_executed', False):
+                return
 
             app_inst.define_variables_for_template_path(self.workspace)
             exec_str = app_inst.expander.expand_var(self.executor)
@@ -608,6 +611,35 @@ class ExecutePipeline(Pipeline):
                 executor = Executable(exec_name)
 
             executor(*exec_args)
+            app_inst._is_executed = True
+
+        experiments = list(self._experiment_set.filtered_experiments(self.filters))
+        # Build map for quick access
+        exp_map = {app_inst.name: app_inst for _, app_inst, _ in experiments}
+
+        def run_with_dependencies(app_inst):
+            if getattr(app_inst, '_is_executed', False):
+                return
+
+            # Process dependencies first
+            if hasattr(app_inst, 'depends_on') and app_inst.depends_on:
+                for dep in app_inst.depends_on:
+                    dep_name = app_inst.expander.expand_var(dep['name'])
+                    require_success = dep.get('require_success', True)
+                    if dep_name in exp_map:
+                        dep_inst = exp_map[dep_name]
+                        run_with_dependencies(dep_inst)
+                        if require_success:
+                            dep_inst.read_status()
+                            from ramble.experiment_result import ExperimentStatus
+                            if dep_inst.status != ExperimentStatus.SUCCESS:
+                                logger.debug(f"Skipping {app_inst.name} due to failed dependency {dep_name}")
+                                return
+
+            _run_experiment(app_inst)
+
+        for _, app_inst, _ in experiments:
+            run_with_dependencies(app_inst)
 
 
 class LogsPipeline(Pipeline):
