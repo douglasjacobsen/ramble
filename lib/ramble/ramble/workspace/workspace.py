@@ -1150,6 +1150,7 @@ ramble:
         zips=None,
         matrix=None,
         overwrite=False,
+        fail_on_no_matches=False,
     ):
         """Add new experiments to this workspace
 
@@ -1424,6 +1425,12 @@ ramble:
             if exp_matrix:
                 if namespace.matrix not in exp_dict:
                     exp_dict[namespace.matrix] = exp_matrix.copy()
+
+        if not edited and fail_on_no_matches:
+            logger.die(
+                f"No workloads match requested filters {workload_filters} "
+                f"in application {application}"
+            )
 
         if edited and not self.dry_run:
             ramble.config.config.update_config(

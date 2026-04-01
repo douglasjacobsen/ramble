@@ -2255,7 +2255,19 @@ def _workspace_gemini_loop(ws, initial_prompt):
     pkg_repo = ramble.repository.paths[ramble.repository.ObjectTypes.package_managers]
     wf_repo = ramble.repository.paths[ramble.repository.ObjectTypes.workflow_managers]
 
-    app_names = ", ".join(app_repo.all_object_names())
+    app_info = []
+    for app_name in app_repo.all_object_names():
+        try:
+            app_inst = ramble.repository.get(app_name)
+            all_wl = set()
+            for _, workloads in app_inst.workloads.items():
+                for wl in workloads:
+                    all_wl.add(wl)
+            app_info.append(f"{app_name} (workloads: {', '.join(all_wl)})")
+        except Exception:
+            app_info.append(app_name)
+
+    app_names = "\n  * ".join(app_info)
     mod_names = ", ".join(mod_repo.all_object_names())
     pkg_names = ", ".join(pkg_repo.all_object_names())
     wf_names = ", ".join(wf_repo.all_object_names())
@@ -2273,7 +2285,7 @@ the following schema exactly:
     {{
       "action": "add_experiment",
       "application": "name of application",
-      "workload": "name of workload",
+      "workload": "name of workload (REQUIRED, must match one of the available workloads)",
       "matrix": "optional list of variables for matrix (e.g. 'nodes,ranks')",
       "package_manager": "optional name of package manager",
       "workflow_manager": "optional name of workflow manager",
@@ -2301,7 +2313,9 @@ the following schema exactly:
   ]
 }}
 
-Available Applications: {app_names}
+Available Applications and their workloads:
+  * {app_names}
+
 Available Modifiers: {mod_names}
 Available Package Managers: {pkg_names}
 Available Workflow Managers: {wf_names}
@@ -2309,6 +2323,9 @@ Available Workflow Managers: {wf_names}
 If you do not want to take an action yet because you need more info from the user, set
 "actions": [].
 Once the user is completely done and happy, output {{"action": "finish"}} in the actions array.
+
+When adding an experiment, you MUST specify a valid workload for that application.
+If you are not sure, use '*' as the workload name to include all workloads.
 """
 
     chat_history = []
@@ -2370,20 +2387,27 @@ Once the user is completely done and happy, output {{"action": "finish"}} in the
                         # Automatically create unique names for matrixed experiments
                         exp_name = "exp_{" + "}_{".join(matrix.split(",")) + "}"
 
-                    with ws:
-                        ws.add_experiments(
-                            application=act["application"],
-                            workload_name_variable=None,
-                            workload_filters=[act["workload"]],
-                            include_default_variables=True,
-                            variable_filters=["*"],
-                            variable_definitions=[],
-                            experiment_name=exp_name,
-                            package_manager=act.get("package_manager"),
-                            workflow_manager=act.get("workflow_manager"),
-                            zips=[],
-                            matrix=matrix,
-                            overwrite=True,
+                    try:
+                        with ws:
+                            ws.add_experiments(
+                                application=act["application"],
+                                workload_name_variable=None,
+                                workload_filters=[act["workload"]],
+                                include_default_variables=True,
+                                variable_filters=["*"],
+                                variable_definitions=[],
+                                experiment_name=exp_name,
+                                package_manager=act.get("package_manager"),
+                                workflow_manager=act.get("workflow_manager"),
+                                zips=[],
+                                matrix=matrix,
+                                overwrite=True,
+                                fail_on_no_matches=True,
+                            )
+                    except SystemExit:
+                        tty.msg(
+                            f"     Warning: Could not add experiment {act['application']} "
+                            f"with workload {act['workload']}. Skipping."
                         )
                 elif action_type == "set_variables":
                     tty.msg(f"  -> Setting variables in scope '{act['scope']}'...")
