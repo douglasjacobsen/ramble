@@ -2227,7 +2227,15 @@ def _workspace_create_gemini(args):
         activate=args.activate,
     )
 
-    initial_prompt = "I have just created the workspace. How would you like to configure it?"
+    initial_prompt = (
+        "I have just created the workspace. How would you like to configure it?\n\n"
+        "Here are some things we can set up:\n"
+        " - Applications and workloads to add\n"
+        " - Default variants (e.g., package_manager, workflow_manager)\n"
+        " - Any modifiers to apply\n"
+        " - Advanced settings or variables\n\n"
+        "What would you like to start with?"
+    )
     return _workspace_gemini_loop(ws, initial_prompt)
 
 
@@ -2255,22 +2263,31 @@ def _workspace_gemini_loop(ws, initial_prompt):
     pkg_repo = ramble.repository.paths[ramble.repository.ObjectTypes.package_managers]
     wf_repo = ramble.repository.paths[ramble.repository.ObjectTypes.workflow_managers]
 
+    def format_list(names):
+        if not names:
+            return "None"
+        return "\n  * " + "\n  * ".join(sorted(names))
+
     app_info = []
-    for app_name in app_repo.all_object_names():
+    for app_name in sorted(app_repo.all_object_names()):
         try:
             app_inst = ramble.repository.get(app_name)
             all_wl = set()
             for _, workloads in app_inst.workloads.items():
                 for wl in workloads:
                     all_wl.add(wl)
-            app_info.append(f"{app_name} (workloads: {', '.join(all_wl)})")
+            if all_wl:
+                workload_str = ", ".join(sorted(list(all_wl)))
+                app_info.append(f"{app_name}:\n    Workloads: {workload_str}")
+            else:
+                app_info.append(app_name)
         except Exception:
             app_info.append(app_name)
 
     app_names = "\n  * ".join(app_info)
-    mod_names = ", ".join(mod_repo.all_object_names())
-    pkg_names = ", ".join(pkg_repo.all_object_names())
-    wf_names = ", ".join(wf_repo.all_object_names())
+    mod_names = format_list(mod_repo.all_object_names())
+    pkg_names = format_list(pkg_repo.all_object_names())
+    wf_names = format_list(wf_repo.all_object_names())
 
     system_instruction = f"""
 You are the Ramble Workspace Wizard. You are an AI assistant that helps the user configure
@@ -2278,6 +2295,10 @@ and edit a Ramble workspace.
 The user wants to iteratively edit the workspace.
 You can take actions by outputting JSON. Your output must ALWAYS be a valid JSON object matching
 the following schema exactly:
+
+When listing available workloads or other options in the 'message' field, please use a clear,
+formatted list (e.g., bullet points) to make it easy for the user to read. Do not use
+comma-separated strings for lists.
 
 {{
   "message": "The message to show to the user, asking for clarification or next steps",
@@ -2289,7 +2310,9 @@ the following schema exactly:
       "matrix": "optional list of variables for matrix (e.g. 'nodes,ranks')",
       "package_manager": "optional name of package manager",
       "workflow_manager": "optional name of workflow manager",
-      "experiment_name": "optional name (default: 'exp_{{nodes}}' if matrix is 'nodes')"
+      "experiment_name": "optional name (default: 'exp_{{nodes}}' if matrix is 'nodes')",
+      "include_default_variables": "optional boolean (default: true). "
+                                   "Set to false to omit writing default variables."
     }},
     {{
       "action": "set_variables",
@@ -2378,6 +2401,8 @@ If you are not sure, use '*' as the workload name to include all workloads.
 
             actions = parsed.get("actions", [])
             for act in actions:
+                # Reload workspace to ensure it's up-to-date with any changes from disk
+                ws = ramble.workspace.Workspace(ws.path)
                 action_type = act.get("action")
                 if action_type == "add_experiment":
                     tty.msg(f"  -> Adding experiment {act['application']} ({act['workload']})...")
@@ -2393,7 +2418,9 @@ If you are not sure, use '*' as the workload name to include all workloads.
                                 application=act["application"],
                                 workload_name_variable=None,
                                 workload_filters=[act["workload"]],
-                                include_default_variables=True,
+                                include_default_variables=act.get(
+                                    "include_default_variables", True
+                                ),
                                 variable_filters=["*"],
                                 variable_definitions=[],
                                 experiment_name=exp_name,
@@ -2411,49 +2438,44 @@ If you are not sure, use '*' as the workload name to include all workloads.
                         )
                 elif action_type == "set_variables":
                     tty.msg(f"  -> Setting variables in scope '{act['scope']}'...")
-                    with ramble.workspace.Workspace(ws.path) as ws_reload:
-                        with ws_reload.write_transaction():
-                            try:
-                                scope_dict = ws_reload._get_scope_section(act["scope"])
-                                if scope_dict is not None:
-                                    if namespace.variables not in scope_dict:
-                                        scope_dict[namespace.variables] = syaml.syaml_dict()
-                                    for k, v in act["variables"].items():
-                                        scope_dict[namespace.variables][k] = v
-                                    ws_reload._write_config("workspace")
-                            except SystemExit:
-                                tty.msg(
-                                    f"     Warning: Could not find scope '{act['scope']}'. "
-                                    "Skipping."
-                                )
+                    with ws.write_transaction():
+                        try:
+                            scope_dict = ws._get_scope_section(act["scope"])
+                            if scope_dict is not None:
+                                if namespace.variables not in scope_dict:
+                                    scope_dict[namespace.variables] = syaml.syaml_dict()
+                                for k, v in act["variables"].items():
+                                    scope_dict[namespace.variables][k] = v
+                                ws._write_config("workspace")
+                        except SystemExit:
+                            tty.msg(
+                                f"     Warning: Could not find scope '{act['scope']}'. "
+                                "Skipping."
+                            )
                 elif action_type == "set_variants":
                     tty.msg(f"  -> Setting variants in scope '{act['scope']}'...")
-                    with ramble.workspace.Workspace(ws.path) as ws_reload:
-                        with ws_reload.write_transaction():
-                            try:
-                                scope_dict = ws_reload._get_scope_section(act["scope"])
-                                if scope_dict is not None:
-                                    if namespace.variants not in scope_dict:
-                                        scope_dict[namespace.variants] = syaml.syaml_dict()
-                                    for k, v in act["variants"].items():
-                                        scope_dict[namespace.variants][k] = v
-                                    ws_reload._write_config("workspace")
-                            except SystemExit:
-                                tty.msg(
-                                    f"     Warning: Could not find scope '{act['scope']}'. "
-                                    "Skipping."
-                                )
+                    with ws.write_transaction():
+                        try:
+                            scope_dict = ws._get_scope_section(act["scope"])
+                            if scope_dict is not None:
+                                if namespace.variants not in scope_dict:
+                                    scope_dict[namespace.variants] = syaml.syaml_dict()
+                                for k, v in act["variants"].items():
+                                    scope_dict[namespace.variants][k] = v
+                                ws._write_config("workspace")
+                        except SystemExit:
+                            tty.msg(
+                                f"     Warning: Could not find scope '{act['scope']}'. "
+                                "Skipping."
+                            )
                 elif action_type == "add_modifier":
                     scp = act.get("scope", "workspace")
                     tty.msg(f"  -> Adding modifier '{act['name']}' to scope '{scp}'...")
-                    with ramble.workspace.Workspace(ws.path) as ws_reload:
-                        with ws_reload.write_transaction():
-                            try:
-                                ws_reload.add_modifier(name_pattern=act["name"], scope=scp)
-                            except SystemExit:
-                                tty.msg(
-                                    f"     Warning: Could not find scope '{scp}'. " "Skipping."
-                                )
+                    with ws.write_transaction():
+                        try:
+                            ws.add_modifier(name_pattern=act["name"], scope=scp)
+                        except SystemExit:
+                            tty.msg(f"     Warning: Could not find scope '{scp}'. " "Skipping.")
 
                 elif action_type == "finish":
                     tty.msg("\nGemini wizard finished. Workspace is ready!")
