@@ -613,3 +613,16 @@ def test_non_reserved_variables(app_class):
     assert "user_var1" not in non_reserved
     assert "user_var2" in non_reserved
     assert len(non_reserved) == 2
+
+
+@pytest.mark.parametrize("app_class", app_types)
+def test_workload_directive_where(app_class):
+    app_inst = app_class("/not/a/path")
+    wl_name = "test_where_wl"
+    app_inst.workload(
+        wl_name, executable="test_exec", where=["{n_nodes} <= 4"], exclude_where=["{n_gpus} == 0"]
+    )
+    assert hasattr(app_inst, "workloads")
+    assert wl_name in app_inst.workloads[_FS]
+    assert app_inst.workloads[_FS][wl_name].where == ["{n_nodes} <= 4"]
+    assert app_inst.workloads[_FS][wl_name].exclude_where == ["{n_gpus} == 0"]

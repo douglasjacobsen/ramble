@@ -58,6 +58,8 @@ def workload(
     input=None,
     inputs=None,
     tags=None,
+    where=None,
+    exclude_where=None,
     when=None,
     **kwargs,
 ):
@@ -90,7 +92,7 @@ def workload(
             app.workloads[when_set] = {}
 
         app.workloads[when_set][name] = ramble.workload.Workload(
-            name, all_execs, all_inputs, tags, when_list
+            name, all_execs, all_inputs, tags, where, exclude_where, when_list
         )
 
     return _execute_workload
