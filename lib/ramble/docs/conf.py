@@ -118,9 +118,26 @@ class NoTabExpansionRSTParser(RSTParser):
         super().parse(inputstring, document)
 
 
+def generate_tutorial_data(app):
+    import json
+    import yaml
+
+    src_yaml = os.path.join(app.srcdir, "tutorial_paths.yaml")
+    out_dir = os.path.join(app.srcdir, "_static")
+    os.makedirs(out_dir, exist_ok=True)
+    out_js = os.path.join(out_dir, "tutorial_data.js")
+
+    if os.path.exists(src_yaml):
+        with open(src_yaml, "r") as f:
+            data = yaml.safe_load(f)
+        with open(out_js, "w") as f:
+            f.write("window.RAMBLE_TUTORIAL_DATA = " + json.dumps(data, indent=2) + ";\n")
+
+
 def setup(sphinx):
     sphinx.add_domain(PatchedPythonDomain, override=True)
     sphinx.add_source_parser(NoTabExpansionRSTParser, override=True)
+    sphinx.connect("builder-inited", generate_tutorial_data)
 
 
 # -- General configuration -----------------------------------------------------
@@ -298,7 +315,9 @@ html_theme_options = {"logo_only": True}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["_static"]
+html_static_path = ["_static"]
+html_css_files = ["tutorial_navigator.css"]
+html_js_files = ["tutorial_data.js", "tutorial_navigator.js"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

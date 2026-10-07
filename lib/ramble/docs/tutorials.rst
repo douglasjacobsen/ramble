@@ -12,7 +12,11 @@
 User Tutorials
 ==============
 
-Below is a list of available tutorials for getting started with Ramble and its
+.. raw:: html
+
+   <div id="tutorial-navigator-app"></div>
+
+Below is the full catalog of available tutorials for getting started with Ramble and its
 various features.
 
 .. toctree::
