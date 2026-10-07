@@ -167,11 +167,14 @@ You can edit these files directly or with the command:
 
     $ ramble workspace edit
 
-To begin, you should edit the ``ramble.yaml`` file to set up the configuration
-for your experiments. For this tutorial, replace the default yaml text with the
-following contents:
+You can configure this experiment using the ``ramble workspace manage`` command:
 
-.. literalinclude:: ../../../../examples/tutorial_1_config.yaml
+.. literalinclude:: ../_generated/snippets/hello_world_hostname_commands.sh
+   :language: console
+
+Alternatively, you can edit the ``configs/ramble.yaml`` file directly to match the following configuration:
+
+.. literalinclude:: ../_generated/snippets/hello_world_hostname_ramble.yaml
    :language: YAML
 
 Note that since the ``hostname`` application does not rely on a package manager, the software

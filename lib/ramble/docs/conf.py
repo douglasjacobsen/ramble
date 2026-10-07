@@ -118,26 +118,14 @@ class NoTabExpansionRSTParser(RSTParser):
         super().parse(inputstring, document)
 
 
-def generate_tutorial_data(app):
-    import json
-    import yaml
-
-    src_yaml = os.path.join(app.srcdir, "tutorial_paths.yaml")
-    out_dir = os.path.join(app.srcdir, "_static")
-    os.makedirs(out_dir, exist_ok=True)
-    out_js = os.path.join(out_dir, "tutorial_data.js")
-
-    if os.path.exists(src_yaml):
-        with open(src_yaml, "r") as f:
-            data = yaml.safe_load(f)
-        with open(out_js, "w") as f:
-            f.write("window.RAMBLE_TUTORIAL_DATA = " + json.dumps(data, indent=2) + ";\n")
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from tutorial_generator import generate_all_tutorial_artifacts  # noqa: E402
 
 
 def setup(sphinx):
     sphinx.add_domain(PatchedPythonDomain, override=True)
     sphinx.add_source_parser(NoTabExpansionRSTParser, override=True)
-    sphinx.connect("builder-inited", generate_tutorial_data)
+    sphinx.connect("builder-inited", generate_all_tutorial_artifacts)
 
 
 # -- General configuration -----------------------------------------------------

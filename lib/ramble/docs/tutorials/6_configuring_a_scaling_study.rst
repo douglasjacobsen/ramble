@@ -13,8 +13,12 @@ Configuring a Scaling Study
 ===========================
 
 In this tutorial, you will learn how to create a workspace containing a scaling
-study for `WRF <https://www.mmm.ucar.edu/models/wrf>`_, a free and open-source
-application for atmospheric research and operational forecasting applications.
+study. This tutorial supports multiple applications (such as WRF and GROMACS);
+you can select your preferred application below.
+
+.. raw:: html
+
+   <div class="tn-app-switcher" data-recipe="scaling_study"></div>
 
 This tutorial builds off of concepts introduced in previous tutorials. Please
 make sure you review those before starting with this tutorial's content.
@@ -29,9 +33,17 @@ Create a Workspace
 To begin with, you need a workspace to configure the scaling study. This can be
 created with the following command:
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    $ ramble workspace create scaling_wrf
+   .. code-block:: console
+
+       $ ramble workspace create scaling_wrf
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: console
+
+       $ ramble workspace create scaling_gromacs
 
 
 Activate the Workspace
@@ -42,76 +54,75 @@ properly. Activate the newly created workspace using the following command:
 (NOTE: you only need to run this if you do not currently have the workspace
 active).
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    $ ramble workspace activate scaling_wrf
+   .. code-block:: console
+
+       $ ramble workspace activate scaling_wrf
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: console
+
+       $ ramble workspace activate scaling_gromacs
 
 Decide on a Workload
 --------------------
 
 Before you can setup this workspace, you'll need to configure the experiments
-you want to execute. To begin with, select a workload from the output of:
+you want to execute. To begin with, select a workload:
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    $ ramble info --attrs workloads wrf
+   .. code-block:: console
 
-For the purposes of this tutorial, the ``CONUS_12km`` workload is recommended
-because it is less computationally expensive than the ``CONUS_2p5km`` workload.
+       $ ramble info --attrs workloads wrf
 
-**NOTE**: To get more detailed information about the workload definitions, you
-can use ``ramble info --attrs workloads -v wrf``.
+   For the purposes of this tutorial, the ``CONUS_12km`` workload is recommended
+   because it is less computationally expensive than the ``CONUS_2p5km`` workload.
+
+   **NOTE**: To get more detailed information about the workload definitions, you
+   can use ``ramble info --attrs workloads -v wrf``.
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: console
+
+       $ ramble info --attrs workloads gromacs
+
+   For the purposes of this tutorial, the ``water_bare`` workload is recommended.
+
+   **NOTE**: To get more detailed information about the workload definitions, you
+   can use ``ramble info --attrs workloads -v gromacs``.
 
 Configure Experiment Definitions
 --------------------------------
 
-Now that you have selected a workload to use, edit the workspace configuration
-file. The workspace's root location can be seen under the ``Location`` output of:
+Now that you have selected a workload to use, configure the experiments you want to execute.
+You can configure your experiment definitions directly using ``ramble workspace manage experiments``:
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    $ ramble workspace info
+   .. literalinclude:: ../_generated/snippets/scaling_study_wrf_commands.sh
+      :language: console
 
-Additionally, the files can be edited directly with:
+   Alternatively, if you edit ``configs/ramble.yaml`` directly, your ``applications`` configuration will look like:
 
-.. code-block:: console
+   .. literalinclude:: ../_generated/snippets/scaling_study_wrf_applications.yaml
+      :language: YAML
 
-    $ ramble workspace edit
+.. container:: tn-app-variant tn-app-gromacs
 
-Within this file, configure the ``applications`` dictionary to describe the
-experiments you want to execute. The contents might look like the following:
+   .. literalinclude:: ../_generated/snippets/scaling_study_gromacs_commands.sh
+      :language: console
 
-.. code-block:: YAML
+   Alternatively, if you edit ``configs/ramble.yaml`` directly, your ``applications`` configuration will look like:
 
-    ramble:
-      applications:
-        wrf@4.2:
-          workloads:
-            CONUS_12km:
-              experiments:
+   .. literalinclude:: ../_generated/snippets/scaling_study_gromacs_applications.yaml
+      :language: YAML
 
-
-The next step in configuring the experiment definitions is to decide on an
-experiment name template. For the purposes of this tutorial, we'll assume we
-only want to change the ``n_nodes`` variable definition in our scaling study,
-and as a result the experiment name template will only include this template
-parameter. However, you are free to add additional parameters based on the
-experiments you would like to perform. We will also assume ``n_nodes`` will
-take the values of ``1`` and ``2``, however you should edit this for the system
-you are attempting to run these experiments on. The contents of the
-configuration file might look like the following now:
-
-.. code-block:: YAML
-
-    ramble:
-      applications:
-        wrf@4.2:
-          workloads:
-            CONUS_12km:
-              experiments:
-                scaling_{n_nodes}:
-                  variables:
-                    n_nodes: [1, 2]
+The experiment name template ``scaling_{n_nodes}`` allows parameterizing the experiment
+across the values in ``n_nodes: [1, 2]``.
 
 At this point, you can attempt to view the experiments defined by this
 configuration file. To do this, use the following command:
@@ -124,15 +135,29 @@ The output should tell you some required variable definitions are missing, as
 the configuration does not include some system level definitions. The output
 might look like the following:
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    ==> Error: Invalid number of required variables defined.
-    Two or more of the following are required to be defined.
-      - n_ranks
-      - processes_per_node
-      - n_nodes
-    Experiment wrf@4.2.CONUS_12km.scaling_1 only has:
-      - n_nodes
+   .. code-block:: console
+
+       ==> Error: Invalid number of required variables defined.
+       Two or more of the following are required to be defined.
+         - n_ranks
+         - processes_per_node
+         - n_nodes
+       Experiment wrf.CONUS_12km.scaling_1 only has:
+         - n_nodes
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: console
+
+       ==> Error: Invalid number of required variables defined.
+       Two or more of the following are required to be defined.
+         - n_ranks
+         - processes_per_node
+         - n_nodes
+       Experiment gromacs.water_bare.scaling_1 only has:
+         - n_nodes
 
 To remedy this issue, you need to define some system level variables in the
 following section.
@@ -167,27 +192,53 @@ flags, feel free to do so here.
 Your configuration file might look like the following after adding this
 information:
 
-.. code-block:: YAML
+.. container:: tn-app-variant tn-app-wrf
 
-    ramble:
-      variants:
-        package_manager: spack
-      env_vars:
-        set:
-          OMP_NUM_THREADS: '{n_threads}'
-      variables:
-        processes_per_node: 16
-        n_ranks: '{processes_per_node}*{n_nodes}'
-        batch_submit: '{execute_experiment}'
-        mpi_command: 'mpirun -n {n_ranks}'
-      applications:
-        wrf@4.2:
-          workloads:
-            CONUS_12km:
-              experiments:
-                scaling_{n_nodes}:
-                  variables:
-                    n_nodes: [1, 2]
+   .. code-block:: YAML
+
+       ramble:
+         variants:
+           package_manager: spack
+         env_vars:
+           set:
+             OMP_NUM_THREADS: '{n_threads}'
+         variables:
+           processes_per_node: 16
+           n_ranks: '{processes_per_node}*{n_nodes}'
+           batch_submit: '{execute_experiment}'
+           mpi_command: 'mpirun -n {n_ranks}'
+         applications:
+           wrf:
+             workloads:
+               CONUS_12km:
+                 experiments:
+                   scaling_{n_nodes}:
+                     variables:
+                       n_nodes: [1, 2]
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: YAML
+
+       ramble:
+         variants:
+           package_manager: spack
+         env_vars:
+           set:
+             OMP_NUM_THREADS: '{n_threads}'
+         variables:
+           processes_per_node: 16
+           n_ranks: '{processes_per_node}*{n_nodes}'
+           batch_submit: '{execute_experiment}'
+           mpi_command: 'mpirun -n {n_ranks}'
+         applications:
+           gromacs:
+             workloads:
+               water_bare:
+                 experiments:
+                   scaling_{n_nodes}:
+                     variables:
+                       n_nodes: [1, 2]
 
 **NOTE** The value of the ``n_ranks`` variable is escaped using single quotes.
 This is because YAML interprets the ``{`` character as beginning a dictionary,
@@ -211,16 +262,23 @@ file. After executing this command, your workspace configuration file might
 look like the following:
 
 
-.. literalinclude:: ../../../../examples/tutorial_6_config.yaml
-   :language: YAML
+.. container:: tn-app-variant tn-app-wrf
+
+   .. literalinclude:: ../_generated/snippets/scaling_study_wrf_ramble.yaml
+      :language: YAML
+
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. literalinclude:: ../_generated/snippets/scaling_study_gromacs_ramble.yaml
+      :language: YAML
 
 At this point, you have fully described experiments that can be executed.
 However, your system might not have the correct compiler (and building a
 compiler could be costly). The ``gcc14`` package definition can be updated to
 refer to a compiler you already have on your system. These can be viewed using
 the ``spack compiler list`` command. Edit the ``gcc14`` package definition as
-you see fit, and make sure the ``gcc14`` references under ``intel-mpi`` and
-``wrfv4`` are updated appropriately as well.
+you see fit, and make sure the compiler references are updated appropriately as well.
 
 .. include:: shared/wrf_execute.rst
 
@@ -241,6 +299,14 @@ deactivate your workspace using:
 If you no longer need the workspace materials, remove the entire workspace
 with:
 
-.. code-block:: console
+.. container:: tn-app-variant tn-app-wrf
 
-    $ ramble workspace remove scaling_wrf
+   .. code-block:: console
+
+       $ ramble workspace remove scaling_wrf
+
+.. container:: tn-app-variant tn-app-gromacs
+
+   .. code-block:: console
+
+       $ ramble workspace remove scaling_gromacs

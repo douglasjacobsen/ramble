@@ -434,3 +434,181 @@ body:has(#tutorial-navigator-app) .wy-menu-vertical li.toctree-l1.current > a[hr
   display: none !important;
 }
 
+/* Application Variant Switching */
+.tn-app-variant {
+  display: none;
+}
+
+.tn-app-variant.active {
+  display: block;
+}
+
+/* Application Switcher Component */
+.tn-app-switcher {
+  margin: 1.25rem 0 1.75rem 0;
+}
+
+.tn-app-switcher-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #2980b9;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tn-app-switcher-header {
+  margin-bottom: 0.75rem;
+}
+
+.tn-app-switcher-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #1e293b;
+  margin-right: 0.5rem;
+}
+
+.tn-app-switcher-subtitle {
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.tn-app-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.tn-app-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.88rem;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.tn-app-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.tn-app-btn.active {
+  background: #eff6ff;
+  border-color: #2980b9;
+  color: #1d4ed8;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #2980b9;
+}
+
+.tn-app-btn-check {
+  font-weight: 700;
+  color: #2980b9;
+  min-width: 10px;
+}
+
+.tn-app-btn-name {
+  font-weight: 600;
+}
+
+.tn-app-btn-workload {
+  font-size: 0.75rem;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.tn-app-btn.active .tn-app-btn-workload {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tn-app-switcher-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Application Preference Section in Main Navigator */
+.tn-apps-section {
+  margin-bottom: 1.5rem;
+}
+
+.tn-apps-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: -0.25rem 0 0.75rem 0;
+}
+
+.tn-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.tn-app-pref-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.tn-app-pref-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.tn-app-pref-card.active {
+  background: #f0f7fb;
+  border-color: #2980b9;
+  box-shadow: 0 0 0 1px #2980b9;
+}
+
+.tn-app-pref-radio {
+  margin-top: 0.2rem;
+}
+
+.tn-app-pref-radio input {
+  cursor: pointer;
+  accent-color: #2980b9;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.tn-app-pref-info {
+  flex: 1;
+}
+
+.tn-app-pref-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.tn-app-pref-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tn-app-pref-desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+

@@ -21,8 +21,8 @@ Tutorials
    :hidden:
 
    tutorials/1_hello_world
-   tutorials/2_running_a_simple_gromacs_experiment
-   tutorials/3_modifying_a_gromacs_experiment
+   tutorials/2_creating_a_single_experiment_workspace
+   tutorials/3_modifying_an_experiment
    tutorials/4_using_vectors_and_matrices
    tutorials/5_changing_your_software_stack
    tutorials/6_configuring_a_scaling_study
