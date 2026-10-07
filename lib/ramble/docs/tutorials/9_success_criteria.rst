@@ -8,9 +8,9 @@
 
 .. _success-criteria_tutorial:
 
-===================
-9) Success Criteria
-===================
+================
+Success Criteria
+================
 
 In this tutorial, you will learn how to use success criteria. These will be
 created and applied to experiments for

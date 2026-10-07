@@ -8,9 +8,9 @@
 
 .. _basic_application_tutorial:
 
-=====================================================
-1) Writing a basic application definition
-=====================================================
+========================================
+Writing a basic application definition
+========================================
 
 This tutorial will provide an introduction to writing an application definition
 in Ramble. In this tutorial, you will create and test an application definition

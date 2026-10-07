@@ -8,9 +8,9 @@
 
 .. _variable_expansion_and_indirection_and_stack_parameterization_tutorial:
 
-=======================================================================
-8) Variable Expansion, Indirection, and Software Stack Parameterization
-=======================================================================
+======================================================================
+Variable Expansion, Indirection, and Software Stack Parameterization
+======================================================================
 
 In this tutorial, you will learn how to use variable expansion, indirection,
 and software stack parameterization when generating experiments. For this

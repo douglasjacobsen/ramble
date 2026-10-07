@@ -8,9 +8,9 @@
 
 .. _running_an_experiment_tutorial:
 
-=======================================
-2) Running A Simple GROMACS Experiment
-=======================================
+====================================
+Running A Simple GROMACS Experiment
+====================================
 
 In this tutorial, you will set up and run a benchmark simulation using
 `GROMACS <https://www.gromacs.org/>`_, a free and open-source application

@@ -8,9 +8,9 @@
 
 .. _modifying_a_gromacs_experiment_tutorial:
 
-=======================================
-3) Modifying A GROMACS Experiment
-=======================================
+==============================
+Modifying A GROMACS Experiment
+==============================
 
 In this tutorial, you will learn how to modify an existing workspace
 configuration that contains experiments using

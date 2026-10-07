@@ -8,9 +8,9 @@
 
 .. _configuring_a_scaling_study_tutorial:
 
-==============================
-6) Configuring a Scaling Study
-==============================
+===========================
+Configuring a Scaling Study
+===========================
 
 In this tutorial, you will learn how to create a workspace containing a scaling
 study for `WRF <https://www.mmm.ucar.edu/models/wrf>`_, a free and open-source

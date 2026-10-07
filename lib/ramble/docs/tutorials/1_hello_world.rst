@@ -8,9 +8,9 @@
 
 .. _hello_world_tutorial:
 
-=====================================================
-1) Getting Started Running A "Hello World" Experiment
-=====================================================
+==================================================
+Getting Started Running A "Hello World" Experiment
+==================================================
 
 This tutorial will provide a basic introduction to navigating Ramble and running
 experiments. In this tutorial, you will set up and run a basic experiment using

@@ -8,9 +8,9 @@
 
 .. _internals_tutorial:
 
-=============
-11) Internals
-=============
+=========
+Internals
+=========
 
 In this tutorial, you will learn how to use ``internals`` within experiments
 for

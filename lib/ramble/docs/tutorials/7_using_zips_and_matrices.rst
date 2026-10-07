@@ -8,9 +8,9 @@
 
 .. _zips_and_matrices_tutorial:
 
-==============================
-7) Zips and Matrices
-==============================
+=================
+Zips and Matrices
+=================
 
 In this tutorial, you will learn how to generate a more comprehensive set of
 experiments using zips and matrices. For this tutorial we will use

@@ -8,9 +8,9 @@
 
 .. _changing_a_software_stack_tutorial:
 
-============================
-5) Changing A Software Stack
-============================
+=========================
+Changing A Software Stack
+=========================
 
 In this tutorial, you will learn how to modify an existing workspace
 configuration that contains experiments using

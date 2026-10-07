@@ -8,9 +8,9 @@
 
 .. _modifiers_tutorial:
 
-=============
-10) Modifiers
-=============
+=========
+Modifiers
+=========
 
 In this tutorial, you will learn how to discover modifiers, learn about their
 functionality, and apply them to experiments for

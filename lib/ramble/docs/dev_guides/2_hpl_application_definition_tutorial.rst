@@ -8,9 +8,9 @@
 
 .. _hpl_application_tutorial:
 
-=====================================================
-2) Writing an HPL application definition
-=====================================================
+======================================
+Writing an HPL application definition
+======================================
 
 This tutorial will provide an introduction to writing a more complex
 application definition in Ramble. In this tutorial, you will create and test an

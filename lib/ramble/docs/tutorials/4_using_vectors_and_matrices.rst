@@ -8,9 +8,9 @@
 
 .. _vector_and_matrix_tutorial:
 
-=======================================
-4) Using Vectors and Matrices
-=======================================
+==========================
+Using Vectors and Matrices
+==========================
 
 In this tutorial, you will learn how to utilized vectors and matrices in Ramble
 workspaces. Ramble's vector and matrix variable logic is defined in more detail in
