@@ -43,6 +43,8 @@ class UtilityBase(ObjectMixin, metaclass=DirectiveMeta):
 
         self._file_path = file_path
         self.workspace = None
+        self.app_inst = None
+        self.utility_config = {}
         self.keywords = None
 
         self.object_variants.default_variant(
