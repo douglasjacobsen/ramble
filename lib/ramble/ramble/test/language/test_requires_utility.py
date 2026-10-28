@@ -13,6 +13,7 @@ from ramble.language.language_base import DirectiveMeta
 class MockObject(metaclass=DirectiveMeta):
     name = "mock_obj"
     __module__ = "ramble.app"
+    required_utilities: dict = {}
 
     ramble.language.shared_language.requires_utility(
         name="my_ext_dep",

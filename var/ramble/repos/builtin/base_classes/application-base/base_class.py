@@ -18,7 +18,7 @@ import shutil
 import stat
 import time
 from html import escape
-from typing import Dict
+from typing import Dict, List
 
 import llnl.util.filesystem as fs
 from llnl.util.tty import color
@@ -179,6 +179,8 @@ class ApplicationBase(ObjectMixin, metaclass=DirectiveMeta):
         default=False,
         description="Whether this experiment is run inside a container",
     )
+
+    license_names: List[str] = []
 
     archive_pattern("{experiment_run_dir}/" + ExperimentResult.cache_file_name)
 

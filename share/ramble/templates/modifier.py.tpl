@@ -16,8 +16,8 @@ class {class_name}({base_class}):
     """
 
     name = "{name}"
-    maintainers({maintainers})
-    tags({tags})
+    maintainers = {maintainers}
+    tags = {tags}
 
     # Define mode and target executables
     # mode("pre-exec", target_executable="run_example")

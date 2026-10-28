@@ -8,24 +8,28 @@
 import functools
 import os
 from html import escape
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import ramble.config
 import ramble.definitions.families
 import ramble.variants
 from ramble.definitions.versions import ObjectVersion
 from ramble.error import ObjectValidationError
-from ramble.language.shared_language import SharedMeta
 from ramble.repository import ObjectTypes
 from ramble.util import format
 from ramble.util.logger import logger
 
 
-class ObjectMixin(metaclass=SharedMeta):
+class ObjectMixin:
     """A mixin class for Ramble objects"""
 
     _name = None
-    _language_types = ["shared"]
+
+    #: Lists of strings which contains GitHub usernames of attributes.
+    #: Do not include @ here in order not to unnecessarily ping the users.
+    maintainers: List[str] = []
+    tags: List[str] = []
+
     _verbosity = "short"
 
     def __init__(self, file_path: Optional[str] = None):

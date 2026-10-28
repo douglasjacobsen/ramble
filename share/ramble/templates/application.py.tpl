@@ -17,8 +17,8 @@ class {class_name}({base_class}):
     """
 
     name = "{name}"
-    maintainers({maintainers})
-    tags({tags})
+    maintainers = {maintainers}
+    tags = {tags}
 
     # Define compiler and software dependencies
     # define_compiler("gcc")
