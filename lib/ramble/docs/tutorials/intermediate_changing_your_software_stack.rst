@@ -99,19 +99,19 @@ software packages and environments.
    .. code-block:: console
 
        Software Stack:
-           Template package: gcc14 
+           Template package: gcc14
              spack packages:
-               Rendered package: gcc14 
+               Rendered package: gcc14
                  Spec: gcc@14.2.0
                  Compiler spec: gcc@14.2.0
-           Template package: intel-mpi 
+           Template package: intel-mpi
              spack packages:
-               Rendered package: intel-mpi 
+               Rendered package: intel-mpi
                  Spec: intel-oneapi-mpi@2021.17.2
                  Compiler: gcc14
-           Template package: {pkg_name} 
+           Template package: {pkg_name}
              spack packages:
-               Rendered package: {pkg_name} 
+               Rendered package: {pkg_name}
                  Spec: {pkg_spec}
                  Compiler: gcc14
            Template environment: {app}

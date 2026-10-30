@@ -46,7 +46,7 @@ you want to execute. To begin with, select a workload:
 
        $ ramble info --attrs workloads {app}
 
-   For the purposes of this tutorial, the ``{workload}`` workload is recommended{note_extra}.
+   For the purposes of this tutorial, the ``{workload}`` workload is recommended {note_extra}.
 
    .. note::
       To get more detailed information about the workload definitions, you
